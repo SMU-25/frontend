@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/const/colors.dart';
 import 'package:team_project_front/settings/component/custom_appbar.dart';
+import 'package:team_project_front/settings/view/notification_settings_screen.dart';
 import 'package:team_project_front/settings/view/terms_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -9,7 +10,7 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<Map<String, dynamic>> settingsItems = [
-      {'title': '알림 설정', 'onTap': () {}},
+      {'title': '알림 설정', 'onTap': () => onPressedNotification(context)},
       {'title': '약관', 'onTap': () => onPressedTerms(context)},
       {'title': '버전 정보', 'trailing': '1.0.0', 'onTap': null},
       {'title': '로그아웃', 'onTap': () {}},
@@ -32,6 +33,12 @@ class SettingsScreen extends StatelessWidget {
   void onPressedTerms(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (context) => TermsScreen()),
+    );
+  }
+  
+  void onPressedNotification(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => NotificationSettingsScreen())
     );
   }
 }
