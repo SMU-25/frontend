@@ -8,3 +8,5 @@ const MILD_FEVER_COLOR = Color(0xFFFBBC05);
 const HIGH_FEVER_COLOR = Color(0xFFF2665B);
 // 아이콘 회색 색상
 const ICON_GREY_COLOR = Color(0xFFD9D9D9);
+// input border 색상
+const INPUT_BORDER_COLOR = Color(0xFFB8B8B8);
