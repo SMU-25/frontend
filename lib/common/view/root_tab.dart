@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/component/custom_navigation_bar.dart';
+import 'package:team_project_front/home/view/home.dart';
 import 'package:team_project_front/mypage/view/my_screen.dart';
 import 'package:team_project_front/settings/view/settings_screen.dart';
 
@@ -41,8 +42,7 @@ class _RootTabState extends State<RootTab> with SingleTickerProviderStateMixin {
         physics: NeverScrollableScrollPhysics(),
         controller: controller,
         children: [
-          // HomeScreen()
-          Center(child: Container(child: Text('홈'))),
+          HomeScreen(),
           // HomeCamScreen()
           Center(child: Container(child: Text('홈캠'))),
           // MapScreen()
@@ -68,11 +68,11 @@ class _RootTabState extends State<RootTab> with SingleTickerProviderStateMixin {
   }
 
   AppBar? _buildAppBar() {
-    switch(currentIndex) {
+    switch (currentIndex) {
       case 0:
         return null;
       case 1:
-        return AppBar(title: Text('홈캠'),);
+        return AppBar(title: Text('홈캠'));
       case 2:
         return null;
       case 3:
@@ -81,12 +81,7 @@ class _RootTabState extends State<RootTab> with SingleTickerProviderStateMixin {
         return AppBar(
           title: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(
-              '마이페이지',
-              style: TextStyle(
-                fontWeight: FontWeight.w900,
-              ),
-            ),
+            child: Text('마이페이지', style: TextStyle(fontWeight: FontWeight.w900)),
           ),
           actions: [
             Padding(
@@ -101,9 +96,8 @@ class _RootTabState extends State<RootTab> with SingleTickerProviderStateMixin {
                     Icons.settings,
                     size: 36,
                   ),
-
               ),
-            )
+            ),
           ],
         );
       default:
