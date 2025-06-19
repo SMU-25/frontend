@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/const/colors.dart';
 import 'package:team_project_front/common/view/root_tab.dart';
+import 'package:team_project_front/home/view/home.dart';
+import 'package:team_project_front/init/view/init.dart';
+import 'package:team_project_front/login/view/login.dart';
+import 'package:team_project_front/signup/view/signup_agreement.dart';
 
 void main() {
   runApp(_App());
@@ -18,8 +22,18 @@ class _App extends StatelessWidget {
         splashColor: Colors.transparent,
         highlightColor: Colors.transparent,
       ),
-      home: RootTab(),
+
+      // home: RootTab(),
+      // Named Routes 적용 화면 개발시 initialRoute를 바꿔주면서 진행하면 편리합니다.
+      // ex) login 화면 개발 중이라면 initialRoute: '/login',
+      initialRoute: '/signup',
+      routes: {
+        '/': (context) => InitScreen(),
+        '/home': (context) => RootTab(),
+        '/login': (context) => LoginScreen(),
+        '/signup': (context) => SignupAgreementScreen(),
+        // '/signup/email': (context) => SignupInfoScreen(),
+      },
     );
   }
 }
-
