@@ -32,7 +32,6 @@ class SocialLoginButton extends StatelessWidget {
         backgroundColor: getSocialColor(type),
         shape: const CircleBorder(),
         padding: const EdgeInsets.all(16),
-        elevation: 4,
       ),
       child: Image.asset(src, height: 30, width: 30),
     );

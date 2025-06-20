@@ -12,8 +12,12 @@ class LoginTextButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextButton(
-      style: TextButton.styleFrom(foregroundColor: Colors.grey),
+      style: TextButton.styleFrom(
+        foregroundColor: Colors.grey,
+        textStyle: TextStyle(fontFamily: 'BMJUA'),
+      ),
       onPressed: onPressed,
+
       child: Text(text),
     );
   }
