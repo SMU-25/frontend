@@ -23,8 +23,8 @@ class NavigationButton extends StatelessWidget {
       child: Text(
         text,
         style: TextStyle(
+          fontFamily: 'BMJUA',
           color: Colors.white,
-          fontWeight: FontWeight.bold,
           fontSize: 20,
         ),
       ),
