@@ -29,16 +29,16 @@ class _InitScreenState extends State<InitScreen> {
               '맘편해',
               style: TextStyle(
                 color: MAIN_COLOR,
-                fontWeight: FontWeight.bold,
                 fontSize: 80,
+                fontFamily: 'BMJUA',
               ),
             ),
             Text(
               '우리 아이 체온 관리 앱',
               style: TextStyle(
                 color: MAIN_COLOR,
-                fontWeight: FontWeight.w900,
                 fontSize: 25,
+                fontFamily: 'BMJUA',
               ),
             ),
             SizedBox(height: 200),
