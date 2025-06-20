@@ -89,8 +89,9 @@ flutter:
           weight: 300
         - asset: asset/fonts/NotoSansKR-Thin.otf
           weight: 100
+    - family: BMJUA
+      fonts:
         - asset: asset/fonts/BMJUA_ttf.ttf
-          weight: 700
 
   # To add custom fonts to your application, add a fonts section here,
   # in this "flutter" section. Each entry in this list should have a
