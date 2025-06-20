@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:team_project_front/common/component/custom_navigation_bar.dart';
 import 'package:team_project_front/home/view/home.dart';
 import 'package:team_project_front/mypage/view/my_screen.dart';
+import 'package:team_project_front/settings/view/settings_screen.dart';
 
 class RootTab extends StatefulWidget {
   const RootTab({super.key});
@@ -86,8 +87,15 @@ class _RootTabState extends State<RootTab> with SingleTickerProviderStateMixin {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: IconButton(
-                onPressed: () {},
-                icon: Icon(Icons.settings, size: 36),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => SettingsScreen())
+                    );
+                  },
+                  icon: Icon(
+                    Icons.settings,
+                    size: 36,
+                  ),
               ),
             ),
           ],
