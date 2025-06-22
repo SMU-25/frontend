@@ -8,6 +8,7 @@ class ProfileImageWithAddIcon extends StatelessWidget {
   final double addImageIconSize;
   final double bottom;
   final double right;
+  final double radius;
   final GestureTapCallback? onPressedChangePic;
 
   const ProfileImageWithAddIcon({
@@ -16,6 +17,7 @@ class ProfileImageWithAddIcon extends StatelessWidget {
     required this.addImageIconSize,
     required this.bottom,
     required this.right,
+    required this.radius,
     required this.onPressedChangePic,
     super.key,
   });
@@ -26,7 +28,7 @@ class ProfileImageWithAddIcon extends StatelessWidget {
       children: [
         image != null
             ? CircleAvatar(
-          radius: 70,
+          radius: radius,
           backgroundColor: Colors.white,
           backgroundImage: image != null ? FileImage(image!) : null,
         )

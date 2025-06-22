@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:team_project_front/common/component/custom_input.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
 import 'package:team_project_front/common/const/colors.dart';
+import 'package:team_project_front/common/utils/image_picker_utils.dart';
 import 'package:team_project_front/mypage/component/profile_image_with_add_icon.dart';
 import 'package:team_project_front/mypage/view/add_profile_symptoms_screen.dart';
 import 'package:team_project_front/settings/component/custom_appbar.dart';
@@ -242,8 +243,16 @@ class _AddProfileScreenState extends State<AddProfileScreen> {
     return null;
   }
 
-  GestureTapCallback? onPressedChangePic() {
-    // 이미지 선택 로직 구현 예정
+  Future<void> onPressedChangePic() async {
+    final selectedImage = await pickImageFromGallery();
+
+    if(selectedImage != null) {
+      setState(() {
+        image = selectedImage;
+      });
+    } else {
+      print('사진이 선택되지 않았습니다.');
+    }
   }
 
   @override
@@ -270,6 +279,7 @@ class _AddProfileScreenState extends State<AddProfileScreen> {
                     addImageIconSize: 18,
                     bottom: 0,
                     right: -5,
+                    radius: 50,
                     onPressedChangePic: onPressedChangePic,
                 ),
               ),

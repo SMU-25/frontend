@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:team_project_front/common/const/colors.dart';
+import 'package:team_project_front/common/utils/image_picker_utils.dart';
 import 'package:team_project_front/mypage/component/profile_image_with_add_icon.dart';
 import 'package:team_project_front/mypage/view/add_profile_screen.dart';
 
@@ -15,6 +17,8 @@ class _MyScreenState extends State<MyScreen> {
   File? image;
   List<String> members = ['김준형', '최강민'];
 
+  final ImagePicker picker = ImagePicker();
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -22,7 +26,7 @@ class _MyScreenState extends State<MyScreen> {
         SizedBox(height: 24),
         MyProfile(
           image: image,
-          onPressedChangePic: () {},
+          onPressedChangePic: onPressedChangePic,
           onPressedChangeProfile: () {},
         ),
         SizedBox(height: 36),
@@ -32,6 +36,18 @@ class _MyScreenState extends State<MyScreen> {
         )
       ],
     );
+  }
+
+  Future<void> onPressedChangePic() async {
+    final selectedImage = await pickImageFromGallery();
+
+    if(selectedImage != null) {
+      setState(() {
+        image = selectedImage;
+      });
+    } else {
+      print('사진이 선택되지 않았습니다.');
+    }
   }
   
   void onPressedAdd() {
@@ -63,6 +79,7 @@ class MyProfile extends StatelessWidget {
             addImageIconSize: 24,
             bottom: 0,
             right: 4,
+            radius: 70,
             onPressedChangePic: onPressedChangePic
         ),
         SizedBox(height: 12),
