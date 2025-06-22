@@ -6,7 +6,12 @@ import 'package:team_project_front/mypage/view/my_screen.dart';
 import 'package:team_project_front/settings/view/settings_screen.dart';
 
 class RootTab extends StatefulWidget {
-  const RootTab({super.key});
+  final int initialTabIndex;
+
+  const RootTab({
+    this.initialTabIndex = 0,
+    super.key,
+  });
 
   @override
   State<RootTab> createState() => _RootTabState();
@@ -19,7 +24,12 @@ class _RootTabState extends State<RootTab> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    controller = TabController(length: 5, vsync: this);
+    currentIndex = widget.initialTabIndex;
+    controller = TabController(
+      length: 5,
+      vsync: this,
+      initialIndex: currentIndex,
+    );
     controller.addListener(tabListener);
   }
 
@@ -110,7 +120,7 @@ class _RootTabState extends State<RootTab> with SingleTickerProviderStateMixin {
         return 70.0;
       case 3:  // 캘린더
         return 70.0;
-      case 4:  // 마이페이지
+      case 4:  // 마이
         return 70.0;
       default:
         return 70.0;  // 기본값
