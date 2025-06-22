@@ -4,7 +4,7 @@ import 'package:team_project_front/common/component/complete_dialog.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
 import 'package:team_project_front/common/const/colors.dart';
 import 'package:team_project_front/common/view/root_tab.dart';
-import 'package:team_project_front/mypage/view/add_profile_screen.dart';
+import 'package:team_project_front/mypage/models/profile_info.dart';
 import 'package:team_project_front/settings/component/custom_appbar.dart';
 
 class AddProfileSymptomsScreen extends StatefulWidget {
