@@ -8,6 +8,7 @@ import 'package:team_project_front/common/utils/image_picker_utils.dart';
 import 'package:team_project_front/mypage/component/profile_image_with_add_icon.dart';
 import 'package:team_project_front/mypage/models/profile_info.dart';
 import 'package:team_project_front/mypage/utils/date_picker_utils.dart';
+import 'package:team_project_front/mypage/utils/image_pick_handler.dart';
 import 'package:team_project_front/mypage/utils/validators.dart';
 import 'package:team_project_front/mypage/view/add_profile_symptoms_screen.dart';
 import 'package:team_project_front/settings/component/custom_appbar.dart';
@@ -64,18 +65,6 @@ class _AddProfileScreenState extends State<AddProfileScreen> {
     );
   }
 
-  Future<void> onPressedChangePic() async {
-    final selectedImage = await pickImageFromGallery();
-
-    if(selectedImage != null) {
-      setState(() {
-        image = selectedImage;
-      });
-    } else {
-      print('사진이 선택되지 않았습니다.');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -101,7 +90,14 @@ class _AddProfileScreenState extends State<AddProfileScreen> {
                     bottom: 0,
                     right: -5,
                     radius: 50,
-                    onPressedChangePic: onPressedChangePic,
+                    onPressedChangePic: () => handleImagePick(
+                      context: context,
+                      onImageSelected: (selectedImage) {
+                        setState(() {
+                          image = selectedImage;
+                        });
+                      }
+                    ),
                 ),
               ),
               SizedBox(height: 15),
