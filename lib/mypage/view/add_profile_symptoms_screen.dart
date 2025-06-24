@@ -3,6 +3,8 @@ import 'package:team_project_front/common/component/complete_dialog.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
 import 'package:team_project_front/common/const/colors.dart';
 import 'package:team_project_front/common/view/root_tab.dart';
+import 'package:team_project_front/mypage/component/illness_selctor.dart';
+import 'package:team_project_front/mypage/component/seizure_history_selector.dart';
 import 'package:team_project_front/mypage/models/profile_info.dart';
 import 'package:team_project_front/settings/component/custom_appbar.dart';
 
@@ -105,130 +107,16 @@ class _AddProfileSymptomsScreenState extends State<AddProfileSymptomsScreen> {
                 ),
               ),
               SizedBox(height: 20),
-              Text(
-                '열성경련 이력',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              SizedBox(height: 15),
-              Row(
-                children: [
-                  for (int i = 0; i < seizureOptions.length; i++) ...[
-                    Expanded(
-                      child: SizedBox(
-                        height: 60,
-                        child: ElevatedButton(
-                          onPressed: () => setState(() {
-                            seizure = seizureOptions[i];
-                          }),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: seizure == seizureOptions[i]
-                                ? MAIN_COLOR.withValues(alpha: 0.13)
-                                : Theme.of(context).scaffoldBackgroundColor,
-                            foregroundColor: seizure == seizureOptions[i]
-                                ? MAIN_COLOR
-                                : Colors.black54,
-                            side: BorderSide(
-                              color: seizure == seizureOptions[i]
-                                  ? MAIN_COLOR
-                                  : ICON_GREY_COLOR,
-                              width: 1.5,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            elevation: 0,
-                          ).copyWith(
-                            overlayColor: WidgetStateProperty.all(Colors.transparent),
-                            splashFactory: NoSplash.splashFactory,
-                            animationDuration: Duration.zero,
-                            shadowColor: WidgetStateProperty.all(Colors.transparent),
-                          ),
-                          child: Text(
-                            seizureOptions[i],
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (i != 2) SizedBox(width: 12), // 버튼 사이 간격
-                  ]
-                ],
+              SeizureHistorySelector(
+                selected: seizure,
+                options: seizureOptions,
+                onSelected: (val) => setState(() => seizure = val),
               ),
               SizedBox(height: 20),
-              Text(
-                '진단받은 질환',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              SizedBox(height: 15),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final buttonWidth = (constraints.maxWidth - 20) / 3; // 한 줄 3개 + spacing 고려
-
-                  return Wrap(
-                    spacing: 10,
-                    runSpacing: 15,
-                    children: [
-                      for (String illness in illnesses)
-                        SizedBox(
-                          width: illness == '해당 없음'
-                              ? constraints.maxWidth // 전체 너비
-                              : buttonWidth,
-                          height: 60,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                if(illness == '해당 없음') {
-                                  selectedIllness = {'해당 없음'};
-                                } else {
-                                  selectedIllness.remove('해당 없음');
-                                  if(selectedIllness.contains(illness)) {
-                                    selectedIllness.remove(illness);
-                                  } else {
-                                    selectedIllness.add(illness);
-                                  }
-                                }
-                              });
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: selectedIllness.contains(illness)
-                                  ? MAIN_COLOR.withValues(alpha: 0.13)
-                                  : Theme.of(context).scaffoldBackgroundColor,
-                              foregroundColor: selectedIllness.contains(illness)
-                                  ? MAIN_COLOR
-                                  : Colors.black54,
-                              side: BorderSide(
-                                color: selectedIllness.contains(illness)
-                                    ? MAIN_COLOR
-                                    : ICON_GREY_COLOR,
-                                width: 1.5,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              elevation: 0,
-                            ).copyWith(
-                              overlayColor: WidgetStateProperty.all(Colors.transparent),
-                              splashFactory: NoSplash.splashFactory,
-                              animationDuration: Duration.zero,
-                              shadowColor: WidgetStateProperty.all(Colors.transparent),
-                            ),
-                            child: Text(
-                              getDisplayText(illness),
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 15, fontWeight: FontWeight.w700),
-                            ),
-                          ),
-                        ),
-                    ],
-                  );
-                },
+              IllnessSelector(
+                illnesses: illnesses,
+                selectedIllnesses: selectedIllness,
+                onSelectionChanged: (newSet) => setState(() => selectedIllness = newSet),
               ),
             ],
           )
