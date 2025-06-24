@@ -8,6 +8,7 @@ import 'package:team_project_front/common/utils/image_picker_utils.dart';
 import 'package:team_project_front/mypage/component/profile_image_with_add_icon.dart';
 import 'package:team_project_front/mypage/models/profile_info.dart';
 import 'package:team_project_front/mypage/utils/date_picker_utils.dart';
+import 'package:team_project_front/mypage/utils/validators.dart';
 import 'package:team_project_front/mypage/view/add_profile_symptoms_screen.dart';
 import 'package:team_project_front/settings/component/custom_appbar.dart';
 
@@ -61,24 +62,6 @@ class _AddProfileScreenState extends State<AddProfileScreen> {
         profileInfo: profileInfo,
       )),
     );
-  }
-
-  String? validateHeight(String? value) {
-    if (value == null || value.isEmpty) return '값을 입력해주세요';
-    final parsed = double.tryParse(value);
-    if (parsed == null) return '숫자만 입력해주세요';
-    if (parsed < 0 || parsed > 200) return '0~200 사이로 입력해주세요';
-    if (!RegExp(r'^\d{1,3}(\.\d)?$').hasMatch(value)) return '소수 첫째자리까지 입력해주세요';
-    return null;
-  }
-
-  String? validateWeight(String? value) {
-    if (value == null || value.isEmpty) return '값을 입력해주세요';
-    final parsed = double.tryParse(value);
-    if (parsed == null) return '숫자만 입력해주세요';
-    if (parsed < 0 || parsed > 100) return '0~100 사이로 입력해주세요';
-    if (!RegExp(r'^\d{1,3}(\.\d)?$').hasMatch(value)) return '소수 첫째자리까지 입력해주세요';
-    return null;
   }
 
   Future<void> onPressedChangePic() async {
