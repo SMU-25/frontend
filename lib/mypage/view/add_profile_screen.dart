@@ -7,6 +7,7 @@ import 'package:team_project_front/common/const/colors.dart';
 import 'package:team_project_front/common/utils/image_picker_utils.dart';
 import 'package:team_project_front/mypage/component/profile_image_with_add_icon.dart';
 import 'package:team_project_front/mypage/models/profile_info.dart';
+import 'package:team_project_front/mypage/utils/date_picker_utils.dart';
 import 'package:team_project_front/mypage/view/add_profile_symptoms_screen.dart';
 import 'package:team_project_front/settings/component/custom_appbar.dart';
 
@@ -61,118 +62,6 @@ class _AddProfileScreenState extends State<AddProfileScreen> {
       )),
     );
   }
-
-  void selectedYear() {
-    final currentYear = DateTime.now().year;
-    final years = List.generate(100, (index) => (currentYear - index).toString());
-
-    showCupertinoModalPopup(
-      context: context,
-      builder: (_) => Container(
-        height: 250,
-        color: Colors.white,
-        child: Column(
-          children: [
-            Expanded(
-              child: CupertinoPicker(
-                scrollController: FixedExtentScrollController(
-                  initialItem: yearText != null
-                    ? years.indexOf(yearText!)
-                    : 0,
-                ),
-                itemExtent: 40,
-                onSelectedItemChanged: (index) {
-                  setState(() {
-                    yearText = years[index];
-                  });
-                },
-                children: years.map((y) => Center(child: Text('$y년'))).toList(),
-              ),
-            ),
-            CupertinoButton(
-              child: Text('확인'),
-              onPressed: () => Navigator.pop(context),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-
-
-  void selectMonth() {
-    final months = List.generate(12, (i) => (i + 1).toString().padLeft(2, '0'));
-
-    showCupertinoModalPopup(
-      context: context,
-      builder: (_) => Container(
-        height: 250,
-        color: Colors.white,
-        child: Column(
-          children: [
-            Expanded(
-              child: CupertinoPicker(
-                scrollController: FixedExtentScrollController(
-                  initialItem: monthText != null
-                      ? months.indexOf(monthText!)
-                      : 0,
-                ),
-                itemExtent: 40,
-                onSelectedItemChanged: (index) {
-                  setState(() {
-                    monthText = months[index];
-                  });
-                },
-                children: months.map((m) => Center(child: Text('$m월'))).toList(),
-              ),
-            ),
-            CupertinoButton(
-              child: Text('확인'),
-              onPressed: () => Navigator.pop(context),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-
-
-  void selectDay() {
-    final days = List.generate(31, (i) => (i + 1).toString().padLeft(2, '0'));
-
-    showCupertinoModalPopup(
-      context: context,
-      builder: (_) => Container(
-        height: 250,
-        color: Colors.white,
-        child: Column(
-          children: [
-            Expanded(
-              child: CupertinoPicker(
-                scrollController: FixedExtentScrollController(
-                  initialItem: dayText != null
-                      ? days.indexOf(dayText!)
-                      : 0,
-                ),
-                itemExtent: 40,
-                onSelectedItemChanged: (index) {
-                  setState(() {
-                    dayText = days[index];
-                  });
-                },
-                children: days.map((d) => Center(child: Text('$d일'))).toList(),
-              ),
-            ),
-            CupertinoButton(
-              child: Text('확인'),
-              onPressed: () => Navigator.pop(context),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-
 
   String? validateHeight(String? value) {
     if (value == null || value.isEmpty) return '값을 입력해주세요';
@@ -278,7 +167,11 @@ class _AddProfileScreenState extends State<AddProfileScreen> {
                 children: [
                   Expanded(
                     child: GestureDetector(
-                      onTap: selectedYear,
+                      onTap: () => showYearPicker(
+                        context: context,
+                        initialYear: yearText,
+                        onSelected: (val) => setState(() => yearText = val),
+                      ),
                       child: AbsorbPointer(
                         child: TextFormField(
                           textAlign: TextAlign.center,
@@ -306,7 +199,11 @@ class _AddProfileScreenState extends State<AddProfileScreen> {
                   SizedBox(width: 10),
                   Expanded(
                     child: GestureDetector(
-                      onTap: selectMonth,
+                      onTap: () => showMonthPicker(
+                        context: context,
+                        initialMonth: monthText,
+                        onSelected: (val) => setState(() => monthText = val),
+                      ),
                       child: AbsorbPointer(
                         child: TextFormField(
                           textAlign: TextAlign.center,
@@ -334,7 +231,11 @@ class _AddProfileScreenState extends State<AddProfileScreen> {
                   SizedBox(width: 10),
                   Expanded(
                     child: GestureDetector(
-                      onTap: selectDay,
+                      onTap: () => showDayPicker(
+                        context: context,
+                        initialDay: dayText,
+                        onSelected: (val) => setState(() => dayText = val),
+                      ),
                       child: AbsorbPointer(
                         child: TextFormField(
                           textAlign: TextAlign.center,
