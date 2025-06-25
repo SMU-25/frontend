@@ -1,6 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:team_project_front/common/const/colors.dart';
+import 'package:team_project_front/mypage/component/profile_image_with_add_icon.dart';
+import 'package:team_project_front/mypage/utils/image_pick_handler.dart';
+import 'package:team_project_front/mypage/view/add_profile_screen.dart';
 
 class MyScreen extends StatefulWidget {
   const MyScreen({super.key});
@@ -13,6 +17,8 @@ class _MyScreenState extends State<MyScreen> {
   File? image;
   List<String> members = ['김준형', '최강민'];
 
+  final ImagePicker picker = ImagePicker();
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -20,15 +26,28 @@ class _MyScreenState extends State<MyScreen> {
         SizedBox(height: 24),
         MyProfile(
           image: image,
-          onPressedChangePic: () {},
+          onPressedChangePic: () => handleImagePick(
+            context: context,
+            onImageSelected: (selectedImage) {
+              setState(() {
+                image = selectedImage;
+              });
+            },
+          ),
           onPressedChangeProfile: () {},
         ),
         SizedBox(height: 36),
         FamilyProfile(
             members: members,
-            onPressedAdd: () {},
+            onPressedAdd: onPressedAdd,
         )
       ],
+    );
+  }
+  
+  void onPressedAdd() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => AddProfileScreen())
     );
   }
 }
@@ -49,36 +68,14 @@ class MyProfile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Stack(
-          children: [
-            image != null ? CircleAvatar(
-              radius: 70,
-              backgroundColor: Colors.white,
-              backgroundImage: image != null ? FileImage(image!) : null,
-            ) : Icon(
-              Icons.account_circle,
-              size: 140,
-              color: ICON_GREY_COLOR,
-            ),
-            Positioned(
-              bottom: 0,
-              right: 4,
-              child: GestureDetector(
-                onTap: onPressedChangePic,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.add_a_photo,
-                    color: ICON_GREY_COLOR,
-                  ),
-                ),
-              ),
-            ),
-          ],
+        ProfileImageWithAddIcon(
+            image: image,
+            profileIconSize: 140,
+            addImageIconSize: 24,
+            bottom: 0,
+            right: 4,
+            radius: 70,
+            onPressedChangePic: onPressedChangePic
         ),
         SizedBox(height: 12),
         Text(
