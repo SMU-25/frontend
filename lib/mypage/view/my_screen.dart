@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:team_project_front/common/const/colors.dart';
 import 'package:team_project_front/mypage/component/profile_image_with_add_icon.dart';
+import 'package:team_project_front/mypage/models/profile_info.dart';
 import 'package:team_project_front/mypage/utils/image_pick_handler.dart';
 import 'package:team_project_front/mypage/view/add_profile_screen.dart';
+import 'package:team_project_front/mypage/view/edit_baby_profile.dart';
+import 'package:team_project_front/mypage/view/edit_my_profile.dart';
 
 class MyScreen extends StatefulWidget {
   const MyScreen({super.key});
@@ -15,9 +18,35 @@ class MyScreen extends StatefulWidget {
 
 class _MyScreenState extends State<MyScreen> {
   File? image;
-  List<String> members = ['김준형', '최강민'];
-
   final ImagePicker picker = ImagePicker();
+
+  // 더미 ProfileInfo 리스트로 관리
+  List<ProfileInfo> members = [
+    ProfileInfo(
+      name: '김준형',
+      birthYear: '2020',
+      birthMonth: '01',
+      birthDay: '15',
+      height: 90.5,
+      weight: 12.3,
+      gender: '남자',
+      seizureHistory: '모름',
+      illnessList: ['해당 없음'],
+      image: null,
+    ),
+    ProfileInfo(
+      name: '최강민',
+      birthYear: '2021',
+      birthMonth: '06',
+      birthDay: '03',
+      height: 87.0,
+      weight: 11.0,
+      gender: '여자',
+      seizureHistory: '없음',
+      illnessList: ['아토피'],
+      image: null,
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -34,20 +63,33 @@ class _MyScreenState extends State<MyScreen> {
               });
             },
           ),
-          onPressedChangeProfile: () {},
+          onPressedChangeProfile: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => EditMyProfile())
+            );
+          },
         ),
         SizedBox(height: 36),
         FamilyProfile(
-            members: members,
-            onPressedAdd: onPressedAdd,
+          members: members,
+          onPressedAdd: onPressedAdd,
+          onPressedEditBabyProfile: onPressedEditBabyProfile,
         )
       ],
     );
   }
-  
+
   void onPressedAdd() {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => AddProfileScreen())
+      MaterialPageRoute(builder: (context) => AddProfileScreen()),
+    );
+  }
+
+  void onPressedEditBabyProfile(ProfileInfo profile) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => EditBabyProfile(profileInfo: profile),
+      ),
     );
   }
 }
@@ -69,17 +111,17 @@ class MyProfile extends StatelessWidget {
     return Column(
       children: [
         ProfileImageWithAddIcon(
-            image: image,
-            profileIconSize: 140,
-            addImageIconSize: 24,
-            bottom: 0,
-            right: 4,
-            radius: 70,
-            onPressedChangePic: onPressedChangePic
+          image: image,
+          profileIconSize: 140,
+          addImageIconSize: 24,
+          bottom: 0,
+          right: 4,
+          radius: 70,
+          onPressedChangePic: onPressedChangePic,
         ),
         SizedBox(height: 12),
         Text(
-          '보호자',
+          '홍길동',
           style: TextStyle(
             fontWeight: FontWeight.w900,
             fontSize: 24,
@@ -107,23 +149,23 @@ class MyProfile extends StatelessWidget {
           ),
           child: Text(
             '내 정보 수정',
-            style: TextStyle(
-              fontSize: 16,
-            ),
+            style: TextStyle(fontSize: 16),
           ),
-        )
+        ),
       ],
     );
   }
 }
 
 class FamilyProfile extends StatelessWidget {
-  List<String> members;
+  List<ProfileInfo> members;
   final GestureTapCallback? onPressedAdd;
+  final void Function(ProfileInfo)? onPressedEditBabyProfile;
 
   FamilyProfile({
     required this.members,
     required this.onPressedAdd,
+    this.onPressedEditBabyProfile,
     super.key,
   });
 
@@ -155,22 +197,23 @@ class FamilyProfile extends StatelessWidget {
           padding: EdgeInsets.only(left: 48),
           child: Row(
             children: [
-              ...members.map((name) =>
-                  Padding(
-                    padding: EdgeInsets.only(right: 24),
-                    child: Column(
-                      children: [
-                        CircleAvatar(
-                          radius: 30,
-                          backgroundColor: Colors.transparent,
-                          child: Icon(Icons.account_circle, size: 60, color: ICON_GREY_COLOR),
-                        ),
-                        SizedBox(height: 8,),
-                        Text(name),
-                      ],
-                    ),
+              ...members.map((profile) => Padding(
+                padding: EdgeInsets.only(right: 24),
+                child: GestureDetector(
+                  onTap: () => onPressedEditBabyProfile?.call(profile),
+                  child: Column(
+                    children: [
+                      CircleAvatar(
+                        radius: 30,
+                        backgroundColor: Colors.transparent,
+                        child: Icon(Icons.account_circle, size: 60, color: ICON_GREY_COLOR),
+                      ),
+                      SizedBox(height: 8),
+                      Text(profile.name),
+                    ],
                   ),
-              ),
+                ),
+              )),
               Column(
                 children: [
                   CircleAvatar(
@@ -181,10 +224,10 @@ class FamilyProfile extends StatelessWidget {
                       child: Icon(Icons.add_circle, size: 60, color: ICON_GREY_COLOR),
                     ),
                   ),
-                  SizedBox(height: 8,),
+                  SizedBox(height: 8),
                   Text('추가하기'),
                 ],
-              )
+              ),
             ],
           ),
         ),
@@ -193,7 +236,7 @@ class FamilyProfile extends StatelessWidget {
           height: 1.0,
           width: MediaQuery.of(context).size.width / 1.2,
           color: ICON_GREY_COLOR,
-        )
+        ),
       ],
     );
   }

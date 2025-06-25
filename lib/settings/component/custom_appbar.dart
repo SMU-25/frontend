@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 
 class CustomAppbar extends StatelessWidget {
   final String title;
+  final List<Widget>? actions;
 
   const CustomAppbar({
     required this.title,
+    this.actions,
     super.key,
   });
 
@@ -14,6 +16,7 @@ class CustomAppbar extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         AppBar(
+          toolbarHeight: 70,
           iconTheme: IconThemeData(
             size: 30,
             color: Colors.black,
@@ -32,6 +35,7 @@ class CustomAppbar extends StatelessWidget {
             ),
           ),
           centerTitle: true,
+          actions: actions,
         ),
       ],
     );

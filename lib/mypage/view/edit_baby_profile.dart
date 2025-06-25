@@ -1,0 +1,234 @@
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:team_project_front/common/component/navigation_button.dart';
+import 'package:team_project_front/common/component/yes_or_no_dialog.dart';
+import 'package:team_project_front/common/const/colors.dart';
+import 'package:team_project_front/common/view/root_tab.dart';
+import 'package:team_project_front/mypage/component/illness_selctor.dart';
+import 'package:team_project_front/mypage/component/profile_birth_input.dart';
+import 'package:team_project_front/mypage/component/profile_body_info_input.dart';
+import 'package:team_project_front/mypage/component/profile_gender_selector.dart';
+import 'package:team_project_front/mypage/component/profile_image_with_add_icon.dart';
+import 'package:team_project_front/mypage/component/profile_name_input.dart';
+import 'package:team_project_front/mypage/component/seizure_history_selector.dart';
+import 'package:team_project_front/mypage/models/profile_info.dart';
+import 'package:team_project_front/mypage/utils/image_pick_handler.dart';
+import 'package:team_project_front/mypage/utils/validators.dart';
+import 'package:team_project_front/settings/component/custom_appbar.dart';
+
+class EditBabyProfile extends StatefulWidget {
+  final ProfileInfo profileInfo;
+
+  const EditBabyProfile({
+    required this.profileInfo,
+    super.key,
+  });
+
+  @override
+  State<EditBabyProfile> createState() => _EditBabyProfileState();
+}
+
+class _EditBabyProfileState extends State<EditBabyProfile> {
+  late final TextEditingController nameController;
+  late final TextEditingController heightController;
+  late final TextEditingController weightController;
+
+  late String? yearText;
+  late String? monthText;
+  late String? dayText;
+  late String? gender;
+  File? image;
+  String? seizure;
+  Set<String> selectedIllness = {};
+
+  final List<String> illnesses = [
+    '해당 없음', '아토피', '천식', '뇌전증',
+    '고혈압', '심장 질환', '폐 질환',
+    '간 질환', '신장 질환', '면역력 저하',
+  ];
+
+  final List<String> seizureOptions = ['있음', '없음', '모름'];
+
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    final p = widget.profileInfo;
+
+    nameController = TextEditingController(text: p.name);
+    heightController = TextEditingController(text: p.height.toString());
+    weightController = TextEditingController(text: p.weight.toString());
+
+    yearText = p.birthYear;
+    monthText = p.birthMonth;
+    dayText = p.birthDay;
+    gender = p.gender;
+    image = p.image;
+
+    seizure = p.seizureHistory;
+    selectedIllness = {...?p.illnessList};
+  }
+
+  bool get isFormValid {
+    return _formKey.currentState?.validate() == true &&
+        yearText != null &&
+        monthText != null &&
+        dayText != null &&
+        gender != null &&
+        seizure != null;
+  }
+
+  void onNextPressed() {
+    final updatedProfile = ProfileInfo(
+      name: nameController.text,
+      birthYear: yearText!,
+      birthMonth: monthText!,
+      birthDay: dayText!,
+      height: double.tryParse(heightController.text) ?? 0,
+      weight: double.tryParse(weightController.text) ?? 0,
+      gender: gender!,
+      seizureHistory: seizure,
+      illnessList: selectedIllness.toList(),
+      image: image,
+    );
+
+    Navigator.of(context).pop();
+
+    // API 호출, 상태 저장 등 원하는 로직 작성 예정
+  }
+
+  void onPressedProfileDelete(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => YesOrNoDialog(
+        title: '${nameController.text} 프로필 삭제',
+        content:
+        '${nameController.text}의 모든 데이터가 삭제되며\n'
+            '복구가 불가능합니다.\n'
+            '정말 삭제하시겠습니까?',
+        onPressedYes: () {
+          // 프로필 삭제 처리 로직 구현 예정
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => RootTab(initialTabIndex: 4)),
+                (route) => false,
+          );
+        },
+        yesText: '확인',
+        noText: '취소',
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(90),
+        child: CustomAppbar(
+          title: '프로필 수정',
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 12.0),
+              child: TextButton(
+                onPressed: () {
+                  onPressedProfileDelete(context);
+                },
+                child: Text(
+                  '프로필\n삭제',
+                  style: TextStyle(
+                    color: HIGH_FEVER_COLOR,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            )
+          ],
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(horizontal: 30),
+        child: Form(
+          key: _formKey,
+          onChanged: () => setState(() {}),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: ProfileImageWithAddIcon(
+                  image: image,
+                  profileIconSize: 90,
+                  addImageIconSize: 18,
+                  bottom: 0,
+                  right: -5,
+                  radius: 50,
+                  onPressedChangePic: () => handleImagePick(
+                    context: context,
+                    onImageSelected: (selectedImage) {
+                      setState(() {
+                        image = selectedImage;
+                      });
+                    },
+                  ),
+                ),
+              ),
+              SizedBox(height: 15),
+              Text(
+                '우리 아이 정보를 알려주세요',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              SizedBox(height: 20),
+              ProfileNameInput(controller: nameController),
+              SizedBox(height: 20),
+              ProfileBirthInput(
+                yearText: yearText,
+                monthText: monthText,
+                dayText: dayText,
+                onYearSelected: (val) => setState(() => yearText = val),
+                onMonthSelected: (val) => setState(() => monthText = val),
+                onDaySelected: (val) => setState(() => dayText = val),
+              ),
+              SizedBox(height: 20),
+              ProfileBodyInfoInput(
+                heightController: heightController,
+                weightController: weightController,
+                validateHeight: validateHeight,
+                validateWeight: validateWeight,
+              ),
+              SizedBox(height: 20),
+              ProfileGenderSelector(
+                selectedGender: gender,
+                onGenderSelected: (val) => setState(() => gender = val),
+              ),
+              SizedBox(height: 20),
+              SeizureHistorySelector(
+                selected: seizure,
+                options: seizureOptions,
+                onSelected: (val) => setState(() => seizure = val),
+              ),
+              SizedBox(height: 20),
+              IllnessSelector(
+                illnesses: illnesses,
+                selectedIllnesses: selectedIllness,
+                onSelectionChanged: (newSet) => setState(() => selectedIllness = newSet),
+              ),
+              SizedBox(height: 40),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: Padding(
+        padding: EdgeInsets.fromLTRB(16, 0, 16, 24),
+        child: NavigationButton(
+          text: '수정 완료',
+          onPressed: isFormValid ? onNextPressed : null,
+        ),
+      )
+    );
+  }
+}
