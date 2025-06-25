@@ -10,6 +10,7 @@ class TermsScreen extends StatelessWidget {
     final List<Map<String, dynamic>> settingsItems = [
       {'title': '서비스 이용약관', 'onTap': () {}},
       {'title': '개인정보 처리방침', 'onTap': () => {}},
+      {'title': '민감정보 처리방침', 'onTap': () {}},
       {'title': '위치정보 서비스 이용약관', 'onTap': () {}},
     ];
 

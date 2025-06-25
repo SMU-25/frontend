@@ -24,13 +24,14 @@ class CustomAppbar extends StatelessWidget {
             },
             icon: Icon(Icons.arrow_back_ios_new),
           ),
-          title: Text(title),
-          centerTitle: true,
-          titleTextStyle: TextStyle(
-            fontSize: 25,
-            color: Colors.black,
-            fontWeight: FontWeight.w900,
+          title: Text(
+            title,
+            style: TextStyle(
+              fontSize: 25,
+              fontWeight: FontWeight.w900,
+            ),
           ),
+          centerTitle: true,
         ),
       ],
     );
