@@ -7,30 +7,9 @@ import 'package:team_project_front/mypage/component/profile_birth_input.dart';
 import 'package:team_project_front/mypage/component/profile_gender_selector.dart';
 import 'package:team_project_front/mypage/component/profile_image_with_add_icon.dart';
 import 'package:team_project_front/mypage/component/profile_name_input.dart';
+import 'package:team_project_front/mypage/models/guardian_profile.dart';
 import 'package:team_project_front/mypage/utils/image_pick_handler.dart';
 import 'package:team_project_front/settings/component/custom_appbar.dart';
-
-class GuardianProfile {
-  final String name;
-  final String birthYear;
-  final String birthMonth;
-  final String birthDay;
-  final String gender;
-  final File? image;
-  final String email;
-  final String password;
-
-  GuardianProfile({
-    required this.name,
-    required this.birthYear,
-    required this.birthMonth,
-    required this.birthDay,
-    required this.gender,
-    this.image,
-    required this.email,
-    required this.password,
-  });
-}
 
 class EditMyProfile extends StatefulWidget {
   const EditMyProfile({super.key});
