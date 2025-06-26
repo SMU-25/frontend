@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
 import 'package:team_project_front/common/const/colors.dart';
+import 'package:team_project_front/report/component/custom_text_input.dart';
 import 'package:team_project_front/report/view/symptom_summary_dialog.dart';
 import 'package:team_project_front/settings/component/custom_appbar.dart';
 
@@ -166,20 +167,9 @@ class _CreateReportState extends State<CreateReport> {
                 style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)
               ),
               SizedBox(height: 15),
-              TextFormField(
+              CustomTextFormField(
                 controller: etcController,
-                decoration: InputDecoration(
-                  hintText: '기타 추가 증상을 입력해주세요',
-                  hintStyle: TextStyle(color: INPUT_BORDER_COLOR, fontWeight: FontWeight.w500),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide(color: MAIN_COLOR, width: 1.5),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide(color: MAIN_COLOR.withValues(alpha: 0.5), width: 4),
-                  )
-                ),
+                hintText: '기타 추가 증상을 입력해주세요',
               ),
               SizedBox(height: 20),
               Row(
@@ -200,20 +190,9 @@ class _CreateReportState extends State<CreateReport> {
                 ],
               ),
               SizedBox(height: 15),
-              TextFormField(
+              CustomTextFormField(
                 controller: outingController,
-                decoration: InputDecoration(
-                    hintText: '가장 최근 외출 기록을 자세히 입력해주세요',
-                    hintStyle: TextStyle(color: INPUT_BORDER_COLOR, fontWeight: FontWeight.w500),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      borderSide: BorderSide(color: MAIN_COLOR, width: 1.5),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      borderSide: BorderSide(color: MAIN_COLOR.withValues(alpha: 0.5), width: 4),
-                    )
-                ),
+                hintText: '가장 최근 외출 기록을 자세히 입력해주세요',
               ),
               SizedBox(height: 10),
               Text(
