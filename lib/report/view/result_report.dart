@@ -142,7 +142,23 @@ class ResultReport extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
             ),
             SizedBox(height: 30),
-            TemperatureChartWidget(),
+            TemperatureChartWidget(chartType: ChartType.bodyTemp),
+            SizedBox(height: 40),
+            Center(
+              child: Text(
+                '발열 시점 이후 방 온도',
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+            ),
+            SizedBox(height: 30),
+            TemperatureChartWidget(chartType: ChartType.roomTemp),
+            SizedBox(height: 40),
+            Center(
+              child: Text(
+                '발열 시점 이후 방 습도',
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+            ),
+            SizedBox(height: 30),
+            TemperatureChartWidget(chartType: ChartType.humidity),
             SizedBox(height: 40),
           ],
         ),
