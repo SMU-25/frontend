@@ -69,96 +69,31 @@ class _CreateReportState extends State<CreateReport> {
                 '아이의 현재 증상을 선택해주세요',
                 style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
               SizedBox(height: 20),
-              Text(
-                '자주 일어나는 증상',
-                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
-              SizedBox(height: 15),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: frequentSymptoms.map((symptom) {
-                  final isSelected = selectedSymptoms.contains(symptom);
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        isSelected
-                          ? selectedSymptoms.remove(symptom)
-                          : selectedSymptoms.add(symptom);
-                      });
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                          ? MAIN_COLOR
-                          : MAIN_COLOR.withValues(alpha: 0.18),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        symptom,
-                        style: TextStyle(
-                          color: isSelected ? Colors.white : Colors.black,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
+              FrequentSymptomsWidget(
+                symptoms: frequentSymptoms,
+                selectedSymptoms: selectedSymptoms,
+                onTap: (symptom) {
+                  setState(() {
+                    if (selectedSymptoms.contains(symptom)) {
+                      selectedSymptoms.remove(symptom);
+                    } else {
+                      selectedSymptoms.add(symptom);
+                    }
+                  });
+                },
               ),
               SizedBox(height: 30),
-              Text('전체 증상',
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)
-              ),
-              SizedBox(height: 10),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: allSymptoms.length,
-                itemBuilder: (context, index) {
-                  final symptom = allSymptoms[index];
-                  final isSelected = selectedSymptoms.contains(symptom);
-
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        isSelected
-                          ? selectedSymptoms.remove(symptom)
-                          : selectedSymptoms.add(symptom);
-                      });
-                    },
-                    child: Container(
-                      margin: EdgeInsets.symmetric(vertical: 6),
-                      padding: EdgeInsets.symmetric(vertical: 14, horizontal: 18),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                          ? MAIN_COLOR.withValues(alpha: 0.18)
-                          : Colors.white,
-                        border: Border.all(
-                          color: isSelected ? MAIN_COLOR : Colors.black12,
-                        ),
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: Row(
-                        children: [
-                          Image.asset(
-                            'asset/img/symptoms/$index.png',
-                            width: 32,
-                            height: 32,
-                          ),
-                          SizedBox(width: 16),
-                          Text(
-                            symptom,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
+              AllSymptomsWidget(
+                symptoms: allSymptoms,
+                selectedSymptoms: selectedSymptoms,
+                onTap: (symptom) {
+                  setState(() {
+                    if (selectedSymptoms.contains(symptom)) {
+                      selectedSymptoms.remove(symptom);
+                    } else {
+                      selectedSymptoms.add(symptom);
+                    }
+                  });
                 },
               ),
               SizedBox(height: 20),
@@ -211,6 +146,131 @@ class _CreateReportState extends State<CreateReport> {
           onPressed: isFormValid ? onNextPressed : null,
         ),
       ),
+    );
+  }
+}
+
+class FrequentSymptomsWidget extends StatelessWidget {
+  final List<String> symptoms;
+  final Set<String> selectedSymptoms;
+  final void Function(String symptom) onTap;
+
+  const FrequentSymptomsWidget({
+    super.key,
+    required this.symptoms,
+    required this.selectedSymptoms,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '자주 일어나는 증상',
+          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+        ),
+        SizedBox(height: 15),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: symptoms.map((symptom) {
+            final isSelected = selectedSymptoms.contains(symptom);
+            return GestureDetector(
+              onTap: () => onTap(symptom),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? MAIN_COLOR
+                      : MAIN_COLOR.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  symptom,
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : Colors.black,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+}
+
+class AllSymptomsWidget extends StatelessWidget {
+  final List<String> symptoms;
+  final Set<String> selectedSymptoms;
+  final void Function(String symptom) onTap;
+
+  const AllSymptomsWidget({
+    super.key,
+    required this.symptoms,
+    required this.selectedSymptoms,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '전체 증상',
+          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+        ),
+        SizedBox(height: 10),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          itemCount: symptoms.length,
+          itemBuilder: (context, index) {
+            final symptom = symptoms[index];
+            final isSelected = selectedSymptoms.contains(symptom);
+
+            return GestureDetector(
+              onTap: () => onTap(symptom),
+              child: Container(
+                margin: EdgeInsets.symmetric(vertical: 6),
+                padding: EdgeInsets.symmetric(vertical: 14, horizontal: 18),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? MAIN_COLOR.withValues(alpha: 0.18)
+                      : Colors.white,
+                  border: Border.all(
+                    color: isSelected ? MAIN_COLOR : Colors.black12,
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Row(
+                  children: [
+                    Image.asset(
+                      'asset/img/symptoms/$index.png',
+                      width: 32,
+                      height: 32,
+                    ),
+                    SizedBox(width: 16),
+                    Text(
+                      symptom,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 }
