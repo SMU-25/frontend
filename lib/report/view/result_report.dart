@@ -42,124 +42,22 @@ class ResultReport extends StatelessWidget {
               ),
             ),
             SizedBox(height: 15),
-            Text(
-              '아이의 증상',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: selectedSymptoms.map((symptom) {
-                return Chip(
-                  avatar: Image.asset(
-                    'asset/img/symptoms/${allSymptoms.indexOf(symptom)}.png',
-                    width: 24, height: 24,
-                  ),
-                  label: Text(symptom),
-                  backgroundColor: MAIN_COLOR.withValues(alpha: 0.18),
-                  shape: StadiumBorder(
-                    side: BorderSide(color: MAIN_COLOR),
-                  ),
-                );
-              }).toList(),
+            _ChildSymptomsWidget(
+              selectedSymptoms: selectedSymptoms,
+              allSymptoms: allSymptoms,
             ),
             SizedBox(height: 20),
             if (etcSymptom.trim().isNotEmpty) ...[
-              Text('기타 증상',
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
-              SizedBox(height: 8),
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: MAIN_COLOR.withValues(alpha: 0.5),
-                    width: 4,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Text(etcSymptom),
-              ),
+              _EtcSymptomsWidget(etcSymptom: etcSymptom),
             ],
             SizedBox(height: 20),
-            Text('이전 진단 질환',
-                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+            _DiagnosisWidget(illnesses: illnesses),
             SizedBox(height: 10),
-            Wrap(
-              spacing: 10,
-              children: illnesses.map((illness) {
-                return Chip(
-                  label: Text(illness),
-                  labelStyle: TextStyle(fontWeight: FontWeight.w900),
-                  backgroundColor: MAIN_COLOR.withValues(alpha: 0.18),
-                  shape: StadiumBorder(
-                    side: BorderSide(color: MAIN_COLOR),
-                  ),
-                );
-              }).toList(),
-            ),
-            SizedBox(height: 10),
-            Text.rich(
-              TextSpan(
-                text: '보충 설명',
-                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
-                children: [
-                  TextSpan(
-                    text: '(AI가 설명한 내용입니다.)',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 13,
-                    ),
-                  )
-                ],
-              )
-            ),
-            SizedBox(height: 16),
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                border: Border.all(color: MAIN_COLOR.withValues(alpha: 0.5), width: 4),
-                borderRadius: BorderRadius.circular(16),
-              ),
-
-              // TODO: AI 도입하기 전 일단 외출 기록을 그대로 받아옴.
-              child: Text(
-                outingRecord.trim().isNotEmpty
-                  ? outingRecord.trim()
-                  : '입력된 외출 기록이 없습니다.',
-                style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-              ),
-            ),
+            _SupplementaryExplanationWidget(outingRecord: outingRecord),
             SizedBox(height: 40),
-            Center(
-              child: Text(
-                '발열 시점 이후 체온',
-                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
-            ),
-            SizedBox(height: 30),
-            TemperatureChartWidget(chartType: ChartType.bodyTemp),
-            SizedBox(height: 40),
-            Center(
-              child: Text(
-                '발열 시점 이후 방 온도',
-                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
-            ),
-            SizedBox(height: 30),
-            TemperatureChartWidget(chartType: ChartType.roomTemp),
-            SizedBox(height: 40),
-            Center(
-              child: Text(
-                '발열 시점 이후 방 습도',
-                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
-            ),
-            SizedBox(height: 30),
-            TemperatureChartWidget(chartType: ChartType.humidity),
-            SizedBox(height: 40),
+            _ChartSectionWidget(title: '발열 시점 이후 체온', chartType: ChartType.bodyTemp),
+            _ChartSectionWidget(title: '발열 시점 이후 방 온도', chartType: ChartType.roomTemp),
+            _ChartSectionWidget(title: '발열 시점 이후 방 습도', chartType: ChartType.humidity),
           ],
         ),
       ),
@@ -170,6 +68,196 @@ class ResultReport extends StatelessWidget {
           onPressed: () {},
         ),
       )
+    );
+  }
+}
+
+class _ChildSymptomsWidget extends StatelessWidget {
+  final Set<String> selectedSymptoms;
+  final List<String> allSymptoms;
+
+  const _ChildSymptomsWidget({
+    required this.selectedSymptoms,
+    required this.allSymptoms,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '아이의 증상',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: selectedSymptoms.map((symptom) {
+            return Chip(
+              avatar: Image.asset(
+                'asset/img/symptoms/${allSymptoms.indexOf(symptom)}.png',
+                width: 24, height: 24,
+              ),
+              label: Text(symptom),
+              backgroundColor: MAIN_COLOR.withValues(alpha: 0.18),
+              shape: StadiumBorder(
+                side: BorderSide(color: MAIN_COLOR),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+}
+
+class _EtcSymptomsWidget extends StatelessWidget {
+  final String etcSymptom;
+
+  const _EtcSymptomsWidget({
+    required this.etcSymptom,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '기타 증상',
+          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+        ),
+        SizedBox(height: 8),
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: MAIN_COLOR.withValues(alpha: 0.5),
+              width: 4,
+            ),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Text(
+            etcSymptom.trim(),
+            style: TextStyle(fontWeight: FontWeight.w500),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DiagnosisWidget extends StatelessWidget {
+  final List<String> illnesses;
+
+  const _DiagnosisWidget({
+    required this.illnesses,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '이전 진단 질환',
+          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+        ),
+        SizedBox(height: 10),
+        Wrap(
+          spacing: 10,
+          children: illnesses.map((illness) {
+            return Chip(
+              label: Text(illness),
+              labelStyle: TextStyle(fontWeight: FontWeight.w900),
+              backgroundColor: MAIN_COLOR.withValues(alpha: 0.18),
+              shape: StadiumBorder(
+                side: BorderSide(color: MAIN_COLOR),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+}
+
+class _SupplementaryExplanationWidget extends StatelessWidget {
+  final String outingRecord;
+
+  const _SupplementaryExplanationWidget({
+    required this.outingRecord,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text.rich(
+          TextSpan(
+            text: '보충 설명',
+            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+            children: [
+              TextSpan(
+                text: '(AI가 설명한 내용입니다.)',
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 13,
+                ),
+              )
+            ],
+          ),
+        ),
+        SizedBox(height: 16),
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            border: Border.all(color: MAIN_COLOR.withValues(alpha: 0.5), width: 4),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Text(
+            outingRecord.trim().isNotEmpty
+                ? outingRecord.trim()
+                : '입력된 외출 기록이 없습니다.',
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ChartSectionWidget extends StatelessWidget {
+  final String title;
+  final ChartType chartType;
+
+  const _ChartSectionWidget({
+    required this.title,
+    required this.chartType,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Center(
+          child: Text(
+            title,
+            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+          ),
+        ),
+        SizedBox(height: 30),
+        TemperatureChartWidget(chartType: chartType),
+        SizedBox(height: 40),
+      ],
     );
   }
 }
