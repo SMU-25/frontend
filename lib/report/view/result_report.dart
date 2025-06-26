@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
+import 'package:team_project_front/common/component/temperature_chart_widget.dart';
 import 'package:team_project_front/common/const/colors.dart';
 import 'package:team_project_front/settings/component/custom_appbar.dart';
 
@@ -133,7 +134,16 @@ class ResultReport extends StatelessWidget {
                   : '입력된 외출 기록이 없습니다.',
                 style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
               ),
-            )
+            ),
+            SizedBox(height: 40),
+            Center(
+              child: Text(
+                '발열 시점 이후 체온',
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+            ),
+            SizedBox(height: 30),
+            TemperatureChartWidget(),
+            SizedBox(height: 40),
           ],
         ),
       ),
