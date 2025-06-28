@@ -16,12 +16,15 @@ class NavigationButton extends StatelessWidget {
       onPressed: onPressed,
 
       style: ElevatedButton.styleFrom(
+        fixedSize: Size(390, 60),
         backgroundColor: const Color(0xff64CCC5),
         padding: EdgeInsets.symmetric(horizontal: 150, vertical: 15),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       child: Text(
         text,
+        maxLines: 1,
+        softWrap: false,
         style: TextStyle(
           fontFamily: 'BMJUA',
           color: Colors.white,
