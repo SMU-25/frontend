@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:team_project_front/calendar/view/calendar_screen.dart';
 import 'package:team_project_front/common/component/custom_appbar_root_tab.dart';
 import 'package:team_project_front/common/component/custom_navigation_bar.dart';
 import 'package:team_project_front/home/view/home.dart';
@@ -59,7 +60,7 @@ class _RootTabState extends State<RootTab> with SingleTickerProviderStateMixin {
           // MapScreen()
           Center(child: Container(child: Text('지도'))),
           // CalendarScreen()
-          Center(child: Container(child: Text('캘린더'))),
+          CalendarScreen(),
           // MyScreen()
           MyScreen(),
         ],
