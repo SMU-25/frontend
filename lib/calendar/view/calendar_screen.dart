@@ -29,6 +29,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
     return Scaffold(
       body: TableCalendar(
+        locale: 'ko_KR',
         focusedDay: DateTime.now(),
         firstDay: DateTime(2025),
         lastDay: DateTime(2100),

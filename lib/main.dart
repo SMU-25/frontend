@@ -4,8 +4,13 @@ import 'package:team_project_front/init/view/init.dart';
 import 'package:team_project_front/login/view/login.dart';
 import 'package:team_project_front/report/view/create_report.dart';
 import 'package:team_project_front/signup/view/signup_agreement.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await initializeDateFormatting();
+
   runApp(_App());
 }
 
