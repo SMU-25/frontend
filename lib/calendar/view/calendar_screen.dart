@@ -55,8 +55,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
             isScrollControlled: true,
             builder: (_) {
               return PlanAdd(
-                titleController: titleController,
-                contentController: contentController,
+                titleController: titleController..clear(),
+                contentController: contentController..clear(),
                 selectedDay: selectedDay!,
               );
             },
@@ -93,7 +93,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
           SizedBox(height: 16),
           PlanBanner(
             selectedDay: selectedDay!,
-            taskCount: 0,
           ),
           Expanded(
             child: ListView.builder(
@@ -114,6 +113,31 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   child: PlanCard(
                     title: planModel.title,
                     content: planModel.content,
+                    onEditPressed: () async {
+                      titleController.text = planModel.title;
+                      contentController.text = planModel.content;
+
+                      final editedPlan = await showModalBottomSheet<Plan>(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (_) {
+                          return PlanAdd(
+                            titleController: titleController..text = planModel.title,
+                            contentController: contentController..text = planModel.content,
+                            selectedDay: selectedDay!,
+                            existingId: planModel.id,
+                          );
+                        },
+                      );
+
+                      if (editedPlan != null) {
+                        setState(() {
+                          final list = List<Plan>.from(plans[selectedDay]!);
+                          list[index] = editedPlan;
+                          plans[selectedDay!] = list;
+                        });
+                      }
+                    },
                   ),
                 );
               },
