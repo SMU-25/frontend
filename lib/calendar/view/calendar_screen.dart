@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:team_project_front/calendar/component/calendar.dart';
+import 'package:team_project_front/calendar/component/plan_add.dart';
 import 'package:team_project_front/calendar/component/plan_banner.dart';
 import 'package:team_project_front/calendar/component/plan_card.dart';
+import 'package:team_project_front/common/const/colors.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -11,6 +13,9 @@ class CalendarScreen extends StatefulWidget {
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController contentController = TextEditingController();
+
   DateTime? selectedDay = DateTime.utc(
     DateTime.now().year,
     DateTime.now().month,
@@ -19,20 +24,31 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final defaultBoxDecoration = BoxDecoration(
-      borderRadius: BorderRadius.circular(6),
-      border: Border.all(
-        color: Colors.grey[200]!,
-        width: 1,
-      )
-    );
-
-    final defaultTextStyle = TextStyle(
-      color: Colors.grey[600],
-      fontWeight: FontWeight.w700,
-    );
-
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        highlightElevation: 0,
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            builder: (_) {
+              return PlanAdd(
+                titleController: titleController,
+                contentController: contentController,
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              );
+            },
+          );
+        },
+        child: Icon(
+          size: 40,
+          Icons.add_circle,
+          color: MAIN_COLOR,
+        ),
+      ),
       body: Column(
         children: [
           Calendar(
@@ -55,7 +71,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ],
             ),
           ),
-
         ],
       ),
     );
