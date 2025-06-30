@@ -6,12 +6,14 @@ class Calendar extends StatelessWidget {
   final DateTime focusedDay;
   final bool Function(DateTime)? selectedDayPredicate;
   final void Function(DateTime selectedDay, DateTime focusedDay)? onDaySelected;
+  final List<Object> Function(DateTime day)? eventLoader;
 
   const Calendar({
     super.key,
     required this.focusedDay,
     required this.selectedDayPredicate,
     required this.onDaySelected,
+    this.eventLoader,
   });
 
   @override
@@ -63,6 +65,29 @@ class Calendar extends StatelessWidget {
       ),
       selectedDayPredicate: selectedDayPredicate,
       onDaySelected: onDaySelected,
+      eventLoader: eventLoader,
+      calendarBuilders: CalendarBuilders(
+        markerBuilder: (context, date, events) {
+          if(events.isEmpty) return SizedBox();
+
+          final limitedEvents = events.take(3).toList();
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              limitedEvents.length,
+              (index) => Container(
+                margin: EdgeInsets.symmetric(horizontal: 1),
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: MAIN_COLOR,
+                ),
+              ),
+            ),
+          );
+        }
+      ),
     );
   }
 }
