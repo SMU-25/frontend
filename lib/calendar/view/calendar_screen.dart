@@ -49,20 +49,33 @@ class _CalendarScreenState extends State<CalendarScreen> {
         elevation: 0,
         backgroundColor: Colors.transparent,
         highlightElevation: 0,
-        onPressed: () {
-          showModalBottomSheet(
+        onPressed: () async {
+          final resp = await showModalBottomSheet<Plan>(
             context: context,
             isScrollControlled: true,
             builder: (_) {
               return PlanAdd(
                 titleController: titleController,
                 contentController: contentController,
-                onPressed: () {
-                  Navigator.pop(context);
-                },
+                selectedDay: selectedDay!,
               );
             },
           );
+
+          if(resp == null) {
+            return;
+          }
+
+          setState(() {
+            plans = {
+              ...plans,
+              resp.date: [
+                if(plans.containsKey(resp.date))
+                  ...plans[resp.date]!,
+                resp,
+              ]
+            };
+          });
         },
         child: Icon(
           size: 40,

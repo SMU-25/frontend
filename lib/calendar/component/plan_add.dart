@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:team_project_front/calendar/component/custom_text_input.dart';
+import 'package:team_project_front/calendar/model/plan.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
 
 class PlanAdd extends StatefulWidget {
   final TextEditingController titleController;
   final TextEditingController contentController;
-  final VoidCallback onPressed;
+  final DateTime selectedDay;
 
   const PlanAdd({
     super.key,
     required this.titleController,
     required this.contentController,
-    required this.onPressed,
+    required this.selectedDay,
   });
 
   @override
@@ -29,6 +30,20 @@ class _PlanAddState extends State<PlanAdd> {
         isFormValid = valid;
       });
     }
+  }
+
+  void onPressed () {
+    final plan = Plan(
+      id: 999,
+      title: widget.titleController.text,
+      content: widget.contentController.text,
+      date: widget.selectedDay,
+      createdAt: DateTime.now().toUtc(),
+    );
+
+    Navigator.of(context).pop(
+      plan,
+    );
   }
 
   @override
@@ -88,7 +103,7 @@ class _PlanAddState extends State<PlanAdd> {
               SizedBox(height: 28),
               NavigationButton(
                 text: '추가',
-                onPressed: isFormValid ? widget.onPressed : null,
+                onPressed: isFormValid ? onPressed : null,
               ),
             ],
           ),
