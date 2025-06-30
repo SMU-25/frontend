@@ -23,6 +23,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
     DateTime.now().day,
   );
 
+  DateTime focusedDay = DateTime.now();
+
   Map<DateTime, List<Plan>> plans = {
     DateTime.utc(2025, 6, 30) : [
       Plan(
@@ -86,9 +88,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
       body: Column(
         children: [
           Calendar(
-            focusedDay: DateTime.now(),
+            focusedDay: focusedDay,
             selectedDayPredicate: selectedDayPredicate,
             onDaySelected: onDaySelected,
+            eventLoader: (day) {
+              final normalizedDay = DateTime.utc(day.year, day.month, day.day);
+              return plans[normalizedDay] ?? [];
+            },
           ),
           SizedBox(height: 16),
           PlanBanner(
@@ -148,9 +154,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  void onDaySelected(DateTime selectedDay, DateTime focusedDay) {
+  void onDaySelected(DateTime selectedDay, DateTime newFocusedDay) {
     setState(() {
       this.selectedDay = selectedDay;
+      focusedDay = newFocusedDay;
     });
   }
 
