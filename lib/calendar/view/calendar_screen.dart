@@ -102,9 +102,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 final selectedPlans = plans[selectedDay]!;
                 final planModel = selectedPlans[index];
 
-                return PlanCard(
-                  title: planModel.title,
-                  content: planModel.content,
+                return Dismissible(
+                  key: ValueKey(planModel.id),
+                  direction: DismissDirection.endToStart,
+                  onDismissed: (_) => {
+                    setState(() {
+                      plans[selectedDay]!.removeAt(index);
+                    }),
+                    // db에서 삭제하는 로직 구현 예정
+                  },
+                  child: PlanCard(
+                    title: planModel.title,
+                    content: planModel.content,
+                  ),
                 );
               },
             ),
