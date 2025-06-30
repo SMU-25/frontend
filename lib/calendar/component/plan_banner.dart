@@ -3,11 +3,9 @@ import 'package:team_project_front/common/const/colors.dart';
 
 class PlanBanner extends StatelessWidget {
   final DateTime selectedDay;
-  final int taskCount;
 
   const PlanBanner({
     required this.selectedDay,
-    required this.taskCount,
     super.key,
   });
 
@@ -22,13 +20,6 @@ class PlanBanner extends StatelessWidget {
           children: [
             Text(
               '${selectedDay.year}년 ${selectedDay.month}월 ${selectedDay.day}일',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            Text(
-              '$taskCount개',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w700,

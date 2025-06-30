@@ -7,12 +7,14 @@ class PlanAdd extends StatefulWidget {
   final TextEditingController titleController;
   final TextEditingController contentController;
   final DateTime selectedDay;
+  final int? existingId;
 
   const PlanAdd({
     super.key,
     required this.titleController,
     required this.contentController,
     required this.selectedDay,
+    this.existingId,
   });
 
   @override
@@ -34,7 +36,7 @@ class _PlanAddState extends State<PlanAdd> {
 
   void onPressed () {
     final plan = Plan(
-      id: 999,
+      id: widget.existingId ?? DateTime.now().millisecondsSinceEpoch,
       title: widget.titleController.text,
       content: widget.contentController.text,
       date: widget.selectedDay,
@@ -102,7 +104,7 @@ class _PlanAddState extends State<PlanAdd> {
               ),
               SizedBox(height: 28),
               NavigationButton(
-                text: '추가',
+                text: '저장',
                 onPressed: isFormValid ? onPressed : null,
               ),
             ],
