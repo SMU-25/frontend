@@ -52,6 +52,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         onPressed: () {
           showModalBottomSheet(
             context: context,
+            isScrollControlled: true,
             builder: (_) {
               return PlanAdd(
                 titleController: titleController,
@@ -82,13 +83,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
             taskCount: 0,
           ),
           Expanded(
-            child: ListView(
-              children: plans.containsKey(selectedDay) ? plans[selectedDay]!.map((e) =>
-                PlanCard(
-                  title: e.title,
-                  content: e.content,
-                )
-              ).toList() : [],
+            child: ListView.builder(
+              itemCount: plans.containsKey(selectedDay) ? plans[selectedDay]!.length : 0,
+              itemBuilder: (BuildContext context, int index) {
+                final selectedPlans = plans[selectedDay]!;
+                final planModel = selectedPlans[index];
+
+                return PlanCard(
+                  title: planModel.title,
+                  content: planModel.content,
+                );
+              },
             ),
           ),
         ],
