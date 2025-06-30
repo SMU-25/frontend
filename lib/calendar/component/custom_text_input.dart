@@ -6,6 +6,7 @@ class CustomTextInput extends StatelessWidget {
   final String hintText;
   final TextEditingController controller;
   final int maxLines;
+  final String? Function(String?)? validator;
 
   const CustomTextInput({
     super.key,
@@ -13,6 +14,7 @@ class CustomTextInput extends StatelessWidget {
     required this.hintText,
     required this.controller,
     this.maxLines = 1,
+    this.validator,
   });
 
   @override
@@ -31,6 +33,7 @@ class CustomTextInput extends StatelessWidget {
         TextFormField(
           controller: controller,
           maxLines: maxLines,
+          validator: validator,
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: TextStyle(
