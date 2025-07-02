@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:team_project_front/common/const/colors.dart';
 import 'package:team_project_front/common/view/root_tab.dart';
-import 'package:team_project_front/home/view/home.dart';
 import 'package:team_project_front/init/view/init.dart';
 import 'package:team_project_front/login/view/login.dart';
+import 'package:team_project_front/report/view/create_report.dart';
 import 'package:team_project_front/signup/view/signup_agreement.dart';
 
 void main() {
@@ -32,6 +31,7 @@ class _App extends StatelessWidget {
         '/home': (context) => RootTab(),
         '/login': (context) => LoginScreen(),
         '/signup': (context) => SignupAgreementScreen(),
+        '/report': (context) => CreateReport(),
         // '/signup/email': (context) => SignupInfoScreen(),
       },
     );
