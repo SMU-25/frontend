@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:team_project_front/common/const/colors.dart';
@@ -20,33 +21,23 @@ class _MyScreenState extends State<MyScreen> {
   File? image;
   final ImagePicker picker = ImagePicker();
 
-  // 더미 ProfileInfo 리스트로 관리
-  List<ProfileInfo> members = [
-    ProfileInfo(
-      name: '김준형',
-      birthYear: '2020',
-      birthMonth: '01',
-      birthDay: '15',
-      height: 90.5,
-      weight: 12.3,
-      gender: '남자',
-      seizureHistory: '모름',
-      illnessList: ['해당 없음'],
-      image: null,
-    ),
-    ProfileInfo(
-      name: '최강민',
-      birthYear: '2021',
-      birthMonth: '06',
-      birthDay: '03',
-      height: 87.0,
-      weight: 11.0,
-      gender: '여자',
-      seizureHistory: '없음',
-      illnessList: ['아토피'],
-      image: null,
-    ),
-  ];
+  // 추후에 accessToken FlutterSecureStorage에서 가져오도록 변경 예정
+  final String accessToken = 'Bearer ACCESS_TOKEN';
+
+  List<ProfileInfo> members = [];
+
+  @override
+  void initState() {
+    super.initState();
+    loadChildren();
+  }
+
+  void loadChildren() async {
+    final data = await fetchChildren(accessToken);
+    setState(() {
+      members = data;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -206,7 +197,12 @@ class FamilyProfile extends StatelessWidget {
                       CircleAvatar(
                         radius: 30,
                         backgroundColor: Colors.transparent,
-                        child: Icon(Icons.account_circle, size: 60, color: ICON_GREY_COLOR),
+                        backgroundImage: profile.profileImage != null && profile.profileImage != "string"
+                            ? NetworkImage(profile.profileImage!)
+                            : null,
+                        child: (profile.profileImage == null || profile.profileImage == "string")
+                            ? Icon(Icons.account_circle, size: 60, color: ICON_GREY_COLOR)
+                            : null,
                       ),
                       SizedBox(height: 8),
                       Text(profile.name),
@@ -239,5 +235,41 @@ class FamilyProfile extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+Future<List<ProfileInfo>> fetchChildren(String accessToken) async {
+  final dio = Dio();
+
+  try {
+    final resp = await dio.get(
+      'https://momfy.kr/api/children',
+      options: Options(
+        headers: {
+          'Authorization': accessToken,
+        },
+      ),
+    );
+
+    final List result = resp.data['result'];
+    
+    return result.map((e) =>
+      ProfileInfo(
+        childId: e['childId'],
+        name: e['name'],
+        birthYear: '',
+        birthMonth: '',
+        birthDay: '',
+        height: 0.0,
+        weight: 0.0,
+        gender: '',
+        seizureHistory: null,
+        illnessList: [],
+        image: null,
+        profileImage: e['profileImage'],
+      )).toList();
+  } catch (e) {
+    print('아이 목록 api 호출 실패: $e');
+    return [];
   }
 }
