@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 Color getSocialColor(String type) {
   switch (type) {
     case 'naver':
-      return const Color(0xFF03C75A);
+      return const Color(0xFF00BF18);
     case 'kakao':
       return const Color(0xFFFFE812);
     case 'google':
