@@ -76,12 +76,23 @@ class _MyScreenState extends State<MyScreen> {
     );
   }
 
-  void onPressedEditBabyProfile(ProfileInfo profile) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => EditBabyProfile(profileInfo: profile),
-      ),
+  void onPressedEditBabyProfile(ProfileInfo profile) async {
+    if(profile.childId == null) return;
+
+    // 로딩 표시 추가 예정
+
+    final detail = await fetchChildDetail(
+      childId: profile.childId!,
+      accessToken: accessToken,
     );
+
+    if(detail != null && context.mounted) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => EditBabyProfile(profileInfo: detail),
+        ),
+      );
+    }
   }
 }
 

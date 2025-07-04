@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
 import 'package:team_project_front/common/component/yes_or_no_dialog.dart';
@@ -15,6 +16,67 @@ import 'package:team_project_front/mypage/models/profile_info.dart';
 import 'package:team_project_front/mypage/utils/image_pick_handler.dart';
 import 'package:team_project_front/mypage/utils/validators.dart';
 import 'package:team_project_front/settings/component/custom_appbar.dart';
+
+Future<ProfileInfo?> fetchChildDetail({
+  required int childId,
+  required String accessToken,
+}) async {
+  final dio = Dio();
+
+  try {
+    final resp = await dio.get(
+      'https://momfy.kr/api/children/$childId',
+      options: Options(
+        headers: {
+          'Authorization': accessToken,
+        },
+      ),
+    );
+
+    final data = resp.data['result'];
+    final birthDateParts = (data['birthdate'] as String).split('-');
+
+    return ProfileInfo(
+      childId: childId,
+      name: data['name'],
+      birthYear: birthDateParts[0],
+      birthMonth: birthDateParts[1],
+      birthDay: birthDateParts[2],
+      height: (data['height'] as num).toDouble(),
+      weight: (data['weight'] as num).toDouble(),
+      gender: _mapGenderToKor(data['gender']),
+      seizureHistory: _mapSeizureToKor(data['seizure']),
+      illnessList: List<String>.from(data['illnessTypes'] ?? []),
+      image: null,
+      profileImage: data['profileImage'],
+    );
+  } catch (e) {
+    print('아이 상세 정보 로드 실패: $e');
+    return null;
+  }
+}
+
+String _mapGenderToKor(String? code) {
+  switch (code) {
+    case 'MALE':
+      return '남자';
+    case 'FEMALE':
+      return '여자';
+    default:
+      return '모름';
+  }
+}
+
+String _mapSeizureToKor(String? code) {
+  switch (code) {
+    case 'YES':
+      return '있음';
+    case 'NO':
+      return '없음';
+    default:
+      return '모름';
+  }
+}
 
 class EditBabyProfile extends StatefulWidget {
   final ProfileInfo profileInfo;
