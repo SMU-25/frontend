@@ -25,11 +25,7 @@ class NavigationButton extends StatelessWidget {
         text,
         maxLines: 1,
         softWrap: false,
-        style: TextStyle(
-          fontFamily: 'BMJUA',
-          color: Colors.white,
-          fontSize: 20,
-        ),
+        style: TextStyle(color: Colors.white, fontSize: 20),
       ),
     );
   }
