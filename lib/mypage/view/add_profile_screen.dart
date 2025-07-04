@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
-import 'package:team_project_front/common/const/colors.dart';
 import 'package:team_project_front/mypage/component/profile_birth_input.dart';
 import 'package:team_project_front/mypage/component/profile_body_info_input.dart';
 import 'package:team_project_front/mypage/component/profile_gender_selector.dart';
@@ -39,14 +38,14 @@ class _AddProfileScreenState extends State<AddProfileScreen> {
   final List<String> genders = ['여자', '남자'];
 
   bool get isFormValid =>
-    _formKey.currentState?.validate() == true &&
-    yearText != null &&
-    monthText != null &&
-    dayText != null &&
-    gender != null;
+      _formKey.currentState?.validate() == true &&
+      yearText != null &&
+      monthText != null &&
+      dayText != null &&
+      gender != null;
 
   void onNextPressed() {
-    if(!isFormValid) return;
+    if (!isFormValid) return;
 
     final profileInfo = ProfileInfo(
       name: nameController.text.trim(),
@@ -58,11 +57,11 @@ class _AddProfileScreenState extends State<AddProfileScreen> {
       gender: gender!,
       image: image,
     );
-    
+
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => AddProfileSymptomsScreen(
-        profileInfo: profileInfo,
-      )),
+      MaterialPageRoute(
+        builder: (_) => AddProfileSymptomsScreen(profileInfo: profileInfo),
+      ),
     );
   }
 
@@ -71,9 +70,7 @@ class _AddProfileScreenState extends State<AddProfileScreen> {
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(90),
-        child: CustomAppbar(
-          title: '프로필 등록',
-        ),
+        child: CustomAppbar(title: '프로필 등록'),
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.symmetric(horizontal: 30),
@@ -85,29 +82,27 @@ class _AddProfileScreenState extends State<AddProfileScreen> {
             children: [
               Center(
                 child: ProfileImageWithAddIcon(
-                    image: image,
-                    profileIconSize: 90,
-                    addImageIconSize: 18,
-                    bottom: 0,
-                    right: -5,
-                    radius: 50,
-                    onPressedChangePic: () => handleImagePick(
-                      context: context,
-                      onImageSelected: (selectedImage) {
-                        setState(() {
-                          image = selectedImage;
-                        });
-                      }
-                    ),
+                  image: image,
+                  profileIconSize: 90,
+                  addImageIconSize: 18,
+                  bottom: 0,
+                  right: -5,
+                  radius: 50,
+                  onPressedChangePic:
+                      () => handleImagePick(
+                        context: context,
+                        onImageSelected: (selectedImage) {
+                          setState(() {
+                            image = selectedImage;
+                          });
+                        },
+                      ),
                 ),
               ),
               SizedBox(height: 15),
               Text(
                 '우리 아이 정보를 알려주세요',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
               ),
               SizedBox(height: 20),
               ProfileNameInput(controller: nameController),
