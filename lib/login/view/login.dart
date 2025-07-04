@@ -4,7 +4,6 @@ import 'package:team_project_front/common/component/custom_input.dart';
 import 'package:team_project_front/common/component/login_text_button.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
 import 'package:team_project_front/common/component/social_login_button.dart';
-import 'package:team_project_front/common/const/colors.dart';
 import 'package:team_project_front/home/view/home.dart';
 
 class LoginScreen extends StatefulWidget {
