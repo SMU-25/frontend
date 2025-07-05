@@ -58,7 +58,7 @@ class ReportCard extends StatelessWidget {
             ),
           ),
           IconButton(
-            onPressed: onEditPressed ?? () {},
+            onPressed: onEditPressed,
             icon: Icon(
               Icons.edit_calendar,
               color: MAIN_COLOR,
