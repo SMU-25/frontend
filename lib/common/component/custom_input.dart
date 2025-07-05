@@ -25,13 +25,20 @@ class CustomTextFormField extends StatelessWidget {
       validator: validator,
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: const TextStyle(color: INPUT_BORDER_COLOR),
+        hintStyle: const TextStyle(color: Colors.grey),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(17),
-          borderSide: const BorderSide(color: INPUT_BORDER_COLOR),
+          borderSide: const BorderSide(color: INPUT_BORDER_COLOR, width: 2.0),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(17),
+          borderSide:
+              hintText == '생년월일 선택'
+                  ? const BorderSide(color: MAIN_COLOR, width: 2.0)
+                  : const BorderSide(color: INPUT_BORDER_COLOR, width: 2.0),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(17),
           borderSide: const BorderSide(color: MAIN_COLOR, width: 2.0),
         ),
         contentPadding: const EdgeInsets.symmetric(
