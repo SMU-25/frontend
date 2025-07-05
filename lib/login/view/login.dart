@@ -5,6 +5,8 @@ import 'package:team_project_front/common/component/login_text_button.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
 import 'package:team_project_front/common/component/social_login_button.dart';
 import 'package:team_project_front/home/view/home.dart';
+import 'package:team_project_front/login/view/find_id.dart';
+import 'package:team_project_front/login/view/find_password.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -50,11 +52,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   CustomTextFormField(
                     controller: _idController,
-                    hintText: '이메일 주소 또는 아이디를 입력하세요',
+                    hintText: '아이디를 입력하세요',
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return '이메일 입력해주세요';
-                      } else if (!EmailValidator.validate(value)) {
+                      } else if (!EmailValidator.validate(value) ||
+                          RegExp(r'[ㄱ-ㅎㅏ-ㅣ가-힣]').hasMatch(value)) {
                         return '올바른 형식을 입력해주세요';
                       }
                       return null;
@@ -88,11 +91,37 @@ class _LoginScreenState extends State<LoginScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      LoginTextButton(text: '회원가입', onPressed: () {}),
+                      LoginTextButton(
+                        text: '회원가입',
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/signup');
+                        },
+                      ),
                       Text('|'),
-                      LoginTextButton(text: '아이디 찾기', onPressed: () {}),
+                      LoginTextButton(
+                        text: '아이디 찾기',
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => FindIdScreen(),
+                            ),
+                          );
+                        },
+                      ),
                       Text('|'),
-                      LoginTextButton(text: '비밀번호 재발급', onPressed: () {}),
+                      LoginTextButton(
+                        text: '비밀번호 재설정',
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              // 수정
+                              builder: (context) => FindPasswordScreen(),
+                            ),
+                          );
+                        },
+                      ),
                     ],
                   ),
                   SizedBox(height: 50),
@@ -126,7 +155,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   SizedBox(height: 30),
                   Text(
-                    '소셜 로그인로 로그인',
+                    '소셜 아이디로 로그인',
                     style: TextStyle(
                       color: Colors.grey,
                       fontWeight: FontWeight.bold,
