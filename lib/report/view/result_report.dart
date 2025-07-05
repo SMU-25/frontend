@@ -2,27 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
 import 'package:team_project_front/common/component/temperature_chart_widget.dart';
 import 'package:team_project_front/common/const/colors.dart';
+import 'package:team_project_front/report/model/report_info.dart';
 import 'package:team_project_front/report/view/report.dart';
 import 'package:team_project_front/settings/component/custom_appbar.dart';
 
 class ResultReport extends StatelessWidget {
-  final Set<String> selectedSymptoms;
-  final String etcSymptom;
-  final List<String> illnesses; // API 요청 예정
+  final ReportInfo report;
   final List<String> allSymptoms;
-  final String outingRecord;
   
   const ResultReport({
-    required this.selectedSymptoms,
-    required this.etcSymptom,
-    required this.illnesses,
+    required this.report,
     required this.allSymptoms,
-    required this.outingRecord,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
+    final selectedSymptoms = report.symptoms.toSet();
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(90),
@@ -48,13 +45,13 @@ class ResultReport extends StatelessWidget {
               allSymptoms: allSymptoms,
             ),
             SizedBox(height: 20),
-            if (etcSymptom.trim().isNotEmpty) ...[
-              _EtcSymptomsWidget(etcSymptom: etcSymptom),
+            if (report.etcSymptom.trim().isNotEmpty) ...[
+              _EtcSymptomsWidget(etcSymptom: report.etcSymptom),
             ],
             SizedBox(height: 20),
-            _DiagnosisWidget(illnesses: illnesses),
+            _DiagnosisWidget(illnesses: report.illnessTypes),
             SizedBox(height: 10),
-            _SupplementaryExplanationWidget(outingRecord: outingRecord),
+            _SupplementaryExplanationWidget(outingRecord: report.outingRecord),
             SizedBox(height: 40),
             _ChartSectionWidget(title: '발열 시점 이후 체온', chartType: ChartType.bodyTemp),
             _ChartSectionWidget(title: '발열 시점 이후 방 온도', chartType: ChartType.roomTemp),

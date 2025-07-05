@@ -5,6 +5,7 @@ import 'package:team_project_front/report/component/report_card.dart';
 import 'package:team_project_front/report/model/report_info.dart';
 import 'package:team_project_front/report/view/change_report.dart';
 import 'package:team_project_front/report/view/create_report.dart';
+import 'package:team_project_front/report/view/result_report.dart';
 import 'package:team_project_front/settings/component/custom_appbar.dart';
 
 class Report extends StatefulWidget {
@@ -34,6 +35,11 @@ class _ReportState extends State<Report> {
       outingRecord: '2025년 7월 3일 백화점 방문',
       illnessTypes: ['천식'],
     ),
+  ];
+
+  final List<String> allSymptoms = [
+    '발열', '구토', '경련', '코피', '설사',
+    '피부 발진', '실신', '호흡곤란', '기침', '콧물', '황달'
   ];
 
   String formatDate(DateTime date) {
@@ -97,14 +103,28 @@ class _ReportState extends State<Report> {
                   SnackBar(content: Text("삭제되었습니다.")),
                 );
               },
-              child: ReportCard(
-                createdAt: formatDate(report.createdAt),
-                content: report.symptoms.join(', '),
-                onEditPressed: () {
+              child: GestureDetector(
+                onTap: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => ChangeReport(report: report)),
+                    MaterialPageRoute(
+                      builder: (_) => ResultReport(
+                        report: report,
+                        allSymptoms: allSymptoms,
+                      ),
+                    ),
                   );
                 },
+                child: ReportCard(
+                  createdAt: formatDate(report.createdAt),
+                  content: report.symptoms.join(', '),
+                  onEditPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => ChangeReport(report: report),
+                      ),
+                    );
+                  },
+                ),
               ),
             );
           },
