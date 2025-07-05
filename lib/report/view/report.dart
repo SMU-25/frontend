@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:team_project_front/common/const/colors.dart';
 import 'package:team_project_front/report/component/report_card.dart';
+import 'package:team_project_front/report/model/report_info.dart';
+import 'package:team_project_front/report/view/change_report.dart';
 import 'package:team_project_front/report/view/create_report.dart';
 import 'package:team_project_front/settings/component/custom_appbar.dart';
 
@@ -12,12 +15,30 @@ class Report extends StatefulWidget {
 }
 
 class _ReportState extends State<Report> {
-  List<Map<String, String>> reportData = [
-    {'createdAt': '2025년 7월 5일', 'content': '발열, 구토, 피부 발진'},
-    {'createdAt': '2025년 7월 3일', 'content': '발열, 콧물, 실신'},
-    {'createdAt': '2025년 7월 2일', 'content': '피부 발진'},
-    {'createdAt': '2025년 7월 1일', 'content': '기침, 고열'},
+  final List<ReportInfo> reportData = [
+    ReportInfo(
+      reportId: 1,
+      childId: 101,
+      createdAt: DateTime(2025, 7, 5),
+      symptoms: ['발열', '구토', '피부 발진'],
+      etcSymptom: '복통이 심함',
+      outingRecord: '2025년 7월 5일 오후 1시~3시 공원',
+      illnessTypes: ['아토피'],
+    ),
+    ReportInfo(
+      reportId: 2,
+      childId: 101,
+      createdAt: DateTime(2025, 7, 3),
+      symptoms: ['발열', '콧물', '실신'],
+      etcSymptom: '고열 지속',
+      outingRecord: '2025년 7월 3일 백화점 방문',
+      illnessTypes: ['천식'],
+    ),
   ];
+
+  String formatDate(DateTime date) {
+    return DateFormat('yyyy년 M월 d일').format(date);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,8 +98,13 @@ class _ReportState extends State<Report> {
                 );
               },
               child: ReportCard(
-                createdAt: report['createdAt']!,
-                content: report['content']!,
+                createdAt: formatDate(report.createdAt),
+                content: report.symptoms.join(', '),
+                onEditPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => ChangeReport(report: report)),
+                  );
+                },
               ),
             );
           },

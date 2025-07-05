@@ -1,4 +1,4 @@
-class FeverReport {
+class ReportInfo {
   // 리포트 고유 ID
   final int? reportId;
   // 아이 고유 ID (필수)
@@ -14,7 +14,7 @@ class FeverReport {
   // 진단 질환들
   final List<String> illnessTypes;
 
-  FeverReport({
+  ReportInfo({
     this.reportId,
     required this.childId,
     required this.createdAt,
