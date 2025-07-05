@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
 import 'package:team_project_front/common/component/temperature_chart_widget.dart';
 import 'package:team_project_front/common/const/colors.dart';
+import 'package:team_project_front/report/view/report.dart';
 import 'package:team_project_front/settings/component/custom_appbar.dart';
 
 class ResultReport extends StatelessWidget {
@@ -65,7 +66,11 @@ class ResultReport extends StatelessWidget {
         padding: EdgeInsets.fromLTRB(16, 0, 16, 24),
         child: NavigationButton(
           text: '완료',
-          onPressed: () {},
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => Report()),
+            );
+          },
         ),
       )
     );
