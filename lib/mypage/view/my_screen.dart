@@ -22,7 +22,7 @@ class _MyScreenState extends State<MyScreen> {
   final ImagePicker picker = ImagePicker();
 
   // 추후에 accessToken FlutterSecureStorage에서 가져오도록 변경 예정
-  final String accessToken = 'Bearer eyJ0eXBlIjoiSldUIiwiYWxnIjoiSFM1MTIifQ.eyJzdWIiOiJoeXVuYmluaTAyQG5hdmVyLmNvbSIsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzUxNzkxMDk3LCJleHAiOjE3NTE3OTQ2OTd9.4Upkhe1Xb4lea_Fwht4D1hRi65GFdDwHzB3QNQuIc4lfIcNE9lop-2Hf68-mGlTYPJOgoHhtZaUa5u03JGjG7Q';
+  final String accessToken = 'Bearer ACCESS_TOKEN';
 
   List<ProfileInfo> members = [];
 

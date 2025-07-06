@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/component/complete_dialog.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
@@ -46,8 +45,8 @@ class _AddProfileSymptomsScreenState extends State<AddProfileSymptomsScreen> {
       illnessList: selectedIllness.toList(),
     );
 
-    // FlutterSecureStorage로 교체 예정
-    final accessToken = 'Bearer eyJ0eXBlIjoiSldUIiwiYWxnIjoiSFM1MTIifQ.eyJzdWIiOiJoeXVuYmluaTAyQG5hdmVyLmNvbSIsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzUxNzkxMDk3LCJleHAiOjE3NTE3OTQ2OTd9.4Upkhe1Xb4lea_Fwht4D1hRi65GFdDwHzB3QNQuIc4lfIcNE9lop-2Hf68-mGlTYPJOgoHhtZaUa5u03JGjG7Q';
+    // 추후에 accessToken FlutterSecureStorage에서 가져오도록 변경 예정
+    final accessToken = 'Bearer ACCESS_TOKEN';
     final Dio dio = Dio();
     final birthdate =
         "${updatedProfileInfo.birthYear.padLeft(2, '0')}-${updatedProfileInfo.birthMonth.padLeft(2, '0')}-${updatedProfileInfo.birthDay.padLeft(2, '0')}";
@@ -88,8 +87,6 @@ class _AddProfileSymptomsScreenState extends State<AddProfileSymptomsScreen> {
           ?.map((e) => e.replaceAll(' ', '_'))
           .toList(),
     };
-
-    print('보내는 요청 JSON: ${jsonEncode(requestBody)}');
 
     try {
       final resp = await dio.post(
