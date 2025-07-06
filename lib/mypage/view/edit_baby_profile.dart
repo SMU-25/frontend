@@ -47,7 +47,9 @@ Future<ProfileInfo?> fetchChildDetail({
       weight: (data['weight'] as num).toDouble(),
       gender: _mapGenderToKor(data['gender']),
       seizureHistory: _mapSeizureToKor(data['seizure']),
-      illnessList: List<String>.from(data['illnessTypes'] ?? []),
+      illnessList: List<String>.from(data['illnessTypes'] ?? [])
+          .map((e) => e.replaceAll('_', ' '))
+          .toList(),
       image: null,
       profileImage: data['profileImage'],
     );
@@ -172,8 +174,8 @@ class _EditBabyProfileState extends State<EditBabyProfile> {
             '정말 삭제하시겠습니까?',
         onPressedYes: () async {
           final childId = widget.profileInfo.childId;
-          // accessToken FlutterSecureStorage로 교체 예정
-          final accessToken = 'Bearer eyJ0eXBlIjoiSldUIiwiYWxnIjoiSFM1MTIifQ.eyJzdWIiOiJoeXVuYmluaTAyQG5hdmVyLmNvbSIsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzUxNzkxMDk3LCJleHAiOjE3NTE3OTQ2OTd9.4Upkhe1Xb4lea_Fwht4D1hRi65GFdDwHzB3QNQuIc4lfIcNE9lop-2Hf68-mGlTYPJOgoHhtZaUa5u03JGjG7Q';
+          // 추후에 accessToken FlutterSecureStorage에서 가져오도록 변경 예정
+          final accessToken = 'Bearer ACCESS_TOKEN';
 
           final dio = Dio();
 
