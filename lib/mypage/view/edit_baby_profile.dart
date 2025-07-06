@@ -5,6 +5,7 @@ import 'package:team_project_front/common/component/navigation_button.dart';
 import 'package:team_project_front/common/component/yes_or_no_dialog.dart';
 import 'package:team_project_front/common/const/colors.dart';
 import 'package:team_project_front/common/view/root_tab.dart';
+import 'package:team_project_front/main.dart';
 import 'package:team_project_front/mypage/component/illness_selctor.dart';
 import 'package:team_project_front/mypage/component/profile_birth_input.dart';
 import 'package:team_project_front/mypage/component/profile_body_info_input.dart';
@@ -169,12 +170,38 @@ class _EditBabyProfileState extends State<EditBabyProfile> {
         '${nameController.text}의 모든 데이터가 삭제되며\n'
             '복구가 불가능합니다.\n'
             '정말 삭제하시겠습니까?',
-        onPressedYes: () {
-          // 프로필 삭제 처리 로직 구현 예정
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (_) => RootTab(initialTabIndex: 4)),
-                (route) => false,
-          );
+        onPressedYes: () async {
+          final childId = widget.profileInfo.childId;
+          // accessToken FlutterSecureStorage로 교체 예정
+          final accessToken = 'Bearer eyJ0eXBlIjoiSldUIiwiYWxnIjoiSFM1MTIifQ.eyJzdWIiOiJoeXVuYmluaTAyQG5hdmVyLmNvbSIsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzUxNzkxMDk3LCJleHAiOjE3NTE3OTQ2OTd9.4Upkhe1Xb4lea_Fwht4D1hRi65GFdDwHzB3QNQuIc4lfIcNE9lop-2Hf68-mGlTYPJOgoHhtZaUa5u03JGjG7Q';
+
+          final dio = Dio();
+
+          try {
+            final resp = await dio.delete(
+              'https://momfy.kr/api/children/$childId',
+              options: Options(
+                headers: {
+                  'Authorization': accessToken,
+                },
+              ),
+            );
+
+            if(resp.data['isSuccess'] == true && resp.data['code'] == '204') {
+              navigatorKey.currentState?.pop();
+
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                navigatorKey.currentState?.pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => RootTab(initialTabIndex: 4)),
+                      (route) => false,
+                );
+              });
+            } else {
+              print('삭제 실패: ${resp.data}');
+            }
+          } catch(e) {
+            print('아이 삭제 요청 중 오류 발생: $e');
+          }
         },
         yesText: '확인',
         noText: '취소',
