@@ -110,10 +110,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 return Dismissible(
                   key: ValueKey(planModel.id),
                   direction: DismissDirection.endToStart,
+                  background: Container(
+                    alignment: Alignment.centerRight,
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    color: HIGH_FEVER_COLOR,
+                    child: Icon(Icons.delete, color: Colors.white),
+                  ),
                   onDismissed: (_) => {
                     setState(() {
                       plans[selectedDay]!.removeAt(index);
                     }),
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("삭제되었습니다.")),
+                    )
                     // db에서 삭제하는 로직 구현 예정
                   },
                   child: PlanCard(

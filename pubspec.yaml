@@ -39,6 +39,7 @@ dependencies:
   fl_chart: ^1.0.0
   table_calendar: ^3.2.0
   intl: ^0.20.2
+  dio: ^5.8.0+1
 
 dev_dependencies:
   flutter_test:

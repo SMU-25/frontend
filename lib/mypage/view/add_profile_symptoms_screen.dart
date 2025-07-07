@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/component/complete_dialog.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
@@ -36,39 +37,100 @@ class _AddProfileSymptomsScreenState extends State<AddProfileSymptomsScreen> {
     seizure != null &&
     selectedIllness.isNotEmpty;
 
-  void onNextPressed() {
-    if(!isFormValid) return;
+  void onNextPressed() async {
+    if (!isFormValid) return;
 
     final updatedProfileInfo = widget.profileInfo.copyWith(
       seizureHistory: seizure!,
       illnessList: selectedIllness.toList(),
     );
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => CompleteDialog(
-        image: widget.profileInfo.image != null
-          ? CircleAvatar(
-            radius: 40,
-            backgroundImage: FileImage(widget.profileInfo.image!),
-          )
-          : Icon(
-              Icons.account_circle,
-              size: 80,
-              color: ICON_GREY_COLOR,
+    // 추후에 accessToken FlutterSecureStorage에서 가져오도록 변경 예정
+    final accessToken = 'Bearer ACCESS_TOKEN';
+    final Dio dio = Dio();
+    final birthdate =
+        "${updatedProfileInfo.birthYear.padLeft(2, '0')}-${updatedProfileInfo.birthMonth.padLeft(2, '0')}-${updatedProfileInfo.birthDay.padLeft(2, '0')}";
+
+    String convertSeizureToEnum(String input) {
+      switch (input) {
+        case '있음':
+          return 'YES';
+        case '없음':
+          return 'NONE';
+        case '모름':
+          return 'UNKNOWN';
+        default:
+          return 'UNKNOWN';
+      }
+    }
+
+    String convertGenderToEnum(String input) {
+      switch (input) {
+        case '남자':
+          return 'MALE';
+        case '여자':
+          return 'FEMALE';
+        default:
+          return 'FEMALE';
+      }
+    }
+
+    final requestBody = {
+      "name": updatedProfileInfo.name,
+      "birthdate": birthdate,
+      "height": updatedProfileInfo.height,
+      "weight": updatedProfileInfo.weight,
+      "gender": convertGenderToEnum(updatedProfileInfo.gender),
+      "seizure": convertSeizureToEnum(updatedProfileInfo.seizureHistory!),
+      "profileImage": "string",
+      "illnessTypes": updatedProfileInfo.illnessList
+          ?.map((e) => e.replaceAll(' ', '_'))
+          .toList(),
+    };
+
+    try {
+      final resp = await dio.post(
+        'https://momfy.kr/api/children',
+        data: requestBody,
+        options: Options(
+          headers: {
+            'Authorization': accessToken,
+          },
         ),
-        title: "'${widget.profileInfo.name}' 등록 완료",
-        content: "이제 아이를\n맘편해와 함께 돌봐주세요!",
-        checkText: "완료",
-        onPressedCheck: () {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (_) => RootTab(initialTabIndex: 4)),
-            (route) => false,
-          );
-        }
-      ),
-    );
+      );
+
+      if (resp.data['isSuccess'] == true && context.mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => CompleteDialog(
+            image: updatedProfileInfo.image != null
+              ? CircleAvatar(
+                radius: 40,
+                backgroundImage: FileImage(updatedProfileInfo.image!),
+            )
+              : Icon(
+                  Icons.account_circle,
+                  size: 80,
+                  color: ICON_GREY_COLOR,
+            ),
+            title: "'${updatedProfileInfo.name}' 등록 완료",
+            content: "이제 아이를\n맘편해와 함께 돌봐주세요!",
+            checkText: "완료",
+            onPressedCheck: () {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => RootTab(initialTabIndex: 4)),
+                  (route) => false,
+              );
+            },
+          ),
+        );
+      } else {
+        print('등록 실패: ${resp.data}');
+      }
+    } catch (e) {
+      print('에러 발생: $e');
+    }
   }
   
   String getDisplayText(String illness) {
