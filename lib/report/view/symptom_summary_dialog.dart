@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/const/colors.dart';
+import 'package:team_project_front/report/model/report_info.dart';
 import 'package:team_project_front/report/view/result_report.dart';
 
 class SymptomSummaryDialog extends StatelessWidget {
@@ -17,14 +18,22 @@ class SymptomSummaryDialog extends StatelessWidget {
   });
 
   void _navigateToResultReport(BuildContext context) {
+    final now = DateTime.now();
+    final report = ReportInfo(
+      reportId: null,
+      childId: 101, // 임시 지정
+      createdAt: now,
+      symptoms: selectedSymptoms.toList(),
+      etcSymptom: etcSymptom,
+      outingRecord: outingRecord,
+      illnessTypes: ['아토피', '천식'], // 추후 api 요청 예정
+    );
+
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => ResultReport(
-          selectedSymptoms: selectedSymptoms,
-          etcSymptom: etcSymptom,
-          illnesses: ['아토피', '천식'], // API 요청 예정
+          report: report,
           allSymptoms: allSymptoms,
-          outingRecord: outingRecord,
         ),
       ),
     );
