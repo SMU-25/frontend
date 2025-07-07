@@ -26,7 +26,7 @@ class _ReportState extends State<Report> {
 
   final List<String> allSymptoms = [
     '발열', '구토', '경련', '코피', '설사',
-    '피부 발진', '실신', '호흡곤란', '기침', '콧물', '황달'
+    '피부 발진', '실신', '호흡 곤란', '기침', '콧물', '황달'
   ];
 
   final ScrollController _scrollController = ScrollController();
@@ -97,7 +97,7 @@ class _ReportState extends State<Report> {
           );
         },
         elevation: 0,
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
         highlightElevation: 0,
         child: Icon(
           size: 60,
