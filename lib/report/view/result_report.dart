@@ -93,7 +93,7 @@ class _ResultReportState extends State<ResultReport> {
                 ),
                 const SizedBox(height: 15),
                 _ChildSymptomsWidget(
-                  selectedSymptoms: selectedSymptoms,
+                  selectedSymptoms: selectedSymptoms.map((symptom) => symptom.replaceAll('_', ' ')).toSet(),
                   allSymptoms: widget.allSymptoms,
                 ),
                 const SizedBox(height: 20),
