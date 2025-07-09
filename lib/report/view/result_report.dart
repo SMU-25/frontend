@@ -12,11 +12,13 @@ class ResultReport extends StatefulWidget {
   final int reportId;
   final ReportInfo report;
   final List<String> allSymptoms;
+  final bool showBackButton;
   
   const ResultReport({
     required this.reportId,
     required this.report,
     required this.allSymptoms,
+    this.showBackButton = true,
     super.key,
   });
 
@@ -66,6 +68,7 @@ class _ResultReportState extends State<ResultReport> {
         preferredSize: Size.fromHeight(90),
         child: CustomAppbar(
           title: '리포트 결과',
+          showBackButton: widget.showBackButton,
         ),
       ),
       body: FutureBuilder<ReportInfo>(
