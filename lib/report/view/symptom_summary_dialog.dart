@@ -37,6 +37,7 @@ class SymptomSummaryDialog extends StatelessWidget {
             reportId: report.reportId,
             report: report,
             allSymptoms: allSymptoms,
+            showBackButton: false,
          ),
         ),
       );
