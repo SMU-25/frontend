@@ -8,11 +8,13 @@ enum ChartType { bodyTemp, roomTemp, humidity }
 class TemperatureChartWidget extends StatefulWidget {
   final ChartType chartType;
   final Map<PeriodType, List<FlSpot>> chartData;
+  final DateTime createdAt;
 
   const TemperatureChartWidget({
     super.key,
     required this.chartType,
     required this.chartData,
+    required this.createdAt,
   });
 
   @override
@@ -164,13 +166,35 @@ class _TemperatureChartWidgetState extends State<TemperatureChartWidget> {
   }
 
   List<String> _getLabels() {
+    final createdAt = widget.createdAt;
+
     switch (selectedPeriod) {
       case PeriodType.day1:
         return ['0시', '3시', '6시', '9시', '12시', '15시', '18시', '21시'];
       case PeriodType.day3:
-        return ['1일\n새벽', '1일\n오전', '1일\n오후', '2일\n새벽', '2일\n오전', '2일\n오후', '3일\n새벽', '3일\n오전', '3일\n오후'];
+        final day1 = createdAt.subtract(Duration(days: 2));
+        final day2 = createdAt.subtract(Duration(days: 1));
+        final day3 = createdAt;
+
+        String format(DateTime date) => '${date.day}일';
+
+        return [
+          '${format(day1)}\n새벽',
+          '${format(day1)}\n오전',
+          '${format(day1)}\n오후',
+          '${format(day2)}\n새벽',
+          '${format(day2)}\n오전',
+          '${format(day2)}\n오후',
+          '${format(day3)}\n새벽',
+          '${format(day3)}\n오전',
+          '${format(day3)}\n오후',
+        ];
       case PeriodType.day7:
-        return ['7일', '8일', '9일', '10일', '11일', '12일', '13일'];
+        String format(DateTime date) => '${date.day}일';
+        return List.generate(7, (i) {
+          final date = createdAt.subtract(Duration(days: 6 - i));
+          return format(date);
+        });
     }
   }
 }
