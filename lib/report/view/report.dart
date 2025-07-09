@@ -72,7 +72,7 @@ class _ReportState extends State<Report> {
     setState(() {
       reportData.addAll(response.reports);
       isLoading = false;
-      cursor += response.cursor;
+      cursor = response.cursor;
       hasNext = response.hasNext;
     });
   }
