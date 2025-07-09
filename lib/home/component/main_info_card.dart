@@ -46,7 +46,6 @@ class MainInfoCard extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // 상단 정보 텍스트
           Padding(
             padding: const EdgeInsets.only(left: 15.0),
             child: Row(
@@ -72,7 +71,6 @@ class MainInfoCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          // 하단 아이콘 및 수치
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
