@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
 import 'package:team_project_front/common/component/temperature_chart_widget.dart';
@@ -6,20 +8,59 @@ import 'package:team_project_front/report/model/report_info.dart';
 import 'package:team_project_front/report/view/report.dart';
 import 'package:team_project_front/settings/component/custom_appbar.dart';
 
-class ResultReport extends StatelessWidget {
+class ResultReport extends StatefulWidget {
+  final int reportId;
   final ReportInfo report;
   final List<String> allSymptoms;
   
   const ResultReport({
+    required this.reportId,
     required this.report,
     required this.allSymptoms,
     super.key,
   });
 
   @override
-  Widget build(BuildContext context) {
-    final selectedSymptoms = report.symptoms.toSet();
+  State<ResultReport> createState() => _ResultReportState();
+}
 
+class _ResultReportState extends State<ResultReport> {
+  late Future<ReportInfo> reportFuture;
+
+  // 임시 Access Token (추후 FlutterSecureStorage 등으로 교체 예정)
+  final String accessToken = 'Bearer ACCESS_TOKEN';
+
+  @override
+  void initState() {
+    super.initState();
+    reportFuture = fetchReport();
+  }
+
+  Future<ReportInfo> fetchReport() async {
+    try {
+      final response = await Dio().get(
+        'https://momfy.kr/api/reports/${widget.reportId}',
+        options: Options(
+          headers: {
+            'Authorization': accessToken,
+          },
+        ),
+      );
+
+      if(response.statusCode == 200 && response.data['isSuccess']) {
+        return ReportInfo.fromJson(response.data['result']);
+      } else {
+        throw Exception('리포트 불러오기 실패');
+      }
+    } catch(e) {
+      print('예외 발생!');
+      print('$e');
+      rethrow;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(90),
@@ -27,37 +68,73 @@ class ResultReport extends StatelessWidget {
           title: '리포트 결과',
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 30),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              '아이의 증상 리포트입니다.',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w900,
-              ),
+      body: FutureBuilder<ReportInfo>(
+        future: reportFuture,
+        builder: (context, snapshot) {
+          if(snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if(snapshot.hasError) {
+            return Center(child: Text('에러: ${snapshot.error}'));
+          } else if(!snapshot.hasData) {
+            return Center(child: Text('리포트를 불러올 수 없습니다.'));
+          }
+
+          final report = snapshot.data!;
+          final selectedSymptoms = report.symptoms.toSet();
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 30),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  '아이의 증상 리포트입니다.',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900),
+                ),
+                const SizedBox(height: 15),
+                _ChildSymptomsWidget(
+                  selectedSymptoms: selectedSymptoms,
+                  allSymptoms: widget.allSymptoms,
+                ),
+                const SizedBox(height: 20),
+                if (report.etcSymptom.trim().isNotEmpty)
+                  _EtcSymptomsWidget(etcSymptom: report.etcSymptom),
+                const SizedBox(height: 20),
+                _DiagnosisWidget(illnesses: report.illnessTypes),
+                const SizedBox(height: 10),
+                _SupplementaryExplanationWidget(outingRecord: report.outingRecord),
+                const SizedBox(height: 40),
+                _ChartSectionWidget(
+                  title: '리포트 생성 시점 체온',
+                  chartType: ChartType.bodyTemp,
+                  chartData: {
+                    PeriodType.day1: report.day1?.toFeverSpots() ?? [],
+                    PeriodType.day3: report.day3?.toFeverSpots() ?? [],
+                    PeriodType.day7: report.day7?.toFeverSpots() ?? [],
+                  }
+                ),
+                _ChartSectionWidget(
+                  title: '리포트 생성 시점 온도',
+                  chartType: ChartType.roomTemp,
+                  chartData: {
+                    PeriodType.day1: report.day1?.toTemperatureSpots() ?? [],
+                    PeriodType.day3: report.day3?.toTemperatureSpots() ?? [],
+                    PeriodType.day7: report.day7?.toTemperatureSpots() ?? [],
+                  },
+                ),
+                _ChartSectionWidget(
+                  title: '리포트 생성 시점 습도',
+                  chartType: ChartType.humidity,
+                  chartData: {
+                    PeriodType.day1: report.day1?.toHumiditySpots() ?? [],
+                    PeriodType.day3: report.day3?.toHumiditySpots() ?? [],
+                    PeriodType.day7: report.day7?.toHumiditySpots() ?? [],
+                  },
+                ),
+              ],
             ),
-            SizedBox(height: 15),
-            _ChildSymptomsWidget(
-              selectedSymptoms: selectedSymptoms,
-              allSymptoms: allSymptoms,
-            ),
-            SizedBox(height: 20),
-            if (report.etcSymptom.trim().isNotEmpty) ...[
-              _EtcSymptomsWidget(etcSymptom: report.etcSymptom),
-            ],
-            SizedBox(height: 20),
-            _DiagnosisWidget(illnesses: report.illnessTypes),
-            SizedBox(height: 10),
-            _SupplementaryExplanationWidget(outingRecord: report.outingRecord),
-            SizedBox(height: 40),
-            _ChartSectionWidget(title: '리포트 생성 시점 체온', chartType: ChartType.bodyTemp),
-            _ChartSectionWidget(title: '리포트 생성 시점 온도', chartType: ChartType.roomTemp),
-            _ChartSectionWidget(title: '리포트 생성 시점 습도', chartType: ChartType.humidity),
-          ],
-        ),
+          );
+        }
       ),
       bottomNavigationBar: Padding(
         padding: EdgeInsets.fromLTRB(16, 0, 16, 24),
@@ -240,10 +317,12 @@ class _SupplementaryExplanationWidget extends StatelessWidget {
 class _ChartSectionWidget extends StatelessWidget {
   final String title;
   final ChartType chartType;
+  final Map<PeriodType, List<FlSpot>> chartData;
 
   const _ChartSectionWidget({
     required this.title,
     required this.chartType,
+    required this.chartData,
   });
 
   @override
@@ -257,7 +336,10 @@ class _ChartSectionWidget extends StatelessWidget {
           ),
         ),
         SizedBox(height: 30),
-        TemperatureChartWidget(chartType: chartType),
+        TemperatureChartWidget(
+          chartType: chartType,
+          chartData: chartData,
+        ),
         SizedBox(height: 40),
       ],
     );

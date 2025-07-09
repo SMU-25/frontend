@@ -34,6 +34,7 @@ class SymptomSummaryDialog extends StatelessWidget {
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => ResultReport(
+            reportId: report.reportId,
             report: report,
             allSymptoms: allSymptoms,
          ),
