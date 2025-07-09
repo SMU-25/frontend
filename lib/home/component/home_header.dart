@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:team_project_front/common/model/baby.dart';
+import 'package:team_project_front/home/view/alert.dart';
 
 class HomeHeader extends StatefulWidget {
-  const HomeHeader({super.key});
+  const HomeHeader({super.key, required this.baby});
+  final Baby baby;
 
   @override
   State<HomeHeader> createState() => _HomeHeaderState();
@@ -45,8 +48,8 @@ class _HomeHeaderState extends State<HomeHeader> {
           children: [
             const Icon(Icons.account_circle, color: Colors.grey, size: 55),
             const SizedBox(width: 10),
-            const Text(
-              '준형',
+            Text(
+              widget.baby.name,
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(width: 10),
@@ -61,7 +64,15 @@ class _HomeHeaderState extends State<HomeHeader> {
             ),
           ],
         ),
-        const Icon(Icons.notifications_none_outlined, size: 28),
+        IconButton(
+          icon: Icon(Icons.notifications_none_outlined, size: 28),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => AlertScreen()),
+            );
+          },
+        ),
       ],
     );
   }

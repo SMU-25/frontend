@@ -65,7 +65,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 right: 25,
                 bottom: 20,
               ),
-              child: HomeHeader(),
+
+              child: HomeHeader(baby: baby),
             ),
             Divider(),
             Padding(
