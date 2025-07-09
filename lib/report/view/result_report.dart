@@ -111,7 +111,8 @@ class _ResultReportState extends State<ResultReport> {
                     PeriodType.day1: report.day1?.toFeverSpots() ?? [],
                     PeriodType.day3: report.day3?.toFeverSpots() ?? [],
                     PeriodType.day7: report.day7?.toFeverSpots() ?? [],
-                  }
+                  },
+                  createdAt: report.createdAt,
                 ),
                 _ChartSectionWidget(
                   title: '리포트 생성 시점 온도',
@@ -121,6 +122,7 @@ class _ResultReportState extends State<ResultReport> {
                     PeriodType.day3: report.day3?.toTemperatureSpots() ?? [],
                     PeriodType.day7: report.day7?.toTemperatureSpots() ?? [],
                   },
+                  createdAt: report.createdAt,
                 ),
                 _ChartSectionWidget(
                   title: '리포트 생성 시점 습도',
@@ -130,6 +132,7 @@ class _ResultReportState extends State<ResultReport> {
                     PeriodType.day3: report.day3?.toHumiditySpots() ?? [],
                     PeriodType.day7: report.day7?.toHumiditySpots() ?? [],
                   },
+                  createdAt: report.createdAt,
                 ),
               ],
             ),
@@ -318,11 +321,13 @@ class _ChartSectionWidget extends StatelessWidget {
   final String title;
   final ChartType chartType;
   final Map<PeriodType, List<FlSpot>> chartData;
+  final DateTime createdAt;
 
   const _ChartSectionWidget({
     required this.title,
     required this.chartType,
     required this.chartData,
+    required this.createdAt,
   });
 
   @override
@@ -339,6 +344,7 @@ class _ChartSectionWidget extends StatelessWidget {
         TemperatureChartWidget(
           chartType: chartType,
           chartData: chartData,
+          createdAt: createdAt,
         ),
         SizedBox(height: 40),
       ],
