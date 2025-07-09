@@ -157,6 +157,7 @@ class _ReportState extends State<Report> {
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (_) => ResultReport(
+                        reportId: report.reportId,
                         report: report,
                         allSymptoms: allSymptoms,
                       ),
