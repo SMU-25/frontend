@@ -55,81 +55,87 @@ class _HomeScreenState extends State<HomeScreen> {
                 : '건조해요')
             : (airTemperature <= 22 ? '추워요' : '쾌적해요 ☺️');
     return Scaffold(
+      appBar: AppBar(
+        toolbarHeight: 0, // 또는 실제 높이로 맞춰도 됨
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
       body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 20,
-                left: 25,
-                right: 25,
-                bottom: 20,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 20,
+                  left: 25,
+                  right: 25,
+                  bottom: 20,
+                ),
+                child: HomeHeader(baby: baby),
               ),
-
-              child: HomeHeader(baby: baby),
-            ),
-            Divider(),
-            Padding(
-              padding: const EdgeInsets.only(top: 16, left: 25, right: 25),
-              child: Column(
-                children: [
-                  MainInfoCard(
-                    baby: baby,
-                    bodyTemperature: bodyTemperature,
-                    feverThreshold: feverThreshold,
-                    airTemperature: airTemperature,
-                    humidity: humidity,
-                    getStatusColor: getStatusColor,
-                    isFever: isFever,
-                    isUncomfortableHumidity: isUncomfortableHumidity,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            children: [
-                              BodyTemperatureCard(
-                                bodyTemperature: bodyTemperature,
-                                feverThreshold: feverThreshold,
-                                getStatusColor: getStatusColor,
-                                isFever: isFever,
-                              ),
-                              SizedBox(height: 16),
-                              FeverReportCard(
-                                getStatusColor: getStatusColor,
-                                isFever: isFever,
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            children: [
-                              EnvironmentCard(
-                                bodyTemperature: bodyTemperature,
-                                feverThreshold: feverThreshold,
-                                airTemperature: airTemperature,
-                                humidity: humidity,
-                                getStatusColor: getStatusColor,
-                                isFever: isFever,
-                                comfortStatus: comfortStatus,
-                              ),
-                              SizedBox(height: 16),
-                              SubscribeCard(),
-                            ],
-                          ),
-                        ),
-                      ],
+              Divider(),
+              Padding(
+                padding: const EdgeInsets.only(top: 16, left: 25, right: 25),
+                child: Column(
+                  children: [
+                    MainInfoCard(
+                      baby: baby,
+                      bodyTemperature: bodyTemperature,
+                      feverThreshold: feverThreshold,
+                      airTemperature: airTemperature,
+                      humidity: humidity,
+                      getStatusColor: getStatusColor,
+                      isFever: isFever,
+                      isUncomfortableHumidity: isUncomfortableHumidity,
                     ),
-                  ),
-                ],
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              children: [
+                                BodyTemperatureCard(
+                                  bodyTemperature: bodyTemperature,
+                                  feverThreshold: feverThreshold,
+                                  getStatusColor: getStatusColor,
+                                  isFever: isFever,
+                                ),
+                                SizedBox(height: 16),
+                                FeverReportCard(
+                                  getStatusColor: getStatusColor,
+                                  isFever: isFever,
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              children: [
+                                EnvironmentCard(
+                                  bodyTemperature: bodyTemperature,
+                                  feverThreshold: feverThreshold,
+                                  airTemperature: airTemperature,
+                                  humidity: humidity,
+                                  getStatusColor: getStatusColor,
+                                  isFever: isFever,
+                                  comfortStatus: comfortStatus,
+                                ),
+                                SizedBox(height: 16),
+                                SubscribeCard(),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

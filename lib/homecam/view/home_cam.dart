@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:team_project_front/homecam/component/home_cam_view.dart';
-import 'package:team_project_front/homecam/component/no_home_cam_view.dart';
-import 'package:team_project_front/homecam/model/home_cam.dart';
+import 'package:team_project_front/homecam/view/update_home_cam.dart';
 
 class HomeCamScreen extends StatefulWidget {
   const HomeCamScreen({super.key});
@@ -13,10 +12,25 @@ class HomeCamScreen extends StatefulWidget {
 class _HomeCamScreenState extends State<HomeCamScreen> {
   DateTime selectedDate = DateTime.now();
 
-  HomeCam? homeCam;
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: homeCam != null ? HomeCamView() : NoHomeCamView());
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('홈캠', style: TextStyle(fontWeight: FontWeight.bold)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit, size: 30),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => UpdateHomeCamScreen()),
+              );
+            },
+          ),
+        ],
+      ),
+
+      body: const HomeCamView(),
+    );
   }
 }
