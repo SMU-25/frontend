@@ -41,8 +41,6 @@ class _App extends StatelessWidget {
         '/login': (context) => LoginScreen(),
         '/signup': (context) => SignupAgreementScreen(),
         '/report': (context) => Report(),
-        // 홈캠 리스트 라우팅처리 어케할지 아직 모름 일단 named로 지정해놓고 UI 확인하려고 함
-        '/home_cam_list': (context) => HomeCamListScreen(),
         // '/signup/email': (context) => SignupInfoScreen(),
       },
     );
