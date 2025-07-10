@@ -5,8 +5,8 @@ import 'package:team_project_front/common/component/login_text_button.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
 import 'package:team_project_front/common/component/social_login_button.dart';
 import 'package:team_project_front/home/view/home.dart';
-import 'package:team_project_front/login/view/find_id.dart';
 import 'package:team_project_front/login/view/find_password.dart';
+import 'package:dio/dio.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -24,12 +24,53 @@ class _LoginScreenState extends State<LoginScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   bool _isObscure = true;
-  void _login() {
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: Text('오류'),
+            content: Text(message),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: Text('확인'),
+              ),
+            ],
+          ),
+    );
+  }
+
+  void _login() async {
     if (_formKey.currentState!.validate()) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (ctx) => HomeScreen()),
-      );
+      try {
+        final dio = Dio();
+
+        final response = await dio.post(
+          'https://momfy.kr/api/auth/login',
+          data: {
+            'email': _idController.text.trim(),
+            'password': _passwordController.text,
+          },
+        );
+
+        if (response.statusCode == 200) {
+          final token = response.data['accessToken'];
+          print(token);
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (ctx) => HomeScreen()),
+          );
+        } else {
+          _showErrorDialog('로그인에 실패했습니다.');
+        }
+      } on DioException catch (e) {
+        String message = '알 수 없는 오류가 발생했습니다.';
+        if (e.response != null && e.response?.data != null) {
+          message = e.response?.data['message'] ?? message;
+        }
+        _showErrorDialog(message);
+      }
     }
   }
 
@@ -95,18 +136,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         text: '회원가입',
                         onPressed: () {
                           Navigator.pushNamed(context, '/signup');
-                        },
-                      ),
-                      Text('|'),
-                      LoginTextButton(
-                        text: '아이디 찾기',
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => FindIdScreen(),
-                            ),
-                          );
                         },
                       ),
                       Text('|'),
