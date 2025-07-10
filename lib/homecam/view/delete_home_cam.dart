@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:team_project_front/common/component/custom_navigation_bar.dart';
 import 'package:team_project_front/common/const/colors.dart';
-import 'package:team_project_front/common/view/root_tab.dart';
 
 class DeleteHomeCamScreen extends StatelessWidget {
   const DeleteHomeCamScreen({super.key, required this.homeCamName});
