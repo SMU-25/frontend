@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:team_project_front/common/component/custom_navigation_bar.dart';
 import 'package:team_project_front/common/component/temperature_chart_widget.dart';
+import 'package:team_project_front/common/view/root_tab.dart';
 
 class RoomTemperatureHumidityGraphScreen extends StatefulWidget {
   const RoomTemperatureHumidityGraphScreen({super.key});
@@ -66,6 +68,14 @@ class _RoomTemperatureHumidityGraphScreenState
             _ChartSectionWidget(chartType: ChartType.humidity),
           ],
         ),
+      ),
+      bottomNavigationBar: CustomNavigationBar(
+        currentIndex: 0,
+        onTap: (index) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => RootTab(initialTabIndex: index)),
+          );
+        },
       ),
     );
   }
