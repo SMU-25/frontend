@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/view/root_tab.dart';
-import 'package:team_project_front/homecam/view/home_cam_list.dart';
 import 'package:team_project_front/init/view/init.dart';
 import 'package:team_project_front/login/view/login.dart';
 import 'package:team_project_front/report/view/report.dart';
