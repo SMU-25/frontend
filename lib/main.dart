@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/view/root_tab.dart';
+import 'package:team_project_front/homecam/view/home_cam_list.dart';
 import 'package:team_project_front/init/view/init.dart';
 import 'package:team_project_front/login/view/login.dart';
 import 'package:team_project_front/report/view/report.dart';
@@ -40,6 +41,8 @@ class _App extends StatelessWidget {
         '/login': (context) => LoginScreen(),
         '/signup': (context) => SignupAgreementScreen(),
         '/report': (context) => Report(),
+        // 홈캠 리스트 라우팅처리 어케할지 아직 모름 일단 named로 지정해놓고 UI 확인하려고 함
+        '/home_cam_list': (context) => HomeCamListScreen(),
         // '/signup/email': (context) => SignupInfoScreen(),
       },
     );

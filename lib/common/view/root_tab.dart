@@ -3,16 +3,14 @@ import 'package:team_project_front/calendar/view/calendar_screen.dart';
 import 'package:team_project_front/common/component/custom_appbar_root_tab.dart';
 import 'package:team_project_front/common/component/custom_navigation_bar.dart';
 import 'package:team_project_front/home/view/home.dart';
+import 'package:team_project_front/homecam/view/home_cam.dart';
 import 'package:team_project_front/mypage/view/my_screen.dart';
 import 'package:team_project_front/settings/view/settings_screen.dart';
 
 class RootTab extends StatefulWidget {
   final int initialTabIndex;
 
-  const RootTab({
-    this.initialTabIndex = 0,
-    super.key,
-  });
+  const RootTab({this.initialTabIndex = 0, super.key});
 
   @override
   State<RootTab> createState() => _RootTabState();
@@ -55,13 +53,10 @@ class _RootTabState extends State<RootTab> with SingleTickerProviderStateMixin {
         controller: controller,
         children: [
           HomeScreen(),
-          // HomeCamScreen()
-          Center(child: Container(child: Text('홈캠'))),
+          HomeCamScreen(),
           // MapScreen()
           Center(child: Container(child: Text('지도'))),
-          // CalendarScreen()
           CalendarScreen(),
-          // MyScreen()
           MyScreen(),
         ],
       ),
@@ -92,9 +87,9 @@ class _RootTabState extends State<RootTab> with SingleTickerProviderStateMixin {
           title: getAppBarTitle(),
           height: getAppBarHeight(),
           onPressed: () {
-            Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => SettingsScreen())
-            );
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (context) => SettingsScreen()));
           },
         );
       default:
@@ -117,14 +112,14 @@ class _RootTabState extends State<RootTab> with SingleTickerProviderStateMixin {
 
   double getAppBarHeight() {
     switch (currentIndex) {
-      case 1:  // 홈캠
+      case 1: // 홈캠
         return 70.0;
-      case 3:  // 캘린더
+      case 3: // 캘린더
         return 70.0;
-      case 4:  // 마이
+      case 4: // 마이
         return 70.0;
       default:
-        return 70.0;  // 기본값
+        return 70.0; // 기본값
     }
   }
 }
