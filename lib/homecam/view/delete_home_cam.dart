@@ -10,21 +10,6 @@ class DeleteHomeCamScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text(
-          '홈캠 목록',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings, size: 30),
-            onPressed: () {
-              // 설정화면 이동 (TODO)
-            },
-          ),
-        ],
-      ),
       body: Center(
         child: Container(
           width: 300,
@@ -72,14 +57,6 @@ class DeleteHomeCamScreen extends StatelessWidget {
             ],
           ),
         ),
-      ),
-      bottomNavigationBar: CustomNavigationBar(
-        currentIndex: 1,
-        onTap: (index) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => RootTab(initialTabIndex: index)),
-          );
-        },
       ),
     );
   }
