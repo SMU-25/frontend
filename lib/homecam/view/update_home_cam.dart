@@ -52,7 +52,7 @@ class _UpdateHomeCamScreenState extends State<UpdateHomeCamScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          '홈캠 등록',
+          '홈캠 수정',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),

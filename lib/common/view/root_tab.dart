@@ -3,7 +3,7 @@ import 'package:team_project_front/calendar/view/calendar_screen.dart';
 import 'package:team_project_front/common/component/custom_appbar_root_tab.dart';
 import 'package:team_project_front/common/component/custom_navigation_bar.dart';
 import 'package:team_project_front/home/view/home.dart';
-import 'package:team_project_front/homecam/view/home_cam.dart';
+import 'package:team_project_front/homecam/view/home_cam_list.dart';
 import 'package:team_project_front/mypage/view/my_screen.dart';
 import 'package:team_project_front/settings/view/settings_screen.dart';
 
@@ -53,7 +53,7 @@ class _RootTabState extends State<RootTab> with SingleTickerProviderStateMixin {
         controller: controller,
         children: [
           HomeScreen(),
-          HomeCamScreen(),
+          HomeCamListScreen(),
           // MapScreen()
           Center(child: Container(child: Text('지도'))),
           CalendarScreen(),
