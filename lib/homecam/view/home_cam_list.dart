@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:team_project_front/common/component/custom_navigation_bar.dart';
 import 'package:team_project_front/common/const/colors.dart';
-import 'package:team_project_front/common/view/root_tab.dart';
+import 'package:team_project_front/homecam/component/no_home_cam_view.dart';
 import 'package:team_project_front/homecam/model/home_cam.dart';
 import 'package:team_project_front/homecam/view/create_home_cam.dart';
 import 'package:team_project_front/homecam/view/delete_home_cam.dart';
-import 'package:team_project_front/homecam/view/update_home_cam.dart';
+import 'package:team_project_front/homecam/view/home_cam.dart';
 
 class HomeCamListScreen extends StatelessWidget {
   const HomeCamListScreen({super.key});
@@ -34,38 +33,22 @@ class HomeCamListScreen extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text(
-          '홈캠 목록',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings, size: 30),
-            onPressed: () {
-              // 설정 화면으로 이동 ?
-            },
-          ),
-        ],
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         child: Column(
-          children: [
-            ...homeCams.map((cam) => _buildHomeCamCard(context, cam)),
-            const SizedBox(height: 16),
-            _buildAddButton(context),
-          ],
+          children:
+              homeCams.isEmpty
+                  ? [
+                    NoHomeCamView(),
+                    const SizedBox(height: 16),
+                    _buildAddButton(context),
+                  ]
+                  : [
+                    ...homeCams.map((cam) => _buildHomeCamCard(context, cam)),
+                    const SizedBox(height: 16),
+                    _buildAddButton(context),
+                  ],
         ),
-      ),
-      bottomNavigationBar: CustomNavigationBar(
-        currentIndex: 1,
-        onTap: (index) {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => RootTab(initialTabIndex: index)),
-          );
-        },
       ),
     );
   }
@@ -79,7 +62,6 @@ class HomeCamListScreen extends StatelessWidget {
         border: Border.all(color: INPUT_BORDER_COLOR),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: Column(
@@ -117,12 +99,12 @@ class HomeCamListScreen extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.chevron_right, size: 30),
                 onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => UpdateHomeCamScreen()),
-                  );
+                  Navigator.of(
+                    context,
+                  ).push(MaterialPageRoute(builder: (_) => HomeCamScreen()));
                 },
               ),
-              const SizedBox(height: 55),
+              const SizedBox(height: 45),
               IconButton(
                 icon: const Icon(Icons.delete_outline, size: 30),
                 onPressed: () {
