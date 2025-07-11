@@ -1,9 +1,12 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/component/custom_input.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
+import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/common/model/user.dart';
+import 'package:team_project_front/common/utils/error_dialog.dart';
 import 'package:team_project_front/signup/component/gender_choicechip.dart';
-import 'package:team_project_front/signup/view/signup_complete.dart';
+import 'package:team_project_front/signup/utils/signup_complete.dart';
 
 class SignupUserInfoScreen extends StatefulWidget {
   const SignupUserInfoScreen({
@@ -51,6 +54,50 @@ class _SignupUserInfoState extends State<SignupUserInfoScreen> {
         _birthDateController.text =
             '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
       });
+    }
+  }
+
+  Future<void> _signUp() async {
+    if (_formKey.currentState!.validate() && _selectedGender != null) {
+      final user = User(
+        name: _nameController.text,
+        email: widget.email,
+        password: widget.password,
+        birthDate: _birthDate!,
+        socialType: 'local',
+        gender: _selectedGender!,
+      );
+
+      try {
+        final dio = Dio();
+        final response = await dio.post(
+          '$base_URL/auth/signup',
+          data: {
+            'email': user.email,
+            'password': user.password,
+            'name': user.name,
+            'birthDate': user.birthDate.toIso8601String().split('T').first,
+            'gender': user.gender.name,
+            'socialType': user.socialType,
+          },
+          options: Options(headers: {'Content-Type': 'application/json'}),
+        );
+
+        if (!mounted) return;
+
+        if (response.statusCode == 200 && response.data['result'] == true) {
+          await showSignupCompleteDialog(context);
+        } else {
+          showErrorDialog(context: context, message: '회원가입에 실패했습니다.');
+        }
+      } on DioException catch (err) {
+        if (!mounted) return;
+        String message = '알 수 없는 오류가 발생했습니다.';
+        if (err.response?.data != null) {
+          message = err.response?.data['message'] ?? message;
+        }
+        showErrorDialog(context: context, message: message);
+      }
     }
   }
 
@@ -155,23 +202,14 @@ class _SignupUserInfoState extends State<SignupUserInfoScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: NavigationButton(
             text: '다음',
-            onPressed: () {
+            onPressed: () async {
               // 회원가입 API 연결 예정
               if (_formKey.currentState!.validate() &&
                   _selectedGender != null) {
-                final user = User(
-                  name: _nameController.text,
-                  email: widget.email,
-                  password: widget.password,
-                  birthDate: _birthDate!,
-                  socialType: 'local',
-                  gender: _selectedGender!,
-                );
-
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => SignupCompleteScreen()),
-                );
+                final ctx = context;
+                await _signUp();
+                if (!mounted) return;
+                await showSignupCompleteDialog(ctx);
               }
             },
           ),
