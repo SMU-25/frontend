@@ -3,8 +3,13 @@ import 'package:team_project_front/common/model/baby.dart';
 import 'package:team_project_front/home/view/alert.dart';
 
 class HomeHeader extends StatefulWidget {
-  const HomeHeader({super.key, required this.baby});
-  final Baby baby;
+  const HomeHeader({
+    super.key,
+    required this.babies,
+    required this.selectedBaby,
+  });
+  final List<Baby> babies;
+  final Baby selectedBaby;
 
   @override
   State<HomeHeader> createState() => _HomeHeaderState();
@@ -12,6 +17,13 @@ class HomeHeader extends StatefulWidget {
 
 class _HomeHeaderState extends State<HomeHeader> {
   final GlobalKey _dropdownIconKey = GlobalKey();
+  late Baby _currentBaby;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentBaby = widget.selectedBaby;
+  }
 
   void _showFixedMenu() async {
     final RenderBox renderBox =
@@ -19,7 +31,7 @@ class _HomeHeaderState extends State<HomeHeader> {
     final Offset offset = renderBox.localToGlobal(Offset.zero);
     final Size size = renderBox.size;
 
-    final selected = await showMenu<String>(
+    final selected = await showMenu<Baby>(
       context: context,
       position: RelativeRect.fromLTRB(
         offset.dx - 80,
@@ -27,14 +39,16 @@ class _HomeHeaderState extends State<HomeHeader> {
         offset.dx + size.width,
         offset.dy,
       ),
-      items: const [
-        PopupMenuItem(value: '강민', child: Text('강민')),
-        PopupMenuItem(value: '지환', child: Text('지환')),
-      ],
+      items:
+          widget.babies.map((baby) {
+            return PopupMenuItem<Baby>(value: baby, child: Text(baby.name));
+          }).toList(),
     );
 
     if (selected != null) {
-      print('선택한 메뉴: $selected');
+      setState(() {
+        _currentBaby = selected;
+      });
     }
   }
 
@@ -49,8 +63,8 @@ class _HomeHeaderState extends State<HomeHeader> {
             const Icon(Icons.account_circle, color: Colors.grey, size: 55),
             const SizedBox(width: 10),
             Text(
-              widget.baby.name,
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              _currentBaby.name,
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(width: 10),
             GestureDetector(
@@ -65,11 +79,11 @@ class _HomeHeaderState extends State<HomeHeader> {
           ],
         ),
         IconButton(
-          icon: Icon(Icons.notifications_none_outlined, size: 28),
+          icon: const Icon(Icons.notifications_none_outlined, size: 28),
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => AlertScreen()),
+              MaterialPageRoute(builder: (context) => const AlertScreen()),
             );
           },
         ),
