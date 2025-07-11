@@ -34,7 +34,7 @@ class MainInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final months = _calculateMonths(baby.birthDate);
+    final months = _calculateMonths(baby.birthDate!);
 
     return Container(
       width: double.infinity,
