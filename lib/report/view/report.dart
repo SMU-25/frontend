@@ -83,6 +83,35 @@ class _ReportState extends State<Report> {
     super.dispose();
   }
 
+  Future<bool> deleteReport({
+    required int reportId,
+    required String accessToken,
+  }) async {
+    final dio = Dio();
+
+    try {
+      final resp = await dio.delete(
+        'https://momfy.kr/api/reports/$reportId',
+        options: Options(
+          headers: {
+            'Authorization': accessToken
+          },
+        ),
+      );
+
+      if (resp.statusCode == 204 || resp.data['isSuccess'] == true) {
+        print('삭제 완료: ${resp.data['result']}');
+        return true;
+      } else {
+        print('삭제 실패: ${resp.data['message']}');
+        return false;
+      }
+    } catch(e) {
+      print('리포트 삭제 실패: $e');
+      return false;
+    }
+  }
+
   String formatDate(DateTime date) {
     return DateFormat('yyyy년 M월 d일').format(date);
   }
@@ -143,14 +172,25 @@ class _ReportState extends State<Report> {
                 color: HIGH_FEVER_COLOR,
                 child: Icon(Icons.delete, color: Colors.white),
               ),
-              onDismissed: (_) {
-                setState(() {
-                  reportData.removeAt(index);
-                });
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("삭제되었습니다.")),
+              onDismissed: (_) async {
+                final success = await deleteReport(
+                  reportId: report.reportId,
+                  accessToken: accessToken,
                 );
+
+                if (success) {
+                  setState(() {
+                    reportData.removeAt(index);
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("삭제되었습니다.")),
+                  );
+                } else {
+                  setState(() {});
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("삭제에 실패했습니다.")),
+                  );
+                }
               },
               child: GestureDetector(
                 onTap: () {
