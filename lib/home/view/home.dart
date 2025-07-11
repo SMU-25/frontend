@@ -1,5 +1,10 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/common/const/colors.dart';
+import 'package:team_project_front/common/model/user.dart' hide Gender;
+import 'package:team_project_front/common/utils/error_dialog.dart';
+import 'package:team_project_front/common/utils/secure_storage_service.dart';
 import 'package:team_project_front/home/component/body_temperature_card.dart';
 import 'package:team_project_front/home/component/environment_card.dart';
 import 'package:team_project_front/home/component/fever_report_card.dart';
@@ -25,19 +30,108 @@ class _HomeScreenState extends State<HomeScreen> {
   Color getStatusColor(bool condition) =>
       condition ? HIGH_FEVER_COLOR : MAIN_COLOR;
 
+  List<Baby> babies = [];
+  Baby? selectedBaby;
+  @override
+  void initState() {
+    super.initState();
+    fetchBabies();
+  }
+
+  Future<void> fetchBabies() async {
+    try {
+      final dio = Dio();
+
+      final token = await SecureStorageService.getAccessToken();
+      final res = await dio.get(
+        '$base_URL/children',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (res.statusCode == 200) {
+        List<Map<String, dynamic>> data = List<Map<String, dynamic>>.from(
+          res.data['result'],
+        );
+
+        final loadedBabies =
+            data
+                .map(
+                  (baby) => Baby.forList(
+                    childId: baby['childId'],
+                    name: baby['name'],
+                    profileImage: baby['profileImage'],
+                  ),
+                )
+                .toList();
+
+        setState(() {
+          babies = loadedBabies;
+          selectedBaby = babies.isNotEmpty ? babies[0] : null;
+        });
+
+        if (selectedBaby?.childId != null) {
+          await fetchBaby(selectedBaby!.childId!);
+        }
+      } else {
+        if (!mounted) return;
+        showErrorDialog(context: context, message: '아이들 불러오기에 실패했습니다.');
+      }
+    } on DioException catch (err) {
+      String message = '알 수 없는 오류가 발생했습니다.';
+      if (err.response != null && err.response?.data != null) {
+        message = err.response?.data['message'] ?? message;
+      }
+      if (!mounted) return;
+      showErrorDialog(context: context, message: message);
+    }
+  }
+
+  Future<void> fetchBaby(int childId) async {
+    try {
+      final dio = Dio();
+      final token = await SecureStorageService.getAccessToken();
+
+      final res = await dio.get(
+        '$base_URL/children/$childId',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (res.statusCode == 200) {
+        final babyData = res.data['result'];
+        setState(() {
+          selectedBaby = Baby(
+            childId: babyData['childId'],
+            name: babyData['name'],
+            birthDate:
+                babyData['birthdate'] != null
+                    ? DateTime.parse(babyData['birthdate'])
+                    : null,
+            height: (babyData['height'] as num?)?.toDouble(),
+            weight: (babyData['weight'] as num?)?.toDouble(),
+            gender:
+                babyData['gender'] == 'FEMALE' ? Gender.female : Gender.male,
+            seizure: babyData['seizure'],
+            profileImage: babyData['profileImage'],
+            illnessTypes: List<String>.from(babyData['illnessTypes'] ?? []),
+          );
+        });
+      } else {
+        if (!mounted) return;
+        showErrorDialog(context: context, message: '아이 정보를 불러오지 못했습니다.');
+      }
+    } on DioException catch (err) {
+      String message = '알 수 없는 오류가 발생했습니다.';
+      if (err.response != null && err.response?.data != null) {
+        message = err.response?.data['message'] ?? message;
+      }
+      if (!mounted) return;
+      showErrorDialog(context: context, message: message);
+    }
+    print(selectedBaby);
+  }
+
   @override
   Widget build(BuildContext context) {
-    // mock data
-    final baby = Baby(
-      name: '준형이',
-      birthDate: DateTime(2023, 11, 9),
-      height: 75.0,
-      weight: 9.5,
-      gender: Gender.male,
-      seizure: '없음',
-      profileImage: 'test',
-      illnessTypes: ['아토피', '천식'],
-    );
     final isFever = bodyTemperature >= feverThreshold;
     final isUncomfortableHumidity = humidity < 40 || humidity > 60;
     final comfortStatus =
@@ -56,87 +150,97 @@ class _HomeScreenState extends State<HomeScreen> {
             : (airTemperature <= 22 ? '추워요' : '쾌적해요 ☺️');
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 0, // 또는 실제 높이로 맞춰도 됨
+        toolbarHeight: 0,
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 20,
-                  left: 25,
-                  right: 25,
-                  bottom: 20,
-                ),
-                child: HomeHeader(baby: baby),
-              ),
-              Divider(),
-              Padding(
-                padding: const EdgeInsets.only(top: 16, left: 25, right: 25),
-                child: Column(
-                  children: [
-                    MainInfoCard(
-                      baby: baby,
-                      bodyTemperature: bodyTemperature,
-                      feverThreshold: feverThreshold,
-                      airTemperature: airTemperature,
-                      humidity: humidity,
-                      getStatusColor: getStatusColor,
-                      isFever: isFever,
-                      isUncomfortableHumidity: isUncomfortableHumidity,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 16.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              children: [
-                                BodyTemperatureCard(
-                                  bodyTemperature: bodyTemperature,
-                                  feverThreshold: feverThreshold,
-                                  getStatusColor: getStatusColor,
-                                  isFever: isFever,
-                                ),
-                                SizedBox(height: 16),
-                                FeverReportCard(
-                                  getStatusColor: getStatusColor,
-                                  isFever: isFever,
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              children: [
-                                EnvironmentCard(
-                                  bodyTemperature: bodyTemperature,
-                                  feverThreshold: feverThreshold,
-                                  airTemperature: airTemperature,
-                                  humidity: humidity,
-                                  getStatusColor: getStatusColor,
-                                  isFever: isFever,
-                                  comfortStatus: comfortStatus,
-                                ),
-                                SizedBox(height: 16),
-                                SubscribeCard(),
-                              ],
-                            ),
-                          ),
-                        ],
+        child:
+            selectedBaby == null
+                ? const Center(child: CircularProgressIndicator())
+                : SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          top: 20,
+                          left: 25,
+                          right: 25,
+                          bottom: 20,
+                        ),
+                        child: HomeHeader(
+                          babies: babies,
+                          selectedBaby: selectedBaby!,
+                        ),
                       ),
-                    ),
-                  ],
+                      Divider(),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          top: 16,
+                          left: 25,
+                          right: 25,
+                        ),
+                        child: Column(
+                          children: [
+                            MainInfoCard(
+                              baby: selectedBaby!,
+                              bodyTemperature: bodyTemperature,
+                              feverThreshold: feverThreshold,
+                              airTemperature: airTemperature,
+                              humidity: humidity,
+                              getStatusColor: getStatusColor,
+                              isFever: isFever,
+                              isUncomfortableHumidity: isUncomfortableHumidity,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 16.0),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      children: [
+                                        BodyTemperatureCard(
+                                          bodyTemperature: bodyTemperature,
+                                          feverThreshold: feverThreshold,
+                                          getStatusColor: getStatusColor,
+                                          isFever: isFever,
+                                        ),
+                                        SizedBox(height: 16),
+                                        FeverReportCard(
+                                          getStatusColor: getStatusColor,
+                                          isFever: isFever,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      children: [
+                                        EnvironmentCard(
+                                          bodyTemperature: bodyTemperature,
+                                          feverThreshold: feverThreshold,
+                                          airTemperature: airTemperature,
+                                          humidity: humidity,
+                                          getStatusColor: getStatusColor,
+                                          isFever: isFever,
+                                          comfortStatus: comfortStatus,
+                                        ),
+                                        SizedBox(height: 16),
+                                        SubscribeCard(),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
