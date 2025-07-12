@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
 import 'package:team_project_front/common/component/temperature_chart_widget.dart';
+import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/common/const/colors.dart';
 import 'package:team_project_front/report/model/report_info.dart';
 import 'package:team_project_front/report/view/report.dart';
@@ -41,7 +42,7 @@ class _ResultReportState extends State<ResultReport> {
   Future<ReportInfo> fetchReport() async {
     try {
       final response = await Dio().get(
-        'https://momfy.kr/api/reports/${widget.reportId}',
+        '$base_URL/reports/${widget.reportId}',
         options: Options(
           headers: {
             'Authorization': accessToken,
