@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/component/yes_or_no_dialog.dart';
 import 'package:team_project_front/common/const/colors.dart';
@@ -67,13 +68,55 @@ class SettingsScreen extends StatelessWidget {
           '회원 탈퇴 시 기록하신 모든 데이터가\n'
           '삭제되어 복구가 불가능합니다.\n'
           '정말 탈퇴하시겠습니까?',
-        onPressedYes: () {
-          // 회원 탈퇴 처리 로직
+        onPressedYes: () async {
+          withdrawUser(context);
         },
         yesText: '예',
         noText: '아니오',
       ),
     );
+  }
+}
+
+// 추후에 accessToken FlutterSecureStorage에서 가져오도록 변경 예정
+final String accessToken = 'Bearer ACCESS_TOKEN';
+
+Future<void> withdrawUser(BuildContext context) async {
+  final dio = Dio();
+
+  try {
+    Navigator.of(context).pop();
+
+    final response = await dio.delete(
+      'https://momfy.kr/api/my',
+      options: Options(headers: {
+        'Authorization': accessToken,
+      }),
+    );
+
+    if(response.data['isSuccess'] == true) {
+      // 토큰 삭제
+      //await storage.deleteAll();
+      if (context.mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('회원 탈퇴가 완료되었습니다.')),
+        );
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('탈퇴 실패: ${response.data['message']}')),
+          );
+        }
+      }
+    }
+  } catch(e) {
+    print('회원 탈퇴 오류: $e');
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('탈퇴 중 오류가 발생했습니다.')),
+      );
+    }
   }
 }
 
