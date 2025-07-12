@@ -208,6 +208,7 @@ class _EditMyProfileState extends State<EditMyProfile> {
                     customEmailDomain = val;
                   });
                 },
+                isReadOnly: true,
               ),
               SizedBox(height: 10),
               ProfileNameInput(controller: nameController),

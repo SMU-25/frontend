@@ -6,6 +6,7 @@ class EmailInput extends StatefulWidget {
   final TextEditingController emailDomainController;
   final String? customEmailDomain;
   final ValueChanged<String>? onCustomEmailDomainChanged;
+  final bool isReadOnly;
 
   const EmailInput({
     super.key,
@@ -13,6 +14,7 @@ class EmailInput extends StatefulWidget {
     required this.emailDomainController,
     this.customEmailDomain,
     this.onCustomEmailDomainChanged,
+    this.isReadOnly = false,
   });
 
   @override
@@ -74,15 +76,13 @@ class _EmailInputState extends State<EmailInput> {
                 height: 60,
                 child: TextFormField(
                   controller: widget.emailIdController,
+                  enabled: !widget.isReadOnly,
                   decoration: InputDecoration(
+                    filled: widget.isReadOnly,
+                    fillColor: widget.isReadOnly ? Colors.grey[200] : null,
                     hintText: '이메일',
                     hintStyle: TextStyle(color: INPUT_BORDER_COLOR),
-                    border: OutlineInputBorder(),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: MAIN_COLOR, width: 2.0),
-                    ),
-                    enabledBorder: OutlineInputBorder(
+                    border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(color: ICON_GREY_COLOR, width: 1.5),
                     ),
@@ -103,10 +103,13 @@ class _EmailInputState extends State<EmailInput> {
                 height: 60,
                 child: TextFormField(
                   controller: customDomainController,
+                  enabled: !widget.isReadOnly,
                   onChanged: (value) {
                     widget.onCustomEmailDomainChanged?.call(value);
                   },
                   decoration: InputDecoration(
+                    filled: widget.isReadOnly,
+                    fillColor: widget.isReadOnly ? Colors.grey[200] : null,
                     hintText: '직접 입력',
                     hintStyle: TextStyle(color: INPUT_BORDER_COLOR),
                     border: OutlineInputBorder(),
@@ -125,35 +128,43 @@ class _EmailInputState extends State<EmailInput> {
                   :
               SizedBox(
                 height: 60,
-                child: DropdownButtonFormField<String>(
-                  value: selectedDomain,
-                  items: emailDomains
-                      .map((domain) => DropdownMenuItem(
-                    value: domain,
-                    child: Text(domain),
-                  ))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      selectedDomain = value!;
-                      if (value != '직접입력') {
-                        widget.emailDomainController.text = value;
-                        widget.onCustomEmailDomainChanged?.call('');
-                        customDomainController.clear();
-                      } else {
-                        widget.emailDomainController.clear();
-                        customDomainController.text = widget.customEmailDomain ?? '';
-                        widget.onCustomEmailDomainChanged?.call(customDomainController.text);
-                      }
-                    });
-                  },
-                  decoration: InputDecoration(
-                    hintStyle: TextStyle(color: INPUT_BORDER_COLOR),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: ICON_GREY_COLOR, width: 1.5),
+                child: IgnorePointer(
+                  ignoring: widget.isReadOnly,
+                  child: DropdownButtonFormField<String>(
+                    value: selectedDomain,
+                    items: emailDomains.map((domain) {
+                      return DropdownMenuItem(
+                        value: domain,
+                        child: Text(domain),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedDomain = value!;
+                        if (value != '직접입력') {
+                          widget.emailDomainController.text = value;
+                          widget.onCustomEmailDomainChanged?.call('');
+                          customDomainController.clear();
+                        } else {
+                          widget.emailDomainController.clear();
+                          customDomainController.text = widget.customEmailDomain ?? '';
+                          widget.onCustomEmailDomainChanged?.call(customDomainController.text);
+                        }
+                      });
+                    },
+                    decoration: InputDecoration(
+                      filled: widget.isReadOnly,
+                      fillColor: widget.isReadOnly ? Colors.grey[200] : null,
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: MAIN_COLOR, width: 2.0),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: ICON_GREY_COLOR, width: 1.5),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     ),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   ),
                 ),
               ),
