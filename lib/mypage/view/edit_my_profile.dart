@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
+import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/mypage/component/email_input.dart';
 import 'package:team_project_front/mypage/component/password_input.dart';
 import 'package:team_project_front/mypage/component/profile_birth_input.dart';
@@ -32,30 +34,67 @@ class _EditMyProfileState extends State<EditMyProfile> {
   String? gender;
   File? image;
 
+  String? customEmailDomain;
+  bool isLoading = true;
+
+  // 추후에 accessToken FlutterSecureStorage에서 가져오도록 변경 예정
+  final accessToken = 'Bearer ACCESS_TOKEN';
+
   @override
   void initState() {
     super.initState();
-    myProfile = GuardianProfile(
-      name: '홍길동',
-      birthYear: '1995',
-      birthMonth: '08',
-      birthDay: '22',
-      gender: '남자',
-      image: null,
-      email: 'test@example.com',
-      password: '',
-    );
-
-    nameController = TextEditingController(text: myProfile.name);
-    emailIdController = TextEditingController(text: myProfile.email.split('@').first);
-    emailDomainController = TextEditingController(text: myProfile.email.split('@').last);
+    loadMyInfo();
     passwordController = TextEditingController();
     confirmPasswordController = TextEditingController();
-    yearText = myProfile.birthYear;
-    monthText = myProfile.birthMonth;
-    dayText = myProfile.birthDay;
-    gender = myProfile.gender;
-    image = myProfile.image;
+  }
+
+  Future<void> loadMyInfo() async {
+    try {
+      final dio = Dio();
+      final response = await dio.get(
+        '$base_URL/my',
+        options: Options(headers: {'Authorization': accessToken}),
+      );
+
+      final data = response.data['result'];
+      final birthdate = DateTime.parse(data['birthdate']);
+      final email = data['email'];
+      final emailId = email.split('@')[0];
+      final emailDomain = email.split('@')[1];
+      myProfile = GuardianProfile(
+        name: data['name'],
+        birthYear: birthdate.year.toString(),
+        birthMonth: birthdate.month.toString().padLeft(2, '0'),
+        birthDay: birthdate.day.toString().padLeft(2, '0'),
+        gender: data['gender'] == 'FEMALE' ? '여자' : '남자',
+        image: null,
+        email: email,
+        password: '',
+      );
+
+      nameController = TextEditingController(text: myProfile.name);
+      emailIdController = TextEditingController(text: emailId);
+
+      if (emailDomain == 'gmail.com' || emailDomain == 'naver.com') {
+        emailDomainController = TextEditingController(text: emailDomain);
+        customEmailDomain = null;
+      } else {
+        emailDomainController = TextEditingController(text: '직접입력');
+        customEmailDomain = emailDomain;
+      }
+
+      yearText = myProfile.birthYear;
+      monthText = myProfile.birthMonth;
+      dayText = myProfile.birthDay;
+      gender = myProfile.gender;
+      image = myProfile.image;
+
+      setState(() {
+        isLoading = false;
+      });
+    } catch(e) {
+      print('본인 정보 조회 실패: $e');
+    }
   }
 
   bool get isFormValid {
@@ -69,7 +108,7 @@ class _EditMyProfileState extends State<EditMyProfile> {
     final isPasswordMatch = password == confirmPassword;
 
     final isEmailValid = emailIdController.text.isNotEmpty &&
-      emailDomainController.text.isNotEmpty;
+        (emailDomainController.text != '직접입력' || (customEmailDomain?.isNotEmpty ?? false));
     final isBirthdaySelected =
       yearText != null && monthText != null && dayText != null;
     final isPasswordValid = password.isEmpty || (
@@ -89,6 +128,10 @@ class _EditMyProfileState extends State<EditMyProfile> {
   }
 
   void onNextPressed() {
+    final domain = emailDomainController.text == '직접입력'
+        ? customEmailDomain ?? ''
+        : emailDomainController.text;
+
     final updatedProfile = GuardianProfile(
       name: nameController.text,
       birthYear: yearText!,
@@ -96,7 +139,7 @@ class _EditMyProfileState extends State<EditMyProfile> {
       birthDay: dayText!,
       gender: gender!,
       image: image,
-      email: '${emailIdController.text}@${emailDomainController.text}',
+      email: '${emailIdController.text}@$domain',
       password: passwordController.text.isEmpty
         ? myProfile.password
         : passwordController.text,
@@ -111,6 +154,12 @@ class _EditMyProfileState extends State<EditMyProfile> {
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(90),
@@ -148,6 +197,12 @@ class _EditMyProfileState extends State<EditMyProfile> {
               EmailInput(
                 emailIdController: emailIdController,
                 emailDomainController: emailDomainController,
+                customEmailDomain: customEmailDomain,
+                onCustomEmailDomainChanged: (val) {
+                  setState(() {
+                    customEmailDomain = val;
+                  });
+                },
               ),
               SizedBox(height: 10),
               ProfileNameInput(controller: nameController),

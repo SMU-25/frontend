@@ -4,11 +4,15 @@ import 'package:team_project_front/common/const/colors.dart';
 class EmailInput extends StatefulWidget {
   final TextEditingController emailIdController;
   final TextEditingController emailDomainController;
+  final String? customEmailDomain;
+  final ValueChanged<String>? onCustomEmailDomainChanged;
 
   const EmailInput({
     super.key,
     required this.emailIdController,
     required this.emailDomainController,
+    this.customEmailDomain,
+    this.onCustomEmailDomainChanged,
   });
 
   @override
@@ -17,12 +21,31 @@ class EmailInput extends StatefulWidget {
 
 class _EmailInputState extends State<EmailInput> {
   final List<String> emailDomains = ['gmail.com', 'naver.com', '직접입력'];
-  String selectedDomain = 'gmail.com';
+  late String selectedDomain;
+  late TextEditingController customDomainController;
 
   @override
   void initState() {
     super.initState();
-    widget.emailDomainController.text = selectedDomain;
+
+    final currentDomain = widget.emailDomainController.text;
+    if (currentDomain == 'gmail.com' || currentDomain == 'naver.com') {
+      selectedDomain = currentDomain;
+    } else {
+      selectedDomain = '직접입력';
+    }
+
+    customDomainController = TextEditingController(
+      text: widget.customEmailDomain ?? (selectedDomain == '직접입력' ? currentDomain : ''),
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant EmailInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.customEmailDomain != oldWidget.customEmailDomain) {
+      customDomainController.text = widget.customEmailDomain ?? '';
+    }
   }
 
   @override
@@ -79,7 +102,10 @@ class _EmailInputState extends State<EmailInput> {
                   ? SizedBox(
                 height: 60,
                 child: TextFormField(
-                  controller: widget.emailDomainController,
+                  controller: customDomainController,
+                  onChanged: (value) {
+                    widget.onCustomEmailDomainChanged?.call(value);
+                  },
                   decoration: InputDecoration(
                     hintText: '직접 입력',
                     hintStyle: TextStyle(color: INPUT_BORDER_COLOR),
@@ -112,8 +138,12 @@ class _EmailInputState extends State<EmailInput> {
                       selectedDomain = value!;
                       if (value != '직접입력') {
                         widget.emailDomainController.text = value;
+                        widget.onCustomEmailDomainChanged?.call('');
+                        customDomainController.clear();
                       } else {
                         widget.emailDomainController.clear();
+                        customDomainController.text = widget.customEmailDomain ?? '';
+                        widget.onCustomEmailDomainChanged?.call(customDomainController.text);
                       }
                     });
                   },
