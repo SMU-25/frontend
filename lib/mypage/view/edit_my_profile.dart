@@ -32,6 +32,7 @@ class _EditMyProfileState extends State<EditMyProfile> {
   String? monthText;
   String? dayText;
   String? gender;
+  String? social;
   File? image;
 
   String? customEmailDomain;
@@ -70,6 +71,7 @@ class _EditMyProfileState extends State<EditMyProfile> {
         image: null,
         email: email,
         password: '',
+        socialType: data['socialType'],
       );
 
       nameController = TextEditingController(text: myProfile.name);
@@ -140,9 +142,12 @@ class _EditMyProfileState extends State<EditMyProfile> {
       gender: gender!,
       image: image,
       email: '${emailIdController.text}@$domain',
-      password: passwordController.text.isEmpty
-        ? myProfile.password
-        : passwordController.text,
+      password: myProfile.socialType == 'LOCAL'
+          ? (passwordController.text.isEmpty
+          ? myProfile.password
+          : passwordController.text)
+          : '',
+      socialType: myProfile.socialType,
     );
 
     Navigator.of(context).pop();
@@ -221,18 +226,20 @@ class _EditMyProfileState extends State<EditMyProfile> {
                 onGenderSelected: (val) => setState(() => gender = val),
               ),
               SizedBox(height: 20),
-              Text(
-                '새 비밀번호',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+              if(myProfile.socialType == 'LOCAL') ...[
+                Text(
+                  '새 비밀번호',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-              SizedBox(height: 10),
-              PasswordInput(
-                passwordController: passwordController,
-                confirmController: confirmPasswordController,
-              ),
+                SizedBox(height: 10),
+                PasswordInput(
+                  passwordController: passwordController,
+                  confirmController: confirmPasswordController,
+                ),
+              ],
               SizedBox(height: 40),
             ],
           ),
