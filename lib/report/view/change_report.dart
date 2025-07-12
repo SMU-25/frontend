@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
 import 'package:team_project_front/report/component/custom_text_input.dart';
@@ -25,13 +26,16 @@ class _ChangeReportState extends State<ChangeReport> {
 
   final List<String> allSymptoms = [
     '발열', '구토', '경련', '코피', '설사',
-    '피부 발진', '실신', '호흡곤란', '기침', '콧물', '황달'
+    '피부 발진', '실신', '호흡 곤란', '기침', '콧물', '황달'
   ];
 
   final List<String> frequentSymptoms = [
     '발열', '구토', '경련', '코피', '설사',
-    '피부 발진', '호흡곤란', '기침', '콧물'
+    '피부 발진', '호흡 곤란', '기침', '콧물'
   ];
+
+  // 임시 Access Token (추후 FlutterSecureStorage 등으로 교체 예정)
+  final String accessToken = 'Bearer ACCESS_TOKEN';
 
   @override
   void initState() {
@@ -47,10 +51,42 @@ class _ChangeReportState extends State<ChangeReport> {
         outingController.text.trim().isNotEmpty;
   }
 
-  void onSavePressed() {
-    // api 연결 예정
+  void onSavePressed() async {
+    try {
+      final dio = Dio();
 
-    Navigator.of(context).pop();
+      final convertedSymptoms = selectedSymptoms
+          .map((s) => s.replaceAll(' ', '_'))
+          .toList();
+
+      final response = await dio.patch(
+        'https://momfy.kr/api/reports/${widget.report.reportId}',
+        data: {
+          'symptoms': convertedSymptoms,
+          'etc_symptom': etcController.text.trim(),
+          'outing': outingController.text.trim(),
+        },
+        options: Options(
+          headers: {
+            'Authorization': accessToken,
+          },
+        ),
+      );
+
+      if(response.statusCode == 200 && response.data['isSuccess'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('리포트 수정이 완료되었습니다')),
+        );
+        Navigator.of(context).pop();
+      } else {
+        throw Exception('수정 실패: ${response.data['message']}');
+      }
+    } catch(e) {
+      print('예외 발생: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('리포트 수정 중 오류가 발생했어요')),
+      );
+    }
   }
 
   @override

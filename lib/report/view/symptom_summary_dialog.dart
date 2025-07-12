@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/const/colors.dart';
 import 'package:team_project_front/report/model/report_info.dart';
@@ -17,26 +18,35 @@ class SymptomSummaryDialog extends StatelessWidget {
     required this.allSymptoms,
   });
 
-  void _navigateToResultReport(BuildContext context) {
-    final now = DateTime.now();
-    final report = ReportInfo(
-      reportId: null,
-      childId: 101, // 임시 지정
-      createdAt: now,
-      symptoms: selectedSymptoms.toList(),
-      etcSymptom: etcSymptom,
-      outingRecord: outingRecord,
-      illnessTypes: ['아토피', '천식'], // 추후 api 요청 예정
-    );
+  void _navigateToResultReport(BuildContext context) async {
+    try {
+      final report = await createReport(
+        // 홈화면에서 아이 선택 후 리포트 생성할 것이므로
+        // childId는 현재 임의로 설정
+        childId: 15,
+        symptoms: selectedSymptoms.toList(),
+        etcSymptom: etcSymptom,
+        outingRecord: outingRecord,
+      );
 
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => ResultReport(
-          report: report,
-          allSymptoms: allSymptoms,
+      if(report == null) return;
+
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => ResultReport(
+            reportId: report.reportId,
+            report: report,
+            allSymptoms: allSymptoms,
+            showBackButton: false,
+         ),
         ),
-      ),
-    );
+      );
+    } catch(e) {
+      print('리포트 생성 실패: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('리포트 생성에 실패했어요.')),
+      );
+    }
   }
 
   @override
@@ -83,6 +93,49 @@ class SymptomSummaryDialog extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<ReportInfo?> createReport({
+  required int childId,
+  required List<String> symptoms,
+  required String etcSymptom,
+  required String outingRecord,
+}) async {
+  final dio = Dio();
+
+  final convertedSymptoms = symptoms.map((s) => s.replaceAll(' ', '_')).toList();
+
+  // 추후에 accessToken FlutterSecureStorage에서 가져오도록 변경 예정
+  final accessToken = 'Bearer ACCESS_TOKEN';
+
+  final response = await dio.post(
+    'https://momfy.kr/api/reports/$childId',
+    data: {
+      'symptoms': convertedSymptoms,
+      'etc_symptom': etcSymptom,
+      'outing': outingRecord,
+    },
+    options: Options(
+      headers: {
+        'Authorization': accessToken,
+      },
+    ),
+  );
+
+  final result = response.data['result'];
+
+  return ReportInfo(
+    reportId: result['reportId'],
+    childId: childId,
+    createdAt: DateTime.parse(result['createdAt']),
+    symptoms: List<String>.from(result['symptoms']),
+    etcSymptom: result['etc_symptom'] ?? '',
+    outingRecord: result['outing'] ?? '',
+    illnessTypes: [], // 추후 api 변경 되면 받아올 예정.
+    day1: ReportStats.fromJson(result['day1']),
+    day3: ReportStats.fromJson(result['day3']),
+    day7: ReportStats.fromJson(result['day7']),
+  );
 }
 
 class ChildSymptomsWidget extends StatelessWidget {
