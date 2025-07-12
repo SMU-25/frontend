@@ -129,7 +129,8 @@ class _EditMyProfileState extends State<EditMyProfile> {
       isPasswordValid;
   }
 
-  void onNextPressed() {
+  void onNextPressed() async {
+    final dio = Dio();
     final domain = emailDomainController.text == '직접입력'
         ? customEmailDomain ?? ''
         : emailDomainController.text;
@@ -150,10 +151,46 @@ class _EditMyProfileState extends State<EditMyProfile> {
       socialType: myProfile.socialType,
     );
 
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('내 정보가 성공적으로 수정되었어요!')),
-    );
+    final requestBody = {
+      "name": updatedProfile.name,
+      "birthdate": "${updatedProfile.birthYear}-${updatedProfile.birthMonth}-${updatedProfile.birthDay}",
+      "gender": updatedProfile.gender == "여자" ? "FEMALE" : "MALE",
+      if (updatedProfile.socialType == "LOCAL" &&
+          updatedProfile.password.isNotEmpty)
+        "newPassword": updatedProfile.password,
+    };
+
+    try {
+      final response = await dio.patch(
+        "$base_URL/my",
+        data: requestBody,
+        options: Options(
+          headers: {"Authorization": accessToken},
+        ),
+      );
+
+      if (response.data["isSuccess"] == true) {
+        if (context.mounted) {
+          Navigator.of(context).pop(); // 이전 화면으로 이동
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("내 정보가 성공적으로 수정되었어요!")),
+          );
+        }
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("수정 실패: ${response.data['message']}")),
+          );
+        }
+      }
+    } catch(e) {
+      print("PATCH 실패: $e");
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("알 수 없는 오류가 발생했어요.")),
+        );
+      }
+    }
   }
 
 
