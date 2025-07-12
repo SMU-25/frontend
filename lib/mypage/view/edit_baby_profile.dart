@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
 import 'package:team_project_front/common/component/yes_or_no_dialog.dart';
+import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/common/const/colors.dart';
 import 'package:team_project_front/common/view/root_tab.dart';
 import 'package:team_project_front/main.dart';
@@ -26,7 +27,7 @@ Future<ProfileInfo?> fetchChildDetail({
 
   try {
     final resp = await dio.get(
-      'https://momfy.kr/api/children/$childId',
+      '$base_URL/children/$childId',
       options: Options(
         headers: {
           'Authorization': accessToken,
@@ -181,7 +182,7 @@ class _EditBabyProfileState extends State<EditBabyProfile> {
 
           try {
             final resp = await dio.delete(
-              'https://momfy.kr/api/children/$childId',
+              '$base_URL/children/$childId',
               options: Options(
                 headers: {
                   'Authorization': accessToken,

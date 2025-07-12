@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/common/const/colors.dart';
 import 'package:team_project_front/mypage/component/profile_image_with_add_icon.dart';
 import 'package:team_project_front/mypage/models/profile_info.dart';
@@ -254,7 +255,7 @@ Future<List<ProfileInfo>> fetchChildren(String accessToken) async {
 
   try {
     final resp = await dio.get(
-      'https://momfy.kr/api/children',
+      '$base_URL/children',
       options: Options(
         headers: {
           'Authorization': accessToken,
