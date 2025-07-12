@@ -33,7 +33,7 @@ class _App extends StatelessWidget {
       // home: RootTab(),
       // Named Routes 적용 화면 개발시 initialRoute를 바꿔주면서 진행하면 편리합니다.
       // ex) login 화면 개발 중이라면 initialRoute: '/login',
-      initialRoute: '/report',
+      initialRoute: '/login',
       routes: {
         '/': (context) => InitScreen(),
         '/home': (context) => RootTab(),

@@ -1,9 +1,13 @@
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:team_project_front/common/component/custom_input.dart';
 import 'package:team_project_front/common/component/login_text_button.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
 import 'package:team_project_front/common/component/social_login_button.dart';
+import 'package:team_project_front/common/const/base_url.dart';
+import 'package:team_project_front/common/utils/error_dialog.dart';
+import 'package:team_project_front/common/utils/secure_storage_service.dart';
 import 'package:team_project_front/home/view/home.dart';
 import 'package:team_project_front/login/view/find_password.dart';
 import 'package:dio/dio.dart';
@@ -24,52 +28,40 @@ class _LoginScreenState extends State<LoginScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   bool _isObscure = true;
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder:
-          (ctx) => AlertDialog(
-            title: Text('오류'),
-            content: Text(message),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: Text('확인'),
-              ),
-            ],
-          ),
-    );
-  }
 
-  void _login() async {
+  Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
       try {
         final dio = Dio();
 
-        final response = await dio.post(
-          'https://momfy.kr/api/auth/login',
+        final res = await dio.post(
+          '$base_URL/auth/login',
           data: {
             'email': _idController.text.trim(),
             'password': _passwordController.text,
           },
         );
+        if (res.statusCode == 200) {
+          final token = res.data['result']['accessToken'];
+          SecureStorageService.saveAccessToken(token);
+          await SecureStorageService.saveAccessToken(token);
 
-        if (response.statusCode == 200) {
-          final token = response.data['accessToken'];
-          print(token);
+          if (!mounted) return;
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (ctx) => HomeScreen()),
           );
         } else {
-          _showErrorDialog('로그인에 실패했습니다.');
+          if (!mounted) return;
+          showErrorDialog(context: context, message: '로그인에 실패했습니다.');
         }
-      } on DioException catch (e) {
+      } on DioException catch (err) {
         String message = '알 수 없는 오류가 발생했습니다.';
-        if (e.response != null && e.response?.data != null) {
-          message = e.response?.data['message'] ?? message;
+        if (err.response != null && err.response?.data != null) {
+          message = err.response?.data['message'] ?? message;
         }
-        _showErrorDialog(message);
+        if (!mounted) return;
+        showErrorDialog(context: context, message: message);
       }
     }
   }
@@ -96,7 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     hintText: '아이디를 입력하세요',
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return '이메일 입력해주세요';
+                        return '아이디를 입력해주세요';
                       } else if (!EmailValidator.validate(value) ||
                           RegExp(r'[ㄱ-ㅎㅏ-ㅣ가-힣]').hasMatch(value)) {
                         return '올바른 형식을 입력해주세요';
@@ -169,14 +161,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: SocialLoginButton(
                           src: 'asset/img/login/naver_icon.png',
                           type: 'naver',
-                          onPressed: () {},
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 30.0),
-                        child: SocialLoginButton(
-                          src: 'asset/img/login/google_icon.png',
-                          type: 'google',
                           onPressed: () {},
                         ),
                       ),
