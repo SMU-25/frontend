@@ -1,10 +1,15 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/component/yes_or_no_dialog.dart';
+import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/common/const/colors.dart';
+import 'package:team_project_front/main.dart';
 import 'package:team_project_front/settings/component/custom_appbar.dart';
 import 'package:team_project_front/settings/view/notification_settings_screen.dart';
 import 'package:team_project_front/settings/view/terms_screen.dart';
+
+// 추후에 accessToken FlutterSecureStorage에서 가져오도록 변경 예정
+final String accessToken = 'Bearer ACCESS_TOKEN';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -50,13 +55,41 @@ class SettingsScreen extends StatelessWidget {
       builder: (context) => YesOrNoDialog(
         title: '로그아웃',
         content: '정말 로그아웃 하시겠습니까?',
-        onPressedYes: () {
-          // 로그아웃 처리 로직
+        onPressedYes: () async {
+          Navigator.of(context).pop();
+          await logoutUser();
         },
         yesText: '예',
         noText: '아니오',
       ),
     );
+  }
+
+  Future<void> logoutUser() async {
+    final dio = Dio();
+
+    try {
+      final response = await dio.post(
+        '$base_URL/auth/logout',
+        options: Options(headers: {
+          'Authorization': accessToken,
+        }),
+      );
+
+      if (response.data['isSuccess'] == true) {
+        // 토큰 삭제
+        // await storage.deleteAll();
+
+        navigatorKey.currentState?.pushNamedAndRemoveUntil(
+          '/login',
+              (route) => false,
+        );
+      } else {
+        print('로그아웃 실패: ${response.data['message']}');
+      }
+    } catch(e) {
+      print('로그아웃 오류: $e');
+    }
   }
 
   void onPressedWithdraw(BuildContext context) {
@@ -69,7 +102,8 @@ class SettingsScreen extends StatelessWidget {
           '삭제되어 복구가 불가능합니다.\n'
           '정말 탈퇴하시겠습니까?',
         onPressedYes: () async {
-          withdrawUser(context);
+          Navigator.of(context).pop();
+          await withdrawUser();
         },
         yesText: '예',
         noText: '아니오',
@@ -78,45 +112,27 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
-// 추후에 accessToken FlutterSecureStorage에서 가져오도록 변경 예정
-final String accessToken = 'Bearer ACCESS_TOKEN';
-
-Future<void> withdrawUser(BuildContext context) async {
+Future<void> withdrawUser() async {
   final dio = Dio();
 
   try {
-    Navigator.of(context).pop();
-
     final response = await dio.delete(
-      'https://momfy.kr/api/my',
+      '$base_URL/my',
       options: Options(headers: {
         'Authorization': accessToken,
       }),
     );
 
-    if(response.data['isSuccess'] == true) {
+    if (response.data['isSuccess'] == true) {
       // 토큰 삭제
-      //await storage.deleteAll();
-      if (context.mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('회원 탈퇴가 완료되었습니다.')),
-        );
-      } else {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('탈퇴 실패: ${response.data['message']}')),
-          );
-        }
-      }
+      // await storage.deleteAll();
+
+      navigatorKey.currentState?.pushNamedAndRemoveUntil('/login', (route) => false);
+    } else {
+      print('탈퇴 실패: ${response.data['message']}');
     }
   } catch(e) {
     print('회원 탈퇴 오류: $e');
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('탈퇴 중 오류가 발생했습니다.')),
-      );
-    }
   }
 }
 

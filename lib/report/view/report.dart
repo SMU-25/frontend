@@ -41,7 +41,7 @@ class _ReportState extends State<Report> {
 
   // 홈화면에서 아이 선택 후 리포트 생성할 것이므로
   // childId는 현재 임의로 설정
-  late final int childId = 15;
+  late final int childId = 28;
 
   @override
   void initState() {
