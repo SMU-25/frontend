@@ -132,7 +132,8 @@ Future<ReportInfo?> createReport({
     symptoms: List<String>.from(result['symptoms']),
     etcSymptom: result['etc_symptom'] ?? '',
     outingRecord: result['outing'] ?? '',
-    illnessTypes: [], // 추후 api 변경 되면 받아올 예정.
+    illnesses: List<String>.from(result['illnesses'] ?? []),
+    special: result['special'] ?? '',// 추후 api 변경 되면 받아올 예정.
     day1: ReportStats.fromJson(result['day1']),
     day3: ReportStats.fromJson(result['day3']),
     day7: ReportStats.fromJson(result['day7']),

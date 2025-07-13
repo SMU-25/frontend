@@ -104,9 +104,9 @@ class _ResultReportState extends State<ResultReport> {
                 if (report.etcSymptom.trim().isNotEmpty)
                   _EtcSymptomsWidget(etcSymptom: report.etcSymptom),
                 const SizedBox(height: 20),
-                _DiagnosisWidget(illnesses: report.illnessTypes),
+                _DiagnosisWidget(illnesses: report.illnesses),
                 const SizedBox(height: 10),
-                _SupplementaryExplanationWidget(outingRecord: report.outingRecord),
+                _SupplementaryExplanationWidget(special: report.special),
                 const SizedBox(height: 40),
                 _ChartSectionWidget(
                   title: '리포트 생성 시점 체온',
@@ -275,10 +275,10 @@ class _DiagnosisWidget extends StatelessWidget {
 }
 
 class _SupplementaryExplanationWidget extends StatelessWidget {
-  final String outingRecord;
+  final String special;
 
   const _SupplementaryExplanationWidget({
-    required this.outingRecord,
+    required this.special,
   });
 
   @override
@@ -310,9 +310,9 @@ class _SupplementaryExplanationWidget extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
           ),
           child: Text(
-            outingRecord.trim().isNotEmpty
-                ? outingRecord.trim()
-                : '입력된 외출 기록이 없습니다.',
+            special.trim().isNotEmpty
+                ? special.trim()
+                : '보충 설명이 없습니다.',
             style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
           ),
         ),
