@@ -32,6 +32,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<Baby> babies = [];
   Baby? selectedBaby;
+  bool isLoading = true;
+
   @override
   void initState() {
     super.initState();
@@ -41,8 +43,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> fetchBabies() async {
     try {
       final dio = Dio();
-
       final token = await SecureStorageService.getAccessToken();
+
       final res = await dio.get(
         '$base_URL/children',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
@@ -66,7 +68,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
         setState(() {
           babies = loadedBabies;
-          selectedBaby = babies.isNotEmpty ? babies[0] : null;
+          selectedBaby = babies[0];
+          isLoading = true;
         });
 
         if (selectedBaby?.childId != null) {
@@ -77,10 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
         showErrorDialog(context: context, message: '아이들 불러오기에 실패했습니다.');
       }
     } on DioException catch (err) {
-      String message = '알 수 없는 오류가 발생했습니다.';
-      if (err.response != null && err.response?.data != null) {
-        message = err.response?.data['message'] ?? message;
-      }
+      final message = err.response?.data['message'] ?? '알 수 없는 오류가 발생했습니다.';
       if (!mounted) return;
       showErrorDialog(context: context, message: message);
     }
@@ -114,20 +114,17 @@ class _HomeScreenState extends State<HomeScreen> {
             profileImage: babyData['profileImage'],
             illnessTypes: List<String>.from(babyData['illnessTypes'] ?? []),
           );
+          isLoading = false;
         });
       } else {
         if (!mounted) return;
         showErrorDialog(context: context, message: '아이 정보를 불러오지 못했습니다.');
       }
     } on DioException catch (err) {
-      String message = '알 수 없는 오류가 발생했습니다.';
-      if (err.response != null && err.response?.data != null) {
-        message = err.response?.data['message'] ?? message;
-      }
+      final message = err.response?.data['message'] ?? '알 수 없는 오류가 발생했습니다.';
       if (!mounted) return;
       showErrorDialog(context: context, message: message);
     }
-    print(selectedBaby);
   }
 
   @override
@@ -148,6 +145,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 ? '춥고 건조해요'
                 : '건조해요')
             : (airTemperature <= 22 ? '추워요' : '쾌적해요 ☺️');
+
+    if (selectedBaby == null || isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 0,
@@ -155,92 +157,96 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 0,
       ),
       body: SafeArea(
-        child:
-            selectedBaby == null
-                ? const Center(child: CircularProgressIndicator())
-                : SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          top: 20,
-                          left: 25,
-                          right: 25,
-                          bottom: 20,
-                        ),
-                        child: HomeHeader(
-                          babies: babies,
-                          selectedBaby: selectedBaby!,
-                        ),
-                      ),
-                      Divider(),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          top: 16,
-                          left: 25,
-                          right: 25,
-                        ),
-                        child: Column(
-                          children: [
-                            MainInfoCard(
-                              baby: selectedBaby!,
-                              bodyTemperature: bodyTemperature,
-                              feverThreshold: feverThreshold,
-                              airTemperature: airTemperature,
-                              humidity: humidity,
-                              getStatusColor: getStatusColor,
-                              isFever: isFever,
-                              isUncomfortableHumidity: isUncomfortableHumidity,
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 16.0),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      children: [
-                                        BodyTemperatureCard(
-                                          bodyTemperature: bodyTemperature,
-                                          feverThreshold: feverThreshold,
-                                          getStatusColor: getStatusColor,
-                                          isFever: isFever,
-                                        ),
-                                        SizedBox(height: 16),
-                                        FeverReportCard(
-                                          getStatusColor: getStatusColor,
-                                          isFever: isFever,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      children: [
-                                        EnvironmentCard(
-                                          bodyTemperature: bodyTemperature,
-                                          feverThreshold: feverThreshold,
-                                          airTemperature: airTemperature,
-                                          humidity: humidity,
-                                          getStatusColor: getStatusColor,
-                                          isFever: isFever,
-                                          comfortStatus: comfortStatus,
-                                        ),
-                                        SizedBox(height: 16),
-                                        SubscribeCard(),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 20,
+                  left: 25,
+                  right: 25,
+                  bottom: 20,
                 ),
+                child: HomeHeader(
+                  babies: babies,
+                  selectedBaby: selectedBaby!,
+                  onBabySelected: (baby) async {
+                    setState(() {
+                      selectedBaby = baby;
+                      isLoading = true;
+                    });
+                    await fetchBaby(baby.childId!);
+                    setState(() {
+                      isLoading = false;
+                    });
+                  },
+                ),
+              ),
+              const Divider(),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 25,
+                  vertical: 16,
+                ),
+                child: Column(
+                  children: [
+                    MainInfoCard(
+                      baby: selectedBaby!,
+                      bodyTemperature: bodyTemperature,
+                      feverThreshold: feverThreshold,
+                      airTemperature: airTemperature,
+                      humidity: humidity,
+                      getStatusColor: getStatusColor,
+                      isFever: isFever,
+                      isUncomfortableHumidity: isUncomfortableHumidity,
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            children: [
+                              BodyTemperatureCard(
+                                bodyTemperature: bodyTemperature,
+                                feverThreshold: feverThreshold,
+                                getStatusColor: getStatusColor,
+                                isFever: isFever,
+                              ),
+                              const SizedBox(height: 16),
+                              FeverReportCard(
+                                getStatusColor: getStatusColor,
+                                isFever: isFever,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            children: [
+                              EnvironmentCard(
+                                bodyTemperature: bodyTemperature,
+                                feverThreshold: feverThreshold,
+                                airTemperature: airTemperature,
+                                humidity: humidity,
+                                getStatusColor: getStatusColor,
+                                isFever: isFever,
+                                comfortStatus: comfortStatus,
+                              ),
+                              const SizedBox(height: 16),
+                              const SubscribeCard(),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

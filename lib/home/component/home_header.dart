@@ -7,9 +7,12 @@ class HomeHeader extends StatefulWidget {
     super.key,
     required this.babies,
     required this.selectedBaby,
+    required this.onBabySelected,
   });
+
   final List<Baby> babies;
   final Baby selectedBaby;
+  final ValueChanged<Baby> onBabySelected;
 
   @override
   State<HomeHeader> createState() => _HomeHeaderState();
@@ -40,15 +43,19 @@ class _HomeHeaderState extends State<HomeHeader> {
         offset.dy,
       ),
       items:
-          widget.babies.map((baby) {
-            return PopupMenuItem<Baby>(value: baby, child: Text(baby.name));
-          }).toList(),
+          widget.babies
+              .map(
+                (baby) =>
+                    PopupMenuItem<Baby>(value: baby, child: Text(baby.name)),
+              )
+              .toList(),
     );
 
     if (selected != null) {
       setState(() {
         _currentBaby = selected;
       });
+      widget.onBabySelected(selected);
     }
   }
 
