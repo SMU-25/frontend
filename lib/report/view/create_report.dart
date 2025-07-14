@@ -20,12 +20,12 @@ class _CreateReportState extends State<CreateReport> {
 
   final List<String> allSymptoms = [
     '발열', '구토', '경련', '코피', '설사',
-    '피부 발진', '실신', '호흡곤란', '기침', '콧물', '황달'
+    '피부 발진', '실신', '호흡 곤란', '기침', '콧물', '황달'
   ];
 
   final List<String> frequentSymptoms = [
     '발열', '구토', '경련', '코피', '설사',
-    '피부 발진', '호흡곤란', '기침', '콧물'
+    '피부 발진', '호흡 곤란', '기침', '콧물'
   ];
 
   final Set<String> selectedSymptoms = {};
