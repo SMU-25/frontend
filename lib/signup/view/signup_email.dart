@@ -157,7 +157,7 @@ class _SignupEmailScreenState extends State<SignupEmailScreen> {
           child: NavigationButton(
             text: '다음',
             onPressed: () {
-              if (_formKey.currentState!.validate()) {
+              if (_formKey.currentState!.validate() && isVerify == true) {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
