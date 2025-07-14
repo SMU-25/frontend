@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/component/complete_dialog.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
+import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/common/const/colors.dart';
 import 'package:team_project_front/common/view/root_tab.dart';
 import 'package:team_project_front/mypage/component/illness_selctor.dart';
@@ -90,7 +91,7 @@ class _AddProfileSymptomsScreenState extends State<AddProfileSymptomsScreen> {
 
     try {
       final resp = await dio.post(
-        'https://momfy.kr/api/children',
+        '$base_URL/children',
         data: requestBody,
         options: Options(
           headers: {

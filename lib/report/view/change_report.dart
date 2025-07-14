@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
+import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/report/component/custom_text_input.dart';
 import 'package:team_project_front/report/model/report_info.dart';
 import 'package:team_project_front/report/view/create_report.dart';
@@ -60,7 +61,7 @@ class _ChangeReportState extends State<ChangeReport> {
           .toList();
 
       final response = await dio.patch(
-        'https://momfy.kr/api/reports/${widget.report.reportId}',
+        '$base_URL/reports/${widget.report.reportId}',
         data: {
           'symptoms': convertedSymptoms,
           'etc_symptom': etcController.text.trim(),

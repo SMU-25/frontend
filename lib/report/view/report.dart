@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/common/const/colors.dart';
 import 'package:team_project_front/report/component/report_card.dart';
 import 'package:team_project_front/report/model/report_info.dart';
@@ -91,7 +92,7 @@ class _ReportState extends State<Report> {
 
     try {
       final resp = await dio.delete(
-        'https://momfy.kr/api/reports/$reportId',
+        '$base_URL/reports/$reportId',
         options: Options(
           headers: {
             'Authorization': accessToken
@@ -270,7 +271,8 @@ Future<PaginatedReportResponse> fetchReportList({
         ),
         etcSymptom: e['etc_symptom'] ?? '',
         outingRecord: e['outing'] ?? '',
-        illnessTypes: [],
+        illnesses: List<String>.from(e['illnesses'] ?? []),
+        special: e['special'] ?? '',
       );
     }).toList();
 

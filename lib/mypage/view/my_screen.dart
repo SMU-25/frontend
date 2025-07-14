@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/common/const/colors.dart';
 import 'package:team_project_front/mypage/component/profile_image_with_add_icon.dart';
 import 'package:team_project_front/mypage/models/profile_info.dart';
@@ -25,11 +26,33 @@ class _MyScreenState extends State<MyScreen> {
   final String accessToken = 'Bearer ACCESS_TOKEN';
 
   List<ProfileInfo> members = [];
+  String name = '';
+  String email = '';
 
   @override
   void initState() {
     super.initState();
+    loadMyInfo();
     loadChildren();
+  }
+
+  void loadMyInfo() async {
+    try {
+      final dio = Dio();
+      final response = await dio.get(
+        '$base_URL/my',
+        options: Options(
+          headers: {'Authorization': accessToken},
+        ),
+      );
+      final result = response.data['result'];
+      setState(() {
+        name = result['name'] ?? '';
+        email = result['email'] ?? '';
+      });
+    } catch(e) {
+      print('내 정보 호출 실패: $e');
+    }
   }
 
   void loadChildren() async {
@@ -46,6 +69,8 @@ class _MyScreenState extends State<MyScreen> {
         SizedBox(height: 24),
         MyProfile(
           image: image,
+          name: name,
+          email: email,
           onPressedChangePic: () => handleImagePick(
             context: context,
             onImageSelected: (selectedImage) {
@@ -97,11 +122,15 @@ class _MyScreenState extends State<MyScreen> {
 }
 
 class MyProfile extends StatelessWidget {
+  final String name;
+  final String email;
   File? image;
   final GestureTapCallback? onPressedChangePic;
   final VoidCallback? onPressedChangeProfile;
 
   MyProfile({
+    required this.name,
+    required this.email,
     required this.image,
     required this.onPressedChangePic,
     required this.onPressedChangeProfile,
@@ -123,7 +152,7 @@ class MyProfile extends StatelessWidget {
         ),
         SizedBox(height: 12),
         Text(
-          '홍길동',
+          name,
           style: TextStyle(
             fontWeight: FontWeight.w900,
             fontSize: 24,
@@ -131,7 +160,7 @@ class MyProfile extends StatelessWidget {
         ),
         SizedBox(height: 4),
         Text(
-          'jh010303',
+          email,
           style: TextStyle(
             color: Colors.grey,
             fontSize: 12,
@@ -254,7 +283,7 @@ Future<List<ProfileInfo>> fetchChildren(String accessToken) async {
 
   try {
     final resp = await dio.get(
-      'https://momfy.kr/api/children',
+      '$base_URL/children',
       options: Options(
         headers: {
           'Authorization': accessToken,
