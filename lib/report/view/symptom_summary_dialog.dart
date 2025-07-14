@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/common/const/colors.dart';
 import 'package:team_project_front/report/model/report_info.dart';
 import 'package:team_project_front/report/view/result_report.dart';
@@ -109,7 +110,7 @@ Future<ReportInfo?> createReport({
   final accessToken = 'Bearer ACCESS_TOKEN';
 
   final response = await dio.post(
-    'https://momfy.kr/api/reports/$childId',
+    '$base_URL/reports/$childId',
     data: {
       'symptoms': convertedSymptoms,
       'etc_symptom': etcSymptom,
@@ -131,7 +132,8 @@ Future<ReportInfo?> createReport({
     symptoms: List<String>.from(result['symptoms']),
     etcSymptom: result['etc_symptom'] ?? '',
     outingRecord: result['outing'] ?? '',
-    illnessTypes: [], // 추후 api 변경 되면 받아올 예정.
+    illnesses: List<String>.from(result['illnesses'] ?? []),
+    special: result['special'] ?? '',// 추후 api 변경 되면 받아올 예정.
     day1: ReportStats.fromJson(result['day1']),
     day3: ReportStats.fromJson(result['day3']),
     day7: ReportStats.fromJson(result['day7']),

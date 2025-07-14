@@ -14,7 +14,9 @@ class ReportInfo {
   // 외출 기록
   final String outingRecord;
   // 진단 질환들
-  final List<String> illnessTypes;
+  final List<String> illnesses;
+  // AI 분석 설명
+  final String special;
 
   final ReportStats? day1;
   final ReportStats? day3;
@@ -27,7 +29,8 @@ class ReportInfo {
     required this.symptoms,
     required this.etcSymptom,
     required this.outingRecord,
-    required this.illnessTypes,
+    required this.illnesses,
+    required this.special,
     this.day1,
     this.day3,
     this.day7,
@@ -41,7 +44,8 @@ class ReportInfo {
       symptoms: List<String>.from(json['symptoms'] ?? []),
       etcSymptom: json['etc_symptom'] ?? '',
       outingRecord: json['outing'] ?? '',
-      illnessTypes: List<String>.from(json['illnessTypes'] ?? []),
+      illnesses: List<String>.from(json['illnesses'] ?? []),
+      special: json['special'] ?? '',
       day1: json['day1'] != null ? ReportStats.fromJson(json['day1']) : null,
       day3: json['day3'] != null ? ReportStats.fromJson(json['day3']) : null,
       day7: json['day7'] != null ? ReportStats.fromJson(json['day7']) : null,
