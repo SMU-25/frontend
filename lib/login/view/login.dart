@@ -45,12 +45,8 @@ class _LoginScreenState extends State<LoginScreen> {
           final token = res.data['result']['accessToken'];
           SecureStorageService.saveAccessToken(token);
           await SecureStorageService.saveAccessToken(token);
-
           if (!mounted) return;
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (ctx) => HomeScreen()),
-          );
+          Navigator.pushReplacementNamed(context, '/home');
         } else {
           if (!mounted) return;
           showErrorDialog(context: context, message: '로그인에 실패했습니다.');
