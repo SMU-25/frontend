@@ -77,8 +77,8 @@ class _SignupUserInfoState extends State<SignupUserInfoScreen> {
             'password': user.password,
             'name': user.name,
             'birthDate': user.birthDate.toIso8601String().split('T').first,
-            'gender': user.gender.name,
-            'socialType': user.socialType,
+            'gender': user.gender.name.toUpperCase(),
+            'socialType': user.socialType.toUpperCase(),
           },
           options: Options(headers: {'Content-Type': 'application/json'}),
         );
@@ -203,13 +203,10 @@ class _SignupUserInfoState extends State<SignupUserInfoScreen> {
           child: NavigationButton(
             text: '다음',
             onPressed: () async {
-              // 회원가입 API 연결 예정
               if (_formKey.currentState!.validate() &&
                   _selectedGender != null) {
-                final ctx = context;
                 await _signUp();
                 if (!mounted) return;
-                await showSignupCompleteDialog(ctx);
               }
             },
           ),

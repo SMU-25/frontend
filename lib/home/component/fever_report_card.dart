@@ -35,9 +35,7 @@ class FeverReportCard extends StatelessWidget {
           SizedBox(height: 12),
           TextButton(
             onPressed: () {
-              Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => CreateReport()));
+              Navigator.of(context).pushNamed('/report');
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: MAIN_COLOR,
