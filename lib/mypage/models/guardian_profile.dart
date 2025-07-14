@@ -9,6 +9,7 @@ class GuardianProfile {
   final File? image;
   final String email;
   final String password;
+  final String socialType;
 
   GuardianProfile({
     required this.name,
@@ -19,5 +20,6 @@ class GuardianProfile {
     this.image,
     required this.email,
     required this.password,
+    required this.socialType,
   });
 }
