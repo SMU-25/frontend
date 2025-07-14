@@ -7,10 +7,14 @@ enum ChartType { bodyTemp, roomTemp, humidity }
 
 class TemperatureChartWidget extends StatefulWidget {
   final ChartType chartType;
+  final Map<PeriodType, List<FlSpot>> chartData;
+  final DateTime createdAt;
 
   const TemperatureChartWidget({
     super.key,
     required this.chartType,
+    required this.chartData,
+    required this.createdAt,
   });
 
   @override
@@ -143,66 +147,54 @@ class _TemperatureChartWidgetState extends State<TemperatureChartWidget> {
   Map<String, double> _getYRange() {
     switch (widget.chartType) {
       case ChartType.bodyTemp:
-        return {'min': 35, 'max': 40, 'interval': 1};
+        return {'min': 35, 'max': 42, 'interval': 1};
       case ChartType.roomTemp:
-        return {'min': 15, 'max': 27, 'interval': 3};
+        return {'min': 3, 'max': 30, 'interval': 3};
       case ChartType.humidity:
-        return {'min': 20, 'max': 100, 'interval': 20};
+        return {'min': 0, 'max': 100, 'interval': 20};
     }
   }
 
   List<FlSpot> _getSpots() {
-    switch (widget.chartType) {
-      case ChartType.bodyTemp:
-        return _getBodyTempSpots();
-      case ChartType.roomTemp:
-        return _getRoomTempSpots();
-      case ChartType.humidity:
-        return _getHumiditySpots();
-    }
-  }
+    final rawSpots = widget.chartData[selectedPeriod] ?? [];
+    final minY = _getYRange()['min']!;
 
-  List<FlSpot> _getBodyTempSpots() {
-    switch (selectedPeriod) {
-      case PeriodType.day1:
-        return [FlSpot(0, 36.0), FlSpot(1, 36.5), FlSpot(2, 37.0), FlSpot(3, 36.3), FlSpot(4, 36.7), FlSpot(5, 36.2), FlSpot(6, 36.5), FlSpot(7, 36.0)];
-      case PeriodType.day3:
-        return [FlSpot(0, 36.1), FlSpot(1, 36.4), FlSpot(2, 36.7), FlSpot(3, 36.3), FlSpot(4, 36.8), FlSpot(5, 36.5), FlSpot(6, 36.9), FlSpot(7, 36.7), FlSpot(8, 36.6)];
-      case PeriodType.day7:
-        return [FlSpot(0, 36.0), FlSpot(1, 36.5), FlSpot(2, 37.0), FlSpot(3, 36.3), FlSpot(4, 37.5), FlSpot(5, 37.0), FlSpot(6, 36.7)];
-    }
-  }
-
-  List<FlSpot> _getRoomTempSpots() {
-    switch (selectedPeriod) {
-      case PeriodType.day1:
-        return [FlSpot(0, 22), FlSpot(1, 23), FlSpot(2, 21), FlSpot(3, 24), FlSpot(4, 23), FlSpot(5, 22), FlSpot(6, 23), FlSpot(7, 22)];
-      case PeriodType.day3:
-        return [FlSpot(0, 21), FlSpot(1, 22), FlSpot(2, 23), FlSpot(3, 24), FlSpot(4, 25), FlSpot(5, 23), FlSpot(6, 22), FlSpot(7, 24), FlSpot(8, 23)];
-      case PeriodType.day7:
-        return [FlSpot(0, 20), FlSpot(1, 21), FlSpot(2, 22), FlSpot(3, 23), FlSpot(4, 24), FlSpot(5, 23), FlSpot(6, 22)];
-    }
-  }
-
-  List<FlSpot> _getHumiditySpots() {
-    switch (selectedPeriod) {
-      case PeriodType.day1:
-        return [FlSpot(0, 40), FlSpot(1, 45), FlSpot(2, 50), FlSpot(3, 55), FlSpot(4, 60), FlSpot(5, 50), FlSpot(6, 45), FlSpot(7, 40)];
-      case PeriodType.day3:
-        return [FlSpot(0, 50), FlSpot(1, 60), FlSpot(2, 70), FlSpot(3, 80), FlSpot(4, 70), FlSpot(5, 60), FlSpot(6, 50), FlSpot(7, 60), FlSpot(8, 50)];
-      case PeriodType.day7:
-        return [FlSpot(0, 40), FlSpot(1, 50), FlSpot(2, 60), FlSpot(3, 70), FlSpot(4, 80), FlSpot(5, 90), FlSpot(6, 100)];
-    }
+    return rawSpots.map((spot) {
+      final clampedY = spot.y < minY ? minY : spot.y;
+      return FlSpot(spot.x, clampedY);
+    }).toList();
   }
 
   List<String> _getLabels() {
+    final createdAt = widget.createdAt;
+
     switch (selectedPeriod) {
       case PeriodType.day1:
         return ['0시', '3시', '6시', '9시', '12시', '15시', '18시', '21시'];
       case PeriodType.day3:
-        return ['1일\n새벽', '1일\n오전', '1일\n오후', '2일\n새벽', '2일\n오전', '2일\n오후', '3일\n새벽', '3일\n오전', '3일\n오후'];
+        final day1 = createdAt.subtract(Duration(days: 2));
+        final day2 = createdAt.subtract(Duration(days: 1));
+        final day3 = createdAt;
+
+        String format(DateTime date) => '${date.day}일';
+
+        return [
+          '${format(day1)}\n새벽',
+          '${format(day1)}\n오전',
+          '${format(day1)}\n오후',
+          '${format(day2)}\n새벽',
+          '${format(day2)}\n오전',
+          '${format(day2)}\n오후',
+          '${format(day3)}\n새벽',
+          '${format(day3)}\n오전',
+          '${format(day3)}\n오후',
+        ];
       case PeriodType.day7:
-        return ['7일', '8일', '9일', '10일', '11일', '12일', '13일'];
+        String format(DateTime date) => '${date.day}일';
+        return List.generate(7, (i) {
+          final date = createdAt.subtract(Duration(days: 6 - i));
+          return format(date);
+        });
     }
   }
 }

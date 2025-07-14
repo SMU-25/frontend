@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 class CustomAppbar extends StatelessWidget {
   final String title;
   final List<Widget>? actions;
+  final bool showBackButton;
 
   const CustomAppbar({
     required this.title,
     this.actions,
+    this.showBackButton = true,
     super.key,
   });
 
@@ -21,12 +23,13 @@ class CustomAppbar extends StatelessWidget {
             size: 30,
             color: Colors.black,
           ),
-          leading: IconButton(
+          automaticallyImplyLeading: showBackButton ? true : false,
+          leading: showBackButton ? IconButton(
             onPressed: () {
               Navigator.of(context).pop();
             },
             icon: Icon(Icons.arrow_back_ios_new),
-          ),
+          ) : null,
           title: Text(
             title,
             style: TextStyle(
