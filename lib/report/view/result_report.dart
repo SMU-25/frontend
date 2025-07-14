@@ -119,7 +119,7 @@ class _ResultReportState extends State<ResultReport> {
                   createdAt: report.createdAt,
                 ),
                 _ChartSectionWidget(
-                  title: '리포트 생성 시점 온도',
+                  title: '리포트 생성 시점 방 온도',
                   chartType: ChartType.roomTemp,
                   chartData: {
                     PeriodType.day1: report.day1?.toTemperatureSpots() ?? [],
@@ -129,7 +129,7 @@ class _ResultReportState extends State<ResultReport> {
                   createdAt: report.createdAt,
                 ),
                 _ChartSectionWidget(
-                  title: '리포트 생성 시점 습도',
+                  title: '리포트 생성 시점 방 습도',
                   chartType: ChartType.humidity,
                   chartData: {
                     PeriodType.day1: report.day1?.toHumiditySpots() ?? [],
