@@ -78,7 +78,7 @@ class _ChangeReportState extends State<ChangeReport> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('리포트 수정이 완료되었습니다')),
         );
-        Navigator.of(context).pop();
+        Navigator.of(context).pop(true);
       } else {
         throw Exception('수정 실패: ${response.data['message']}');
       }
