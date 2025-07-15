@@ -213,7 +213,16 @@ class _ReportState extends State<Report> {
                       MaterialPageRoute(
                         builder: (_) => ChangeReport(report: report),
                       ),
-                    );
+                    ).then((result) => {
+                      if(result == true) {
+                        setState(() {
+                          reportData.clear();
+                          cursor = 0;
+                          hasNext = true;
+                          loadReports();
+                        })
+                      }
+                    });
                   },
                 ),
               ),
