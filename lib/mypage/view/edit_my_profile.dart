@@ -171,7 +171,7 @@ class _EditMyProfileState extends State<EditMyProfile> {
 
       if (response.data["isSuccess"] == true) {
         if (context.mounted) {
-          Navigator.of(context).pop(); // 이전 화면으로 이동
+          Navigator.of(context).pop(true);
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("내 정보가 성공적으로 수정되었어요!")),
           );
