@@ -75,7 +75,7 @@ String _mapSeizureToKor(String? code) {
   switch (code) {
     case 'YES':
       return '있음';
-    case 'NO':
+    case 'NONE':
       return '없음';
     default:
       return '모름';
@@ -145,8 +145,9 @@ class _EditBabyProfileState extends State<EditBabyProfile> {
         seizure != null;
   }
 
-  void onNextPressed() {
+  void onNextPressed() async {
     final updatedProfile = ProfileInfo(
+      childId: widget.profileInfo.childId,
       name: nameController.text,
       birthYear: yearText!,
       birthMonth: monthText!,
@@ -157,11 +158,73 @@ class _EditBabyProfileState extends State<EditBabyProfile> {
       seizureHistory: seizure,
       illnessList: selectedIllness.toList(),
       image: image,
+      profileImage: widget.profileInfo.profileImage,
     );
 
-    Navigator.of(context).pop();
+    // 추후에 accessToken FlutterSecureStorage에서 가져오도록 변경 예정
+    final accessToken = 'Bearer ACCESS_TOKEN';
+    final dio = Dio();
+    final String formattedDate =
+        '${updatedProfile.birthYear}-${updatedProfile.birthMonth.padLeft(2, '0')}-${updatedProfile.birthDay.padLeft(2, '0')}';
 
-    // API 호출, 상태 저장 등 원하는 로직 작성 예정
+    final requestBody = {
+      "name": updatedProfile.name,
+      "birthdate": formattedDate,
+      "height": updatedProfile.height,
+      "weight": updatedProfile.weight,
+      "gender": updatedProfile.gender == '남자' ? 'MALE' : 'FEMALE',
+      "seizure": _mapKorToSeizureCode(updatedProfile.seizureHistory),
+      "profileImage": updatedProfile.profileImage ?? "", // 기본값 빈 문자열
+      "illnessTypes": (updatedProfile.illnessList ?? [])
+          .map((e) => e.replaceAll(' ', '_'))
+          .toList(),
+    };
+
+    try {
+      final response = await dio.patch(
+        '$base_URL/children/${updatedProfile.childId}',
+        data: requestBody,
+        options: Options(
+          headers: {'Authorization': accessToken},
+        ),
+      );
+
+      if (response.data['isSuccess'] == true) {
+        if (context.mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => RootTab(initialTabIndex: 4)),
+                (route) => false,
+          );
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('아이 정보가 수정되었습니다.')),
+          );
+        }
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('수정 실패: ${response.data['message']}')),
+          );
+        }
+      }
+    } catch(e) {
+      print('아이 수정 요청 중 오류 발생: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('수정 중 오류가 발생했습니다.')),
+        );
+      }
+    }
+  }
+
+  String _mapKorToSeizureCode(String? kor) {
+    switch (kor) {
+      case '있음':
+        return 'YES';
+      case '없음':
+        return 'NONE';
+      default:
+        return 'UNKNOWN';
+    }
   }
 
   void onPressedProfileDelete(BuildContext context) {
