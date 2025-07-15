@@ -82,7 +82,11 @@ class _MyScreenState extends State<MyScreen> {
           onPressedChangeProfile: () {
             Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => EditMyProfile())
-            );
+            ).then((value) {
+              if(value == true) {
+                loadMyInfo();
+              }
+            });
           },
         ),
         SizedBox(height: 36),
