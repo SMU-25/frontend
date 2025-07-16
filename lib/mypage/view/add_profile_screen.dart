@@ -81,23 +81,23 @@ class _AddProfileScreenState extends State<AddProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Center(
-                child: ProfileImageWithAddIcon(
-                  image: image,
-                  profileIconSize: 90,
-                  addImageIconSize: 18,
-                  bottom: 0,
-                  right: -5,
-                  radius: 50,
-                  onPressedChangePic:
-                      () => handleImagePick(
-                        context: context,
-                        onImageSelected: (selectedImage) {
-                          setState(() {
-                            image = selectedImage;
-                          });
-                        },
-                      ),
-                ),
+                // child: ProfileImageWithAddIcon(
+                //   image: image,
+                //   profileIconSize: 90,
+                //   addImageIconSize: 18,
+                //   bottom: 0,
+                //   right: -5,
+                //   radius: 50,
+                //   onPressedChangePic:
+                //       () => handleImagePick(
+                //         context: context,
+                //         onImageSelected: (selectedImage) {
+                //           setState(() {
+                //             image = selectedImage;
+                //           });
+                //         },
+                //       ),
+                // ),
               ),
               SizedBox(height: 15),
               Text(

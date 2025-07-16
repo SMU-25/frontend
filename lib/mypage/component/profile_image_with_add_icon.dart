@@ -4,6 +4,7 @@ import 'package:team_project_front/common/const/colors.dart';
 
 class ProfileImageWithAddIcon extends StatelessWidget {
   final File? image;
+  final String? networkImageUrl;
   final double profileIconSize;
   final double addImageIconSize;
   final double bottom;
@@ -13,6 +14,7 @@ class ProfileImageWithAddIcon extends StatelessWidget {
 
   const ProfileImageWithAddIcon({
     required this.image,
+    required this.networkImageUrl,
     required this.profileIconSize,
     required this.addImageIconSize,
     required this.bottom,
@@ -24,19 +26,31 @@ class ProfileImageWithAddIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Widget imageWidget;
+
+    if (image != null) {
+      imageWidget = CircleAvatar(
+        radius: radius,
+        backgroundColor: Colors.white,
+        backgroundImage: FileImage(image!),
+      );
+    } else if (networkImageUrl != null && networkImageUrl!.isNotEmpty) {
+      imageWidget = CircleAvatar(
+        radius: radius,
+        backgroundColor: Colors.white,
+        backgroundImage: NetworkImage(networkImageUrl!),
+      );
+    } else {
+      imageWidget = Icon(
+        Icons.account_circle,
+        size: profileIconSize,
+        color: ICON_GREY_COLOR,
+      );
+    }
+
     return Stack(
       children: [
-        image != null
-            ? CircleAvatar(
-          radius: radius,
-          backgroundColor: Colors.white,
-          backgroundImage: image != null ? FileImage(image!) : null,
-        )
-            : Icon(
-          Icons.account_circle,
-          size: profileIconSize,
-          color: ICON_GREY_COLOR,
-        ),
+        imageWidget,
         Positioned(
           bottom: bottom,
           right: right,

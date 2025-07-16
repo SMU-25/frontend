@@ -20,6 +20,7 @@ class MyScreen extends StatefulWidget {
 
 class _MyScreenState extends State<MyScreen> {
   File? image;
+  String? imageUrl;
   final ImagePicker picker = ImagePicker();
 
   // 추후에 accessToken FlutterSecureStorage에서 가져오도록 변경 예정
@@ -46,9 +47,17 @@ class _MyScreenState extends State<MyScreen> {
         ),
       );
       final result = response.data['result'];
+
+      final profileImage = result['profileImage'];
+
       setState(() {
         name = result['name'] ?? '';
         email = result['email'] ?? '';
+        imageUrl = (profileImage != null && profileImage.startsWith('http'))
+            ? profileImage
+            : profileImage != null
+            ? 'https://momfy-bucket.s3.ap-northeast-2.amazonaws.com/$profileImage'
+            : null;
       });
     } catch(e) {
       print('내 정보 호출 실패: $e');
@@ -69,6 +78,7 @@ class _MyScreenState extends State<MyScreen> {
         SizedBox(height: 24),
         MyProfile(
           image: image,
+          networkImageUrl: imageUrl,
           name: name,
           email: email,
           onPressedChangePic: () => handleImagePick(
@@ -129,6 +139,7 @@ class MyProfile extends StatelessWidget {
   final String name;
   final String email;
   File? image;
+  final String? networkImageUrl;
   final GestureTapCallback? onPressedChangePic;
   final VoidCallback? onPressedChangeProfile;
 
@@ -138,6 +149,7 @@ class MyProfile extends StatelessWidget {
     required this.image,
     required this.onPressedChangePic,
     required this.onPressedChangeProfile,
+    this.networkImageUrl,
     super.key,
   });
 
@@ -147,6 +159,7 @@ class MyProfile extends StatelessWidget {
       children: [
         ProfileImageWithAddIcon(
           image: image,
+          networkImageUrl: networkImageUrl,
           profileIconSize: 140,
           addImageIconSize: 24,
           bottom: 0,
