@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
 import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/mypage/component/email_input.dart';
@@ -34,6 +35,7 @@ class _EditMyProfileState extends State<EditMyProfile> {
   String? gender;
   String? social;
   File? image;
+  String? networkImageUrl;
 
   String? customEmailDomain;
   bool isLoading = true;
@@ -62,6 +64,15 @@ class _EditMyProfileState extends State<EditMyProfile> {
       final email = data['email'];
       final emailId = email.split('@')[0];
       final emailDomain = email.split('@')[1];
+
+      final profileImageRaw = data['profileImage'];
+
+      if (profileImageRaw.startsWith('http')) {
+        networkImageUrl = profileImageRaw;
+      } else {
+        networkImageUrl = '$base_URL/$profileImageRaw';
+      }
+
       myProfile = GuardianProfile(
         name: data['name'],
         birthYear: birthdate.year.toString(),
@@ -160,7 +171,70 @@ class _EditMyProfileState extends State<EditMyProfile> {
         "newPassword": updatedProfile.password,
     };
 
+    Future<File?> compressImage(File file) async {
+      final filePath = file.absolute.path;
+      final lastIndex = filePath.lastIndexOf(RegExp(r'.jp'));
+      final splitted = filePath.substring(0, lastIndex);
+      final outPath = "${splitted}_out${filePath.substring(lastIndex)}";
+
+      final compressedXFile = await FlutterImageCompress.compressAndGetFile(
+        filePath,
+        outPath,
+        quality: 60,
+      );
+
+      if (compressedXFile == null) return null;
+
+      return File(compressedXFile.path);
+    }
+
+
     try {
+      if (image != null) {
+        final compressed = await compressImage(image!);
+        if (compressed != null) {
+          final fileName = compressed.path.split('/').last;
+
+          final formData = FormData.fromMap({
+            "profileImage": await MultipartFile.fromFile(
+              compressed.path,
+              filename: fileName,
+            ),
+          });
+
+          try {
+            final imageResponse = await dio.patch(
+              "$base_URL/my/profile-image",
+              data: formData,
+              options: Options(
+                headers: {
+                  "Authorization": accessToken,
+                  "Content-Type": "multipart/form-data",
+                },
+              ),
+            );
+
+            if (imageResponse.data["isSuccess"] != true) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("이미지 수정 실패: ${imageResponse.data['message']}")),
+                );
+              }
+              return;
+            }
+          } catch (e) {
+            print("이미지 업로드 실패: $e");
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("이미지 업로드 중 오류 발생")),
+              );
+            }
+          }
+        } else {
+          print("이미지 압축 실패");
+        }
+      }
+
       final response = await dio.patch(
         "$base_URL/my",
         data: requestBody,
@@ -220,6 +294,7 @@ class _EditMyProfileState extends State<EditMyProfile> {
               Center(
                 child: ProfileImageWithAddIcon(
                   image: image,
+                  networkImageUrl: networkImageUrl,
                   profileIconSize: 90,
                   addImageIconSize: 18,
                   bottom: 0,
@@ -229,7 +304,7 @@ class _EditMyProfileState extends State<EditMyProfile> {
                     context: context,
                     onImageSelected: (selectedImage) {
                       setState(() {
-                        image = selectedImage;
+                        image = File(selectedImage.path);
                       });
                     },
                   ),
