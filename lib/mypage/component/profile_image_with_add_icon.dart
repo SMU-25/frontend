@@ -11,6 +11,7 @@ class ProfileImageWithAddIcon extends StatelessWidget {
   final double right;
   final double radius;
   final GestureTapCallback? onPressedChangePic;
+  final bool showAddIcon;
 
   const ProfileImageWithAddIcon({
     required this.image,
@@ -21,6 +22,7 @@ class ProfileImageWithAddIcon extends StatelessWidget {
     required this.right,
     required this.radius,
     required this.onPressedChangePic,
+    this.showAddIcon = true,
     super.key,
   });
 
@@ -51,25 +53,26 @@ class ProfileImageWithAddIcon extends StatelessWidget {
     return Stack(
       children: [
         imageWidget,
-        Positioned(
-          bottom: bottom,
-          right: right,
-          child: GestureDetector(
-            onTap: onPressedChangePic,
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.grey[50],
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.add_a_photo,
-                size: addImageIconSize,
-                color: ICON_GREY_COLOR,
+        if(showAddIcon)
+          Positioned(
+            bottom: bottom,
+            right: right,
+            child: GestureDetector(
+              onTap: onPressedChangePic,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.add_a_photo,
+                  size: addImageIconSize,
+                  color: ICON_GREY_COLOR,
+                ),
               ),
             ),
-          ),
-        ),
+          )
       ],
     );
   }
