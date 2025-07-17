@@ -166,6 +166,7 @@ class MyProfile extends StatelessWidget {
           right: 4,
           radius: 70,
           onPressedChangePic: onPressedChangePic,
+          showAddIcon: false,
         ),
         SizedBox(height: 12),
         Text(
