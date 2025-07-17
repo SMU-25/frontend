@@ -254,10 +254,10 @@ class FamilyProfile extends StatelessWidget {
                       CircleAvatar(
                         radius: 30,
                         backgroundColor: Colors.transparent,
-                        backgroundImage: profile.profileImage != null && profile.profileImage != "string"
+                        backgroundImage: profile.profileImage != null
                             ? NetworkImage(profile.profileImage!)
                             : null,
-                        child: (profile.profileImage == null || profile.profileImage == "string")
+                        child: (profile.profileImage == null || profile.profileImage!.isEmpty)
                             ? Icon(Icons.account_circle, size: 60, color: ICON_GREY_COLOR)
                             : null,
                       ),
