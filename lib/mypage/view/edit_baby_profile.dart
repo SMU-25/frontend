@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
 import 'package:team_project_front/common/component/yes_or_no_dialog.dart';
 import 'package:team_project_front/common/const/base_url.dart';
@@ -146,6 +147,33 @@ class _EditBabyProfileState extends State<EditBabyProfile> {
   }
 
   void onNextPressed() async {
+    Future<File?> compressImage(File file) async {
+      final filePath = file.absolute.path;
+      final lastIndex = filePath.lastIndexOf(RegExp(r'.jp'));
+      final splitted = filePath.substring(0, lastIndex);
+      final outPath = "${splitted}_out${filePath.substring(lastIndex)}";
+
+      final compressedXFile = await FlutterImageCompress.compressAndGetFile(
+        filePath,
+        outPath,
+        quality: 60,
+      );
+
+      if (compressedXFile == null) return null;
+
+      return File(compressedXFile.path);
+    }
+
+    if (image != null) {
+      final compressed = await compressImage(image!);
+      if (compressed != null) {
+        image = compressed;
+        print('압축 성공: ${image!.path}, 크기: ${await image!.length()} bytes');
+      } else {
+        print('압축 실패. 원본 이미지 사용');
+      }
+    }
+
     final updatedProfile = ProfileInfo(
       childId: widget.profileInfo.childId,
       name: nameController.text,
@@ -167,29 +195,57 @@ class _EditBabyProfileState extends State<EditBabyProfile> {
     final String formattedDate =
         '${updatedProfile.birthYear}-${updatedProfile.birthMonth.padLeft(2, '0')}-${updatedProfile.birthDay.padLeft(2, '0')}';
 
-    final requestBody = {
+    final Map<String, dynamic> jsonBody = {
       "name": updatedProfile.name,
       "birthdate": formattedDate,
       "height": updatedProfile.height,
       "weight": updatedProfile.weight,
       "gender": updatedProfile.gender == '남자' ? 'MALE' : 'FEMALE',
       "seizure": _mapKorToSeizureCode(updatedProfile.seizureHistory),
-      "profileImage": updatedProfile.profileImage ?? "", // 기본값 빈 문자열
-      "illnessTypes": (updatedProfile.illnessList ?? [])
-          .map((e) => e.replaceAll(' ', '_'))
-          .toList(),
+      "illnessTypes": updatedProfile.illnessList?.map((e) => e.replaceAll(' ', '_')).toList(),
     };
 
     try {
       final response = await dio.patch(
         '$base_URL/children/${updatedProfile.childId}',
-        data: requestBody,
+        data: jsonBody,
         options: Options(
-          headers: {'Authorization': accessToken},
+          headers: {
+            'Authorization': accessToken,
+            'Content-Type': 'application/json',
+          },
         ),
       );
 
       if (response.data['isSuccess'] == true) {
+        print('아이 정보 수정 성공');
+        if (image != null) {
+          final formData = FormData.fromMap({
+            "profileImage": await MultipartFile.fromFile(
+              image!.path,
+              filename: image!.path.split('/').last,
+            ),
+          });
+
+          final imageResponse = await dio.patch(
+            '$base_URL/children/${updatedProfile.childId}/profile-image',
+            data: formData,
+            options: Options(
+              headers: {
+                'Authorization': accessToken,
+                'Content-Type': 'multipart/form-data',
+              },
+            ),
+          );
+
+          if (imageResponse.data['isSuccess'] == true) {
+            print('프로필 이미지 수정 성공');
+          } else {
+            print('프로필 이미지 수정 실패: ${imageResponse.data['message']}');
+          }
+        }
+
+        // 이동 및 알림
         if (context.mounted) {
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (_) => RootTab(initialTabIndex: 4)),
@@ -200,14 +256,15 @@ class _EditBabyProfileState extends State<EditBabyProfile> {
           );
         }
       } else {
+        print('아이 정보 수정 실패: ${response.data['message']}');
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('수정 실패: ${response.data['message']}')),
           );
         }
       }
-    } catch(e) {
-      print('아이 수정 요청 중 오류 발생: $e');
+    } catch (e) {
+      print('예외 발생: $e');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('수정 중 오류가 발생했습니다.')),
@@ -312,22 +369,23 @@ class _EditBabyProfileState extends State<EditBabyProfile> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Center(
-                // child: ProfileImageWithAddIcon(
-                //   image: image,
-                //   profileIconSize: 90,
-                //   addImageIconSize: 18,
-                //   bottom: 0,
-                //   right: -5,
-                //   radius: 50,
-                //   onPressedChangePic: () => handleImagePick(
-                //     context: context,
-                //     onImageSelected: (selectedImage) {
-                //       setState(() {
-                //         image = selectedImage;
-                //       });
-                //     },
-                //   ),
-                // ),
+                child: ProfileImageWithAddIcon(
+                  image: image,
+                  networkImageUrl: widget.profileInfo.profileImage,
+                  profileIconSize: 90,
+                  addImageIconSize: 18,
+                  bottom: 0,
+                  right: -5,
+                  radius: 50,
+                  onPressedChangePic: () => handleImagePick(
+                    context: context,
+                    onImageSelected: (selectedImage) {
+                      setState(() {
+                        image = selectedImage;
+                      });
+                    },
+                  ),
+                ),
               ),
               SizedBox(height: 15),
               Text(
