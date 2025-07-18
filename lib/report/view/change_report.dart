@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
 import 'package:team_project_front/common/const/base_url.dart';
+import 'package:team_project_front/common/utils/secure_storage_service.dart';
 import 'package:team_project_front/report/component/custom_text_input.dart';
 import 'package:team_project_front/report/model/report_info.dart';
 import 'package:team_project_front/report/view/create_report.dart';
@@ -35,15 +36,28 @@ class _ChangeReportState extends State<ChangeReport> {
     '피부 발진', '호흡 곤란', '기침', '콧물'
   ];
 
-  // 임시 Access Token (추후 FlutterSecureStorage 등으로 교체 예정)
-  final String accessToken = 'Bearer ACCESS_TOKEN';
+  String? accessToken;
 
   @override
   void initState() {
     super.initState();
-    etcController = TextEditingController(text: widget.report.etcSymptom);
-    outingController = TextEditingController(text: widget.report.outingRecord);
-    selectedSymptoms.addAll(widget.report.symptoms);
+    initialize();
+  }
+
+  void initialize() async {
+    final token = await SecureStorageService.getAccessToken();
+
+    if (token == null) {
+      print('accessToken 없음! 로그인 필요');
+      return;
+    }
+
+    setState(() {
+      accessToken = 'Bearer $token';
+      etcController = TextEditingController(text: widget.report.etcSymptom);
+      outingController = TextEditingController(text: widget.report.outingRecord);
+      selectedSymptoms.addAll(widget.report.symptoms);
+    });
   }
 
   bool get isFormValid {
@@ -53,6 +67,13 @@ class _ChangeReportState extends State<ChangeReport> {
   }
 
   void onSavePressed() async {
+    if (accessToken == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('로그인이 필요합니다')),
+      );
+      return;
+    }
+
     try {
       final dio = Dio();
 
@@ -92,6 +113,12 @@ class _ChangeReportState extends State<ChangeReport> {
 
   @override
   Widget build(BuildContext context) {
+    if (accessToken == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(90),

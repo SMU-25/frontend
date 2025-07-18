@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/common/const/colors.dart';
+import 'package:team_project_front/common/utils/secure_storage_service.dart';
 import 'package:team_project_front/report/model/report_info.dart';
 import 'package:team_project_front/report/view/result_report.dart';
 
@@ -106,8 +107,12 @@ Future<ReportInfo?> createReport({
 
   final convertedSymptoms = symptoms.map((s) => s.replaceAll(' ', '_')).toList();
 
-  // 추후에 accessToken FlutterSecureStorage에서 가져오도록 변경 예정
-  final accessToken = 'Bearer ACCESS_TOKEN';
+  final token = await SecureStorageService.getAccessToken();
+  if (token == null) {
+    throw Exception('로그인이 필요합니다');
+  }
+
+  final accessToken = 'Bearer $token';
 
   final response = await dio.post(
     '$base_URL/reports/$childId',
