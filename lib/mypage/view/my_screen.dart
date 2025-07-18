@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/common/const/colors.dart';
+import 'package:team_project_front/common/utils/secure_storage_service.dart';
 import 'package:team_project_front/mypage/component/profile_image_with_add_icon.dart';
 import 'package:team_project_front/mypage/models/profile_info.dart';
 import 'package:team_project_front/mypage/utils/image_pick_handler.dart';
@@ -23,8 +24,7 @@ class _MyScreenState extends State<MyScreen> {
   String? imageUrl;
   final ImagePicker picker = ImagePicker();
 
-  // 추후에 accessToken FlutterSecureStorage에서 가져오도록 변경 예정
-  final String accessToken = 'Bearer ACCESS_TOKEN';
+  String? accessToken;
 
   List<ProfileInfo> members = [];
   String name = '';
@@ -33,11 +33,29 @@ class _MyScreenState extends State<MyScreen> {
   @override
   void initState() {
     super.initState();
-    loadMyInfo();
-    loadChildren();
+    initialize();
   }
 
-  void loadMyInfo() async {
+  Future<void> initialize() async {
+    try {
+      final token = await SecureStorageService.getAccessToken();
+      if (token == null || token.isEmpty) {
+        print('AccessToken 없음. 로그인 필요');
+        return;
+      }
+
+      setState(() {
+        accessToken = 'Bearer $token';
+      });
+
+      await loadMyInfo();
+      await loadChildren();
+    } catch (e) {
+      print('초기화 중 오류 발생: $e');
+    }
+  }
+
+  Future<void> loadMyInfo() async {
     try {
       final dio = Dio();
       final response = await dio.get(
@@ -64,8 +82,13 @@ class _MyScreenState extends State<MyScreen> {
     }
   }
 
-  void loadChildren() async {
-    final data = await fetchChildren(accessToken);
+  Future<void> loadChildren() async {
+    if(accessToken == null) {
+      print('accessToken 없음!');
+      return;
+    }
+
+    final data = await fetchChildren(accessToken!);
     setState(() {
       members = data;
     });
@@ -122,7 +145,7 @@ class _MyScreenState extends State<MyScreen> {
 
     final detail = await fetchChildDetail(
       childId: profile.childId!,
-      accessToken: accessToken,
+      accessToken: accessToken!,
     );
 
     if(detail != null && context.mounted) {
