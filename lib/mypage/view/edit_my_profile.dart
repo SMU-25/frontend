@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
 import 'package:team_project_front/common/const/base_url.dart';
+import 'package:team_project_front/common/utils/secure_storage_service.dart';
 import 'package:team_project_front/mypage/component/email_input.dart';
 import 'package:team_project_front/mypage/component/password_input.dart';
 import 'package:team_project_front/mypage/component/profile_birth_input.dart';
@@ -40,18 +41,31 @@ class _EditMyProfileState extends State<EditMyProfile> {
   String? customEmailDomain;
   bool isLoading = true;
 
-  // 추후에 accessToken FlutterSecureStorage에서 가져오도록 변경 예정
-  final accessToken = 'Bearer ACCESS_TOKEN';
+  String? accessToken;
 
   @override
   void initState() {
     super.initState();
-    loadMyInfo();
     passwordController = TextEditingController();
     confirmPasswordController = TextEditingController();
+    initialize();
+  }
+
+  Future<void> initialize() async {
+    final token = await SecureStorageService.getAccessToken();
+
+    if (token == null) {
+      print('accessToken 없음! 로그인 필요');
+      return;
+    }
+
+    accessToken = 'Bearer $token';
+    await loadMyInfo();
   }
 
   Future<void> loadMyInfo() async {
+    if(accessToken == null) return;
+
     try {
       final dio = Dio();
       final response = await dio.get(
@@ -141,6 +155,8 @@ class _EditMyProfileState extends State<EditMyProfile> {
   }
 
   void onNextPressed() async {
+    if(accessToken == null) return;
+
     final dio = Dio();
     final domain = emailDomainController.text == '직접입력'
         ? customEmailDomain ?? ''

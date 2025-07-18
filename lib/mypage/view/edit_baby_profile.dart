@@ -6,6 +6,7 @@ import 'package:team_project_front/common/component/navigation_button.dart';
 import 'package:team_project_front/common/component/yes_or_no_dialog.dart';
 import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/common/const/colors.dart';
+import 'package:team_project_front/common/utils/secure_storage_service.dart';
 import 'package:team_project_front/common/view/root_tab.dart';
 import 'package:team_project_front/main.dart';
 import 'package:team_project_front/mypage/component/illness_selctor.dart';
@@ -108,6 +109,8 @@ class _EditBabyProfileState extends State<EditBabyProfile> {
   String? seizure;
   Set<String> selectedIllness = {};
 
+  String? accessToken;
+
   final List<String> illnesses = [
     '해당 없음', '아토피', '천식', '뇌전증',
     '고혈압', '심장 질환', '폐 질환',
@@ -118,9 +121,26 @@ class _EditBabyProfileState extends State<EditBabyProfile> {
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
+  bool isLoading = true;
+
   @override
   void initState() {
     super.initState();
+    initialize();
+  }
+
+  Future<void> initialize() async {
+    final token = await SecureStorageService.getAccessToken();
+
+    if (token == null) {
+      print('accessToken 없음! 로그인 필요');
+      return;
+    }
+
+    setState(() {
+      accessToken = 'Bearer $token';
+    });
+
     final p = widget.profileInfo;
 
     nameController = TextEditingController(text: p.name);
@@ -135,6 +155,10 @@ class _EditBabyProfileState extends State<EditBabyProfile> {
 
     seizure = p.seizureHistory;
     selectedIllness = {...?p.illnessList};
+
+    setState(() {
+      isLoading = false;
+    });
   }
 
   bool get isFormValid {
@@ -147,6 +171,11 @@ class _EditBabyProfileState extends State<EditBabyProfile> {
   }
 
   void onNextPressed() async {
+    if(accessToken == null) {
+      print('accessToken 없음. 요청 중단.');
+      return;
+    }
+
     Future<File?> compressImage(File file) async {
       final filePath = file.absolute.path;
       final lastIndex = filePath.lastIndexOf(RegExp(r'.jp'));
@@ -189,8 +218,6 @@ class _EditBabyProfileState extends State<EditBabyProfile> {
       profileImage: widget.profileInfo.profileImage,
     );
 
-    // 추후에 accessToken FlutterSecureStorage에서 가져오도록 변경 예정
-    final accessToken = 'Bearer ACCESS_TOKEN';
     final dio = Dio();
     final String formattedDate =
         '${updatedProfile.birthYear}-${updatedProfile.birthMonth.padLeft(2, '0')}-${updatedProfile.birthDay.padLeft(2, '0')}';
@@ -295,8 +322,12 @@ class _EditBabyProfileState extends State<EditBabyProfile> {
             '정말 삭제하시겠습니까?',
         onPressedYes: () async {
           final childId = widget.profileInfo.childId;
-          // 추후에 accessToken FlutterSecureStorage에서 가져오도록 변경 예정
-          final accessToken = 'Bearer ACCESS_TOKEN';
+
+          final token = accessToken;
+          if (token == null) {
+            print('accessToken 없음. 삭제 요청 중단.');
+            return;
+          }
 
           final dio = Dio();
 
@@ -305,7 +336,7 @@ class _EditBabyProfileState extends State<EditBabyProfile> {
               '$base_URL/children/$childId',
               options: Options(
                 headers: {
-                  'Authorization': accessToken,
+                  'Authorization': token,
                 },
               ),
             );
@@ -334,6 +365,12 @@ class _EditBabyProfileState extends State<EditBabyProfile> {
 
   @override
   Widget build(BuildContext context) {
+    if(isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(90),
