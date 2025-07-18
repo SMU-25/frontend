@@ -92,16 +92,27 @@ class _ChangeReportState extends State<ChangeReport> {
           headers: {
             'Authorization': accessToken,
           },
+          validateStatus: (status) => status != null && status < 500,
         ),
       );
 
-      if(response.statusCode == 200 && response.data['isSuccess'] == true) {
+      final resData = response.data;
+
+      if (response.statusCode == 200 && resData['isSuccess'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('리포트 수정이 완료되었습니다')),
         );
         Navigator.of(context).pop(true);
       } else {
-        throw Exception('수정 실패: ${response.data['message']}');
+        if (resData['code'] == 'FEVER_RECORD404') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('홈캠을 통한 체온, 온습도 정보가 존재해야 합니다')),
+          );
+          Navigator.of(context).pushNamed('/home');
+          return;
+        }
+
+        throw Exception('수정 실패: ${resData['message']}');
       }
     } catch(e) {
       print('예외 발생: $e');
