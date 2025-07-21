@@ -4,6 +4,7 @@ import 'package:team_project_front/common/component/complete_dialog.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
 import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/common/const/colors.dart';
+import 'package:team_project_front/common/utils/secure_storage_service.dart';
 import 'package:team_project_front/common/view/root_tab.dart';
 import 'package:team_project_front/mypage/component/illness_selctor.dart';
 import 'package:team_project_front/mypage/component/seizure_history_selector.dart';
@@ -46,8 +47,12 @@ class _AddProfileSymptomsScreenState extends State<AddProfileSymptomsScreen> {
       illnessList: selectedIllness.toList(),
     );
 
-    // 추후에 accessToken FlutterSecureStorage에서 가져오도록 변경 예정
-    final accessToken = 'Bearer ACCESS_TOKEN';
+    final token = await SecureStorageService.getAccessToken();
+    if (token == null) {
+      print('accessToken 없음. 요청 중단.');
+      return;
+    }
+    final accessToken = 'Bearer $token';
     final Dio dio = Dio();
     final birthdate =
         "${updatedProfileInfo.birthYear.padLeft(2, '0')}-${updatedProfileInfo.birthMonth.padLeft(2, '0')}-${updatedProfileInfo.birthDay.padLeft(2, '0')}";

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
 import 'package:team_project_front/common/const/base_url.dart';
+import 'package:team_project_front/common/utils/secure_storage_service.dart';
 import 'package:team_project_front/report/component/custom_text_input.dart';
 import 'package:team_project_front/report/model/report_info.dart';
 import 'package:team_project_front/report/view/create_report.dart';
@@ -35,15 +36,28 @@ class _ChangeReportState extends State<ChangeReport> {
     '피부 발진', '호흡 곤란', '기침', '콧물'
   ];
 
-  // 임시 Access Token (추후 FlutterSecureStorage 등으로 교체 예정)
-  final String accessToken = 'Bearer ACCESS_TOKEN';
+  String? accessToken;
 
   @override
   void initState() {
     super.initState();
-    etcController = TextEditingController(text: widget.report.etcSymptom);
-    outingController = TextEditingController(text: widget.report.outingRecord);
-    selectedSymptoms.addAll(widget.report.symptoms);
+    initialize();
+  }
+
+  void initialize() async {
+    final token = await SecureStorageService.getAccessToken();
+
+    if (token == null) {
+      print('accessToken 없음! 로그인 필요');
+      return;
+    }
+
+    setState(() {
+      accessToken = 'Bearer $token';
+      etcController = TextEditingController(text: widget.report.etcSymptom);
+      outingController = TextEditingController(text: widget.report.outingRecord);
+      selectedSymptoms.addAll(widget.report.symptoms);
+    });
   }
 
   bool get isFormValid {
@@ -53,6 +67,13 @@ class _ChangeReportState extends State<ChangeReport> {
   }
 
   void onSavePressed() async {
+    if (accessToken == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('로그인이 필요합니다')),
+      );
+      return;
+    }
+
     try {
       final dio = Dio();
 
@@ -71,16 +92,27 @@ class _ChangeReportState extends State<ChangeReport> {
           headers: {
             'Authorization': accessToken,
           },
+          validateStatus: (status) => status != null && status < 500,
         ),
       );
 
-      if(response.statusCode == 200 && response.data['isSuccess'] == true) {
+      final resData = response.data;
+
+      if (response.statusCode == 200 && resData['isSuccess'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('리포트 수정이 완료되었습니다')),
         );
-        Navigator.of(context).pop();
+        Navigator.of(context).pop(true);
       } else {
-        throw Exception('수정 실패: ${response.data['message']}');
+        if (resData['code'] == 'FEVER_RECORD404') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('홈캠을 통한 체온, 온습도 정보가 존재해야 합니다')),
+          );
+          Navigator.of(context).pushNamed('/home');
+          return;
+        }
+
+        throw Exception('수정 실패: ${resData['message']}');
       }
     } catch(e) {
       print('예외 발생: $e');
@@ -92,6 +124,12 @@ class _ChangeReportState extends State<ChangeReport> {
 
   @override
   Widget build(BuildContext context) {
+    if (accessToken == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(90),

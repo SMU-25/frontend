@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/common/const/colors.dart';
+import 'package:team_project_front/common/utils/secure_storage_service.dart';
 import 'package:team_project_front/report/component/report_card.dart';
 import 'package:team_project_front/report/model/report_info.dart';
 import 'package:team_project_front/report/view/change_report.dart';
@@ -36,8 +37,7 @@ class _ReportState extends State<Report> {
   int cursor = 0;
   final int pageSize = 10;
 
-  // 임시 Access Token (추후 FlutterSecureStorage 등으로 교체 예정)
-  final String accessToken = 'Bearer ACCESS_TOKEN';
+  String? accessToken;
 
   // 홈화면에서 아이 선택 후 리포트 생성할 것이므로
   // childId는 현재 임의로 설정
@@ -46,7 +46,7 @@ class _ReportState extends State<Report> {
   @override
   void initState() {
     super.initState();
-    loadReports();
+    initialize();
 
     // childId = widget.childId; => 홈화면과 연결 시 주석 없앨 예정
 
@@ -59,8 +59,22 @@ class _ReportState extends State<Report> {
     });
   }
 
+  Future<void> initialize() async {
+    final token = await SecureStorageService.getAccessToken();
+    if (token == null) {
+      print('accessToken 없음! 로그인 필요');
+      return;
+    }
+
+    setState(() {
+      accessToken = 'Bearer $token';
+    });
+
+    loadReports();
+  }
+
   void loadReports() async {
-    if (isLoading || !hasNext) return;
+    if (isLoading || !hasNext || accessToken == null) return;
 
     setState(() => isLoading = true);
 
@@ -68,7 +82,7 @@ class _ReportState extends State<Report> {
       childId: childId,
       cursor: cursor,
       size: pageSize,
-      accessToken: accessToken,
+      accessToken: accessToken!,
     );
     setState(() {
       reportData.addAll(response.reports);
@@ -119,6 +133,12 @@ class _ReportState extends State<Report> {
 
   @override
   Widget build(BuildContext context) {
+    if (accessToken == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -176,7 +196,7 @@ class _ReportState extends State<Report> {
               onDismissed: (_) async {
                 final success = await deleteReport(
                   reportId: report.reportId,
-                  accessToken: accessToken,
+                  accessToken: accessToken!,
                 );
 
                 if (success) {
@@ -213,7 +233,16 @@ class _ReportState extends State<Report> {
                       MaterialPageRoute(
                         builder: (_) => ChangeReport(report: report),
                       ),
-                    );
+                    ).then((result) => {
+                      if(result == true) {
+                        setState(() {
+                          reportData.clear();
+                          cursor = 0;
+                          hasNext = true;
+                          loadReports();
+                        })
+                      }
+                    });
                   },
                 ),
               ),

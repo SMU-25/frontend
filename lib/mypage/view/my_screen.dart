@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/common/const/colors.dart';
+import 'package:team_project_front/common/utils/secure_storage_service.dart';
 import 'package:team_project_front/mypage/component/profile_image_with_add_icon.dart';
 import 'package:team_project_front/mypage/models/profile_info.dart';
 import 'package:team_project_front/mypage/utils/image_pick_handler.dart';
@@ -20,10 +21,10 @@ class MyScreen extends StatefulWidget {
 
 class _MyScreenState extends State<MyScreen> {
   File? image;
+  String? imageUrl;
   final ImagePicker picker = ImagePicker();
 
-  // 추후에 accessToken FlutterSecureStorage에서 가져오도록 변경 예정
-  final String accessToken = 'Bearer ACCESS_TOKEN';
+  String? accessToken;
 
   List<ProfileInfo> members = [];
   String name = '';
@@ -32,11 +33,29 @@ class _MyScreenState extends State<MyScreen> {
   @override
   void initState() {
     super.initState();
-    loadMyInfo();
-    loadChildren();
+    initialize();
   }
 
-  void loadMyInfo() async {
+  Future<void> initialize() async {
+    try {
+      final token = await SecureStorageService.getAccessToken();
+      if (token == null || token.isEmpty) {
+        print('AccessToken 없음. 로그인 필요');
+        return;
+      }
+
+      setState(() {
+        accessToken = 'Bearer $token';
+      });
+
+      await loadMyInfo();
+      await loadChildren();
+    } catch (e) {
+      print('초기화 중 오류 발생: $e');
+    }
+  }
+
+  Future<void> loadMyInfo() async {
     try {
       final dio = Dio();
       final response = await dio.get(
@@ -46,17 +65,30 @@ class _MyScreenState extends State<MyScreen> {
         ),
       );
       final result = response.data['result'];
+
+      final profileImage = result['profileImage'];
+
       setState(() {
         name = result['name'] ?? '';
         email = result['email'] ?? '';
+        imageUrl = (profileImage != null && profileImage.startsWith('http'))
+            ? profileImage
+            : profileImage != null
+            ? 'https://momfy-bucket.s3.ap-northeast-2.amazonaws.com/$profileImage'
+            : null;
       });
     } catch(e) {
       print('내 정보 호출 실패: $e');
     }
   }
 
-  void loadChildren() async {
-    final data = await fetchChildren(accessToken);
+  Future<void> loadChildren() async {
+    if(accessToken == null) {
+      print('accessToken 없음!');
+      return;
+    }
+
+    final data = await fetchChildren(accessToken!);
     setState(() {
       members = data;
     });
@@ -69,6 +101,7 @@ class _MyScreenState extends State<MyScreen> {
         SizedBox(height: 24),
         MyProfile(
           image: image,
+          networkImageUrl: imageUrl,
           name: name,
           email: email,
           onPressedChangePic: () => handleImagePick(
@@ -82,7 +115,11 @@ class _MyScreenState extends State<MyScreen> {
           onPressedChangeProfile: () {
             Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => EditMyProfile())
-            );
+            ).then((value) {
+              if(value == true) {
+                loadMyInfo();
+              }
+            });
           },
         ),
         SizedBox(height: 36),
@@ -108,7 +145,7 @@ class _MyScreenState extends State<MyScreen> {
 
     final detail = await fetchChildDetail(
       childId: profile.childId!,
-      accessToken: accessToken,
+      accessToken: accessToken!,
     );
 
     if(detail != null && context.mounted) {
@@ -125,6 +162,7 @@ class MyProfile extends StatelessWidget {
   final String name;
   final String email;
   File? image;
+  final String? networkImageUrl;
   final GestureTapCallback? onPressedChangePic;
   final VoidCallback? onPressedChangeProfile;
 
@@ -134,6 +172,7 @@ class MyProfile extends StatelessWidget {
     required this.image,
     required this.onPressedChangePic,
     required this.onPressedChangeProfile,
+    this.networkImageUrl,
     super.key,
   });
 
@@ -143,12 +182,14 @@ class MyProfile extends StatelessWidget {
       children: [
         ProfileImageWithAddIcon(
           image: image,
+          networkImageUrl: networkImageUrl,
           profileIconSize: 140,
           addImageIconSize: 24,
           bottom: 0,
           right: 4,
           radius: 70,
           onPressedChangePic: onPressedChangePic,
+          showAddIcon: false,
         ),
         SizedBox(height: 12),
         Text(
@@ -237,10 +278,10 @@ class FamilyProfile extends StatelessWidget {
                       CircleAvatar(
                         radius: 30,
                         backgroundColor: Colors.transparent,
-                        backgroundImage: profile.profileImage != null && profile.profileImage != "string"
+                        backgroundImage: profile.profileImage != null
                             ? NetworkImage(profile.profileImage!)
                             : null,
-                        child: (profile.profileImage == null || profile.profileImage == "string")
+                        child: (profile.profileImage == null || profile.profileImage!.isEmpty)
                             ? Icon(Icons.account_circle, size: 60, color: ICON_GREY_COLOR)
                             : null,
                       ),
