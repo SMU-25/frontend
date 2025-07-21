@@ -3,13 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:team_project_front/common/component/yes_or_no_dialog.dart';
 import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/common/const/colors.dart';
+import 'package:team_project_front/common/utils/secure_storage_service.dart';
 import 'package:team_project_front/main.dart';
 import 'package:team_project_front/settings/component/custom_appbar.dart';
 import 'package:team_project_front/settings/view/notification_settings_screen.dart';
 import 'package:team_project_front/settings/view/terms_screen.dart';
-
-// 추후에 accessToken FlutterSecureStorage에서 가져오도록 변경 예정
-final String accessToken = 'Bearer ACCESS_TOKEN';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -67,6 +65,14 @@ class SettingsScreen extends StatelessWidget {
 
   Future<void> logoutUser() async {
     final dio = Dio();
+    final token = await SecureStorageService.getAccessToken();
+
+    if (token == null) {
+      print('토큰이 없습니다. 로그아웃 불가');
+      return;
+    }
+
+    final accessToken = 'Bearer $token';
 
     try {
       final response = await dio.post(
@@ -77,8 +83,8 @@ class SettingsScreen extends StatelessWidget {
       );
 
       if (response.data['isSuccess'] == true) {
-        // 토큰 삭제
-        // await storage.deleteAll();
+        await SecureStorageService.deleteAccessToken();
+        // refreshToken 관련 로직 추가 예정
 
         navigatorKey.currentState?.pushNamedAndRemoveUntil(
           '/login',
@@ -114,6 +120,14 @@ class SettingsScreen extends StatelessWidget {
 
 Future<void> withdrawUser() async {
   final dio = Dio();
+  final token = await SecureStorageService.getAccessToken();
+
+  if (token == null) {
+    print('토큰이 없습니다. 탈퇴 불가');
+    return;
+  }
+
+  final accessToken = 'Bearer $token';
 
   try {
     final response = await dio.delete(
@@ -124,8 +138,8 @@ Future<void> withdrawUser() async {
     );
 
     if (response.data['isSuccess'] == true) {
-      // 토큰 삭제
-      // await storage.deleteAll();
+      await SecureStorageService.deleteAccessToken();
+      // refreshToken 관련 로직 추가 예정
 
       navigatorKey.currentState?.pushNamedAndRemoveUntil('/login', (route) => false);
     } else {

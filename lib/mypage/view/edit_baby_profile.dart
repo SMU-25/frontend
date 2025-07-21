@@ -1,10 +1,12 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
 import 'package:team_project_front/common/component/yes_or_no_dialog.dart';
 import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/common/const/colors.dart';
+import 'package:team_project_front/common/utils/secure_storage_service.dart';
 import 'package:team_project_front/common/view/root_tab.dart';
 import 'package:team_project_front/main.dart';
 import 'package:team_project_front/mypage/component/illness_selctor.dart';
@@ -75,7 +77,7 @@ String _mapSeizureToKor(String? code) {
   switch (code) {
     case 'YES':
       return '있음';
-    case 'NO':
+    case 'NONE':
       return '없음';
     default:
       return '모름';
@@ -107,6 +109,8 @@ class _EditBabyProfileState extends State<EditBabyProfile> {
   String? seizure;
   Set<String> selectedIllness = {};
 
+  String? accessToken;
+
   final List<String> illnesses = [
     '해당 없음', '아토피', '천식', '뇌전증',
     '고혈압', '심장 질환', '폐 질환',
@@ -117,9 +121,26 @@ class _EditBabyProfileState extends State<EditBabyProfile> {
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
+  bool isLoading = true;
+
   @override
   void initState() {
     super.initState();
+    initialize();
+  }
+
+  Future<void> initialize() async {
+    final token = await SecureStorageService.getAccessToken();
+
+    if (token == null) {
+      print('accessToken 없음! 로그인 필요');
+      return;
+    }
+
+    setState(() {
+      accessToken = 'Bearer $token';
+    });
+
     final p = widget.profileInfo;
 
     nameController = TextEditingController(text: p.name);
@@ -134,6 +155,10 @@ class _EditBabyProfileState extends State<EditBabyProfile> {
 
     seizure = p.seizureHistory;
     selectedIllness = {...?p.illnessList};
+
+    setState(() {
+      isLoading = false;
+    });
   }
 
   bool get isFormValid {
@@ -145,8 +170,41 @@ class _EditBabyProfileState extends State<EditBabyProfile> {
         seizure != null;
   }
 
-  void onNextPressed() {
+  void onNextPressed() async {
+    if(accessToken == null) {
+      print('accessToken 없음. 요청 중단.');
+      return;
+    }
+
+    Future<File?> compressImage(File file) async {
+      final filePath = file.absolute.path;
+      final lastIndex = filePath.lastIndexOf(RegExp(r'.jp'));
+      final splitted = filePath.substring(0, lastIndex);
+      final outPath = "${splitted}_out${filePath.substring(lastIndex)}";
+
+      final compressedXFile = await FlutterImageCompress.compressAndGetFile(
+        filePath,
+        outPath,
+        quality: 60,
+      );
+
+      if (compressedXFile == null) return null;
+
+      return File(compressedXFile.path);
+    }
+
+    if (image != null) {
+      final compressed = await compressImage(image!);
+      if (compressed != null) {
+        image = compressed;
+        print('압축 성공: ${image!.path}, 크기: ${await image!.length()} bytes');
+      } else {
+        print('압축 실패. 원본 이미지 사용');
+      }
+    }
+
     final updatedProfile = ProfileInfo(
+      childId: widget.profileInfo.childId,
       name: nameController.text,
       birthYear: yearText!,
       birthMonth: monthText!,
@@ -157,11 +215,100 @@ class _EditBabyProfileState extends State<EditBabyProfile> {
       seizureHistory: seizure,
       illnessList: selectedIllness.toList(),
       image: image,
+      profileImage: widget.profileInfo.profileImage,
     );
 
-    Navigator.of(context).pop();
+    final dio = Dio();
+    final String formattedDate =
+        '${updatedProfile.birthYear}-${updatedProfile.birthMonth.padLeft(2, '0')}-${updatedProfile.birthDay.padLeft(2, '0')}';
 
-    // API 호출, 상태 저장 등 원하는 로직 작성 예정
+    final Map<String, dynamic> jsonBody = {
+      "name": updatedProfile.name,
+      "birthdate": formattedDate,
+      "height": updatedProfile.height,
+      "weight": updatedProfile.weight,
+      "gender": updatedProfile.gender == '남자' ? 'MALE' : 'FEMALE',
+      "seizure": _mapKorToSeizureCode(updatedProfile.seizureHistory),
+      "illnessTypes": updatedProfile.illnessList?.map((e) => e.replaceAll(' ', '_')).toList(),
+    };
+
+    try {
+      final response = await dio.patch(
+        '$base_URL/children/${updatedProfile.childId}',
+        data: jsonBody,
+        options: Options(
+          headers: {
+            'Authorization': accessToken,
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+
+      if (response.data['isSuccess'] == true) {
+        print('아이 정보 수정 성공');
+        if (image != null) {
+          final formData = FormData.fromMap({
+            "profileImage": await MultipartFile.fromFile(
+              image!.path,
+              filename: image!.path.split('/').last,
+            ),
+          });
+
+          final imageResponse = await dio.patch(
+            '$base_URL/children/${updatedProfile.childId}/profile-image',
+            data: formData,
+            options: Options(
+              headers: {
+                'Authorization': accessToken,
+                'Content-Type': 'multipart/form-data',
+              },
+            ),
+          );
+
+          if (imageResponse.data['isSuccess'] == true) {
+            print('프로필 이미지 수정 성공');
+          } else {
+            print('프로필 이미지 수정 실패: ${imageResponse.data['message']}');
+          }
+        }
+
+        // 이동 및 알림
+        if (context.mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => RootTab(initialTabIndex: 4)),
+                (route) => false,
+          );
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('아이 정보가 수정되었습니다.')),
+          );
+        }
+      } else {
+        print('아이 정보 수정 실패: ${response.data['message']}');
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('수정 실패: ${response.data['message']}')),
+          );
+        }
+      }
+    } catch (e) {
+      print('예외 발생: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('수정 중 오류가 발생했습니다.')),
+        );
+      }
+    }
+  }
+
+  String _mapKorToSeizureCode(String? kor) {
+    switch (kor) {
+      case '있음':
+        return 'YES';
+      case '없음':
+        return 'NONE';
+      default:
+        return 'UNKNOWN';
+    }
   }
 
   void onPressedProfileDelete(BuildContext context) {
@@ -175,8 +322,12 @@ class _EditBabyProfileState extends State<EditBabyProfile> {
             '정말 삭제하시겠습니까?',
         onPressedYes: () async {
           final childId = widget.profileInfo.childId;
-          // 추후에 accessToken FlutterSecureStorage에서 가져오도록 변경 예정
-          final accessToken = 'Bearer ACCESS_TOKEN';
+
+          final token = accessToken;
+          if (token == null) {
+            print('accessToken 없음. 삭제 요청 중단.');
+            return;
+          }
 
           final dio = Dio();
 
@@ -185,7 +336,7 @@ class _EditBabyProfileState extends State<EditBabyProfile> {
               '$base_URL/children/$childId',
               options: Options(
                 headers: {
-                  'Authorization': accessToken,
+                  'Authorization': token,
                 },
               ),
             );
@@ -214,6 +365,12 @@ class _EditBabyProfileState extends State<EditBabyProfile> {
 
   @override
   Widget build(BuildContext context) {
+    if(isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(90),
@@ -251,6 +408,7 @@ class _EditBabyProfileState extends State<EditBabyProfile> {
               Center(
                 child: ProfileImageWithAddIcon(
                   image: image,
+                  networkImageUrl: widget.profileInfo.profileImage,
                   profileIconSize: 90,
                   addImageIconSize: 18,
                   bottom: 0,

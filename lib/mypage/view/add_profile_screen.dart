@@ -5,10 +5,8 @@ import 'package:team_project_front/common/component/navigation_button.dart';
 import 'package:team_project_front/mypage/component/profile_birth_input.dart';
 import 'package:team_project_front/mypage/component/profile_body_info_input.dart';
 import 'package:team_project_front/mypage/component/profile_gender_selector.dart';
-import 'package:team_project_front/mypage/component/profile_image_with_add_icon.dart';
 import 'package:team_project_front/mypage/component/profile_name_input.dart';
 import 'package:team_project_front/mypage/models/profile_info.dart';
-import 'package:team_project_front/mypage/utils/image_pick_handler.dart';
 import 'package:team_project_front/mypage/utils/validators.dart';
 import 'package:team_project_front/mypage/view/add_profile_symptoms_screen.dart';
 import 'package:team_project_front/settings/component/custom_appbar.dart';
@@ -80,26 +78,6 @@ class _AddProfileScreenState extends State<AddProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Center(
-                child: ProfileImageWithAddIcon(
-                  image: image,
-                  profileIconSize: 90,
-                  addImageIconSize: 18,
-                  bottom: 0,
-                  right: -5,
-                  radius: 50,
-                  onPressedChangePic:
-                      () => handleImagePick(
-                        context: context,
-                        onImageSelected: (selectedImage) {
-                          setState(() {
-                            image = selectedImage;
-                          });
-                        },
-                      ),
-                ),
-              ),
-              SizedBox(height: 15),
               Text(
                 '우리 아이 정보를 알려주세요',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),

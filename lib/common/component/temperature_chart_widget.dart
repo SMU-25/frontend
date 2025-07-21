@@ -147,7 +147,7 @@ class _TemperatureChartWidgetState extends State<TemperatureChartWidget> {
   Map<String, double> _getYRange() {
     switch (widget.chartType) {
       case ChartType.bodyTemp:
-        return {'min': 35, 'max': 42, 'interval': 1};
+        return {'min': 35, 'max': 39, 'interval': 1};
       case ChartType.roomTemp:
         return {'min': 3, 'max': 30, 'interval': 3};
       case ChartType.humidity:

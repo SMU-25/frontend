@@ -5,6 +5,7 @@ import 'package:team_project_front/common/component/navigation_button.dart';
 import 'package:team_project_front/common/component/temperature_chart_widget.dart';
 import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/common/const/colors.dart';
+import 'package:team_project_front/common/utils/secure_storage_service.dart';
 import 'package:team_project_front/report/model/report_info.dart';
 import 'package:team_project_front/report/view/report.dart';
 import 'package:team_project_front/settings/component/custom_appbar.dart';
@@ -30,16 +31,33 @@ class ResultReport extends StatefulWidget {
 class _ResultReportState extends State<ResultReport> {
   late Future<ReportInfo> reportFuture;
 
-  // 임시 Access Token (추후 FlutterSecureStorage 등으로 교체 예정)
-  final String accessToken = 'Bearer ACCESS_TOKEN';
+  String? accessToken;
 
   @override
   void initState() {
     super.initState();
-    reportFuture = fetchReport();
+    initialize();
+  }
+
+  void initialize() async {
+    final token = await SecureStorageService.getAccessToken();
+
+    if (token == null) {
+      print('accessToken 없음! 로그인 필요');
+      return;
+    }
+
+    setState(() {
+      accessToken = 'Bearer $token';
+      reportFuture = fetchReport();
+    });
   }
 
   Future<ReportInfo> fetchReport() async {
+    if (accessToken == null) {
+      throw Exception('accessToken 없음');
+    }
+
     try {
       final response = await Dio().get(
         '$base_URL/reports/${widget.reportId}',
@@ -64,6 +82,12 @@ class _ResultReportState extends State<ResultReport> {
 
   @override
   Widget build(BuildContext context) {
+    if (accessToken == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(90),
@@ -119,7 +143,7 @@ class _ResultReportState extends State<ResultReport> {
                   createdAt: report.createdAt,
                 ),
                 _ChartSectionWidget(
-                  title: '리포트 생성 시점 온도',
+                  title: '리포트 생성 시점 방 온도',
                   chartType: ChartType.roomTemp,
                   chartData: {
                     PeriodType.day1: report.day1?.toTemperatureSpots() ?? [],
@@ -129,7 +153,7 @@ class _ResultReportState extends State<ResultReport> {
                   createdAt: report.createdAt,
                 ),
                 _ChartSectionWidget(
-                  title: '리포트 생성 시점 습도',
+                  title: '리포트 생성 시점 방 습도',
                   chartType: ChartType.humidity,
                   chartData: {
                     PeriodType.day1: report.day1?.toHumiditySpots() ?? [],
