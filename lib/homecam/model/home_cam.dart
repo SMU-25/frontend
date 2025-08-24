@@ -4,8 +4,9 @@ class HomeCam {
   final int childId;
   final String childName;
   final String serialNum;
-  final String videoUrl;
+  final String? videoUrl;
   final DateTime createdAt;
+  final int homecamId;
 
   HomeCam({
     required this.name,
@@ -13,7 +14,8 @@ class HomeCam {
     required this.childId,
     required this.childName,
     required this.serialNum,
-    required this.videoUrl,
+    this.videoUrl,
     required this.createdAt,
+    required this.homecamId,
   });
 }
