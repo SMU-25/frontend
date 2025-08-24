@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/const/colors.dart';
-import 'package:team_project_front/homecam/view/home_cam.dart';
+import 'package:team_project_front/common/view/root_tab.dart';
 
 class CreateHomeCamCompleteScreen extends StatelessWidget {
   const CreateHomeCamCompleteScreen({super.key});
@@ -38,9 +38,12 @@ class CreateHomeCamCompleteScreen extends StatelessWidget {
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.of(
-                    context,
-                  ).push(MaterialPageRoute(builder: (_) => HomeCamScreen()));
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                      builder: (_) => const RootTab(initialTabIndex: 1),
+                    ),
+                    (route) => false,
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: MAIN_COLOR,
