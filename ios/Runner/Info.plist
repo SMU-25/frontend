@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -20,9 +22,43 @@
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>kakaob3565aae8a5f99df7052455a2917cec7</string>
+        <string>momTest</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>kakaoplus</string>
+		<string>kakaolink</string>
+		<string>kakaokompassauth</string>
+    <string>naversearchapp</string>
+    <string>naversearchthirdlogin</string>
+	</array>
+  <key>NidUrlScheme</key>
+  <string>momTest</string>
+  <key>NidClientID</key>
+  <string>KWi9VShsCyUlGL54hJyX</string>
+  <key>NidClientSecret</key>
+  <string>uzVmuAa2lG</string>
+  <key>NidAppName</key>
+  <string>맘편해</string>
 	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>프로필 사진을 찍거나 사진을 찍어서 앱에 업로드하려면 카메라 권한이 필요합니다.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>앱에서 프로필 사진을 설정하거나 갤러리에서 이미지를 선택하여 저장하기 위해 사진 라이브러리 접근이 필요합니다.</string>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
@@ -41,13 +77,27 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>앱에서 프로필 사진을 설정하거나 갤러리에서 이미지를 선택하여 저장하기 위해 사진 라이브러리 접근이 필요합니다.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>프로필 사진을 찍거나 사진을 찍어서 앱에 업로드하려면 카메라 권한이 필요합니다.</string>
+    <key>NSAppTransportSecurity</key>
+        <dict>
+          <key>NSAllowsArbitraryLoads</key>
+          <true/>
+          <key>NSExceptionDomains</key>
+          <dict>
+              <key>naver.com</key>
+              <dict>
+                <key>NSExceptionRequiresForwardSecrecy</key>
+                <false/>
+                <key>NSIncludesSubdomains</key>
+                <true/>
+              </dict>
+              <key>naver.net</key>
+              <dict>
+                <key>NSExceptionRequiresForwardSecrecy</key>
+                <false/>
+                <key>NSIncludesSubdomains</key>
+                <true/>
+              </dict>
+          </dict>
+        </dict>
 </dict>
 </plist>
