@@ -1,4 +1,8 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:team_project_front/common/const/base_url.dart';
+import 'package:team_project_front/common/utils/error_dialog.dart';
+import 'package:team_project_front/common/utils/secure_storage_service.dart';
 import 'package:team_project_front/common/view/root_tab.dart';
 import 'package:team_project_front/homecam/component/home_cam_form.dart';
 import 'package:team_project_front/homecam/view/create_home_cam_complete.dart';
@@ -19,7 +23,6 @@ class _CreateHomeCamScreenState extends State<CreateHomeCamScreen> {
   final TextEditingController homeCamSerialNumController =
       TextEditingController();
   String? selectedChild;
-  final List<String> children = ['준형', '지환', '강민'];
 
   @override
   void dispose() {
@@ -35,15 +38,41 @@ class _CreateHomeCamScreenState extends State<CreateHomeCamScreen> {
     });
   }
 
-  void onSubmit() {
-    if (formKey.currentState!.validate() && selectedChild != null) {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const CreateHomeCamCompleteScreen()),
+  Future<void> createHomeCam() async {
+    try {
+      final dio = Dio();
+      final token = await SecureStorageService.getAccessToken();
+
+      final res = await dio.post(
+        '$base_URL/homecams',
+        data: {
+          'childId': int.parse(selectedChild!),
+          'serial_num': homeCamSerialNumController.text.trim(),
+          'name': nameController.text.trim(),
+          'place': installationPlaceController.text.trim(),
+        },
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
-    } else if (selectedChild == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('아이를 선택해주세요')));
+
+      if (res.statusCode == 200) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('홈캠이 성공적으로 등록되었습니다!')));
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => const CreateHomeCamCompleteScreen(),
+          ),
+        );
+      } else {
+        if (!mounted) return;
+        showErrorDialog(context: context, message: '홈캠 등록에 실패했습니다.');
+      }
+    } on DioException catch (err) {
+      print(err);
+      final message = err.response?.data['message'] ?? '알 수 없는 오류가 발생했습니다.';
+      if (!mounted) return;
+      showErrorDialog(context: context, message: message);
     }
   }
 
@@ -63,7 +92,7 @@ class _CreateHomeCamScreenState extends State<CreateHomeCamScreen> {
         serialNumController: homeCamSerialNumController,
         selectedChild: selectedChild,
         onChildChanged: onChildChanged,
-        onSubmit: onSubmit,
+        onSubmit: createHomeCam,
         navigateText: '등록 완료',
       ),
       bottomNavigationBar: CustomNavigationBar(
