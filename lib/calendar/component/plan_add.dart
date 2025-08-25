@@ -46,41 +46,71 @@ class _PlanAddState extends State<PlanAdd> {
       return;
     }
 
-    final requestBody = {
-      "recordDate": DateTime.now().toIso8601String().substring(0, 10),
-      "scheduleDate": widget.selectedDay.toIso8601String().substring(0, 10),
-      "title": widget.titleController.text,
-      "content": widget.contentController.text,
-    };
-
     final dio = Dio();
     try {
-      final response = await dio.post(
-        '$base_URL/calendars',
-        data: requestBody,
-        options: Options(
-          headers: {'Authorization': 'Bearer $accessToken'},
-        ),
-      );
+      if (widget.existingId != null) {
+        final requestBody = {
+          "recordDate": DateTime.now().toIso8601String().substring(0, 10),
+          "scheduleDate": widget.selectedDay.toIso8601String().substring(0, 10),
+          "title": widget.titleController.text,
+          "content": widget.contentController.text,
+        };
 
-      if (response.statusCode == 200 && response.data['isSuccess'] == true) {
-        final result = response.data['result'];
+        final response = await dio.put(
+          '$base_URL/calendars/${widget.existingId}',
+          data: requestBody,
+          options: Options(
+            headers: {'Authorization': 'Bearer $accessToken'},
+          ),
+        );
 
-        final newPlan = Plan.fromMap({
-          'calendarId': result['calendarId'],
-          'recordDate': result['recordDate'],
-          'scheduleDate': result['scheduleDate'],
-          'title': result['title'],
-          'content': result['content'],
-        });
-
-        Navigator.of(context).pop(newPlan);
+        if (response.statusCode == 200 && response.data['isSuccess'] == true) {
+          final result = response.data['result'];
+          final updatedPlan = Plan.fromMap({
+            'calendarId': result['calendarId'],
+            'recordDate': result['recordDate'],
+            'scheduleDate': result['scheduleDate'],
+            'title': result['title'],
+            'content': result['content'],
+          });
+          Navigator.of(context).pop(updatedPlan);
+        } else {
+          print('일정 수정 실패: ${response.data['message']}');
+          Navigator.of(context).pop(null);
+        }
       } else {
-        print('일정 생성 실패: ${response.data['message']}');
-        Navigator.of(context).pop(null);
+        final requestBody = {
+          "recordDate": DateTime.now().toIso8601String().substring(0, 10),
+          "scheduleDate": widget.selectedDay.toIso8601String().substring(0, 10),
+          "title": widget.titleController.text,
+          "content": widget.contentController.text,
+        };
+
+        final response = await dio.post(
+          '$base_URL/calendars',
+          data: requestBody,
+          options: Options(
+            headers: {'Authorization': 'Bearer $accessToken'},
+          ),
+        );
+
+        if (response.statusCode == 200 && response.data['isSuccess'] == true) {
+          final result = response.data['result'];
+          final newPlan = Plan.fromMap({
+            'calendarId': result['calendarId'],
+            'recordDate': result['recordDate'],
+            'scheduleDate': result['scheduleDate'],
+            'title': result['title'],
+            'content': result['content'],
+          });
+          Navigator.of(context).pop(newPlan);
+        } else {
+          print('일정 생성 실패: ${response.data['message']}');
+          Navigator.of(context).pop(null);
+        }
       }
     } catch (e) {
-      print('일정 생성 중 오류 발생: $e');
+      print('API 호출 중 오류 발생: $e');
       Navigator.of(context).pop(null);
     }
   }
