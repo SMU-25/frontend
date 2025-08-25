@@ -35,17 +35,17 @@ class _PlanAddState extends State<PlanAdd> {
   }
 
   void onPressed () {
-    final plan = Plan(
-      id: widget.existingId ?? DateTime.now().millisecondsSinceEpoch,
-      title: widget.titleController.text,
-      content: widget.contentController.text,
-      date: widget.selectedDay,
-      createdAt: DateTime.now().toUtc(),
-    );
+    // final plan = Plan(
+    //   calendarId: widget.existingId ?? DateTime.now().millisecondsSinceEpoch,
+    //   title: widget.titleController.text,
+    //   content: widget.contentController.text,
+    //   date: widget.selectedDay,
+    //   recordDate: DateTime.now().toUtc(),
+    // );
 
-    Navigator.of(context).pop(
-      plan,
-    );
+    // Navigator.of(context).pop(
+    //   plan,
+    // );
   }
 
   @override
