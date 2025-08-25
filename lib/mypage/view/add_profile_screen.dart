@@ -35,12 +35,28 @@ class _AddProfileScreenState extends State<AddProfileScreen> {
 
   final List<String> genders = ['여자', '남자'];
 
-  bool get isFormValid =>
-      _formKey.currentState?.validate() == true &&
-      yearText != null &&
-      monthText != null &&
-      dayText != null &&
-      gender != null;
+  bool get isFormValid {
+    final bool isFieldsValid = _formKey.currentState?.validate() == true &&
+        yearText != null &&
+        monthText != null &&
+        dayText != null &&
+        gender != null;
+
+    if (!isFieldsValid) {
+      return false;
+    }
+
+    final int selectedYear = int.parse(yearText!);
+    final int selectedMonth = int.parse(monthText!);
+    final int selectedDay = int.parse(dayText!);
+
+    final DateTime today = DateTime.now();
+    final DateTime selectedBirthday = DateTime(selectedYear, selectedMonth, selectedDay);
+
+    final bool isFutureDate = selectedBirthday.isAfter(today);
+
+    return !isFutureDate;
+  }
 
   void onNextPressed() {
     if (!isFormValid) return;
