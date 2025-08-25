@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:team_project_front/calendar/component/calendar.dart';
 import 'package:team_project_front/calendar/component/plan_add.dart';
@@ -5,6 +6,7 @@ import 'package:team_project_front/calendar/component/plan_banner.dart';
 import 'package:team_project_front/calendar/component/plan_card.dart';
 import 'package:team_project_front/calendar/model/plan.dart';
 import 'package:team_project_front/common/const/colors.dart';
+import 'package:team_project_front/common/utils/secure_storage_service.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -25,24 +27,72 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   DateTime focusedDay = DateTime.now();
 
-  Map<DateTime, List<Plan>> plans = {
-    DateTime.utc(2025, 6, 30) : [
-      Plan(
-        id: 1,
-        title: 'Voghair 응암역 2호점',
-        content: '10시 ~ 10:30, 서울특별시 은평구 은평로 41...',
-        date: DateTime.utc(2025, 6, 30),
-        createdAt: DateTime.now().toUtc(),
-      ),
-      Plan(
-        id: 2,
-        title: '상명대학교',
-        content: '졸프 회의 및 교수님 면담',
-        date: DateTime.utc(2025, 6, 30),
-        createdAt: DateTime.now().toUtc(),
-      )
-    ]
-  };
+  Map<DateTime, List<Plan>> plans = {};
+
+  bool isLoading = true;
+  String? accessToken;
+
+  @override
+  void initState() {
+    super.initState();
+    initialize();
+  }
+
+  Future<void> initialize() async {
+    final token = await SecureStorageService.getAccessToken();
+
+    if (token == null) {
+      print('AccessToken 없음. 로그인 필요');
+      setState(() {
+        isLoading = false;
+      });
+      return;
+    }
+
+    setState(() {
+      accessToken = 'Bearer $token';
+    });
+
+    await loadPlans();
+  }
+
+  Future<void> loadPlans() async {
+    if (accessToken == null) return;
+
+    final dio = Dio();
+    try {
+      final response = await dio.get(
+        'https://momfy.kr/api/calendars/my',
+        options: Options(headers: {'Authorization': accessToken}),
+      );
+
+      if (response.statusCode == 200 && response.data['isSuccess']) {
+        final List<dynamic> jsonList = response.data['result'];
+
+        final Map<DateTime, List<Plan>> tempPlans = {};
+
+        for (var json in jsonList) {
+          final plan = Plan.fromMap(json);
+          final scheduleDate = DateTime.utc(plan.date.year, plan.date.month, plan.date.day);
+
+          if (!tempPlans.containsKey(scheduleDate)) {
+            tempPlans[scheduleDate] = [];
+          }
+          tempPlans[scheduleDate]!.add(plan);
+        }
+
+        setState(() {
+          plans = tempPlans;
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('일정 조회 실패: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +158,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 final planModel = selectedPlans[index];
 
                 return Dismissible(
-                  key: ValueKey(planModel.id),
+                  key: ValueKey(planModel.calendarId),
                   direction: DismissDirection.endToStart,
                   background: Container(
                     alignment: Alignment.centerRight,
@@ -141,7 +191,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             titleController: titleController..text = planModel.title,
                             contentController: contentController..text = planModel.content,
                             selectedDay: selectedDay!,
-                            existingId: planModel.id,
+                            existingId: planModel.calendarId,
                           );
                         },
                       );
