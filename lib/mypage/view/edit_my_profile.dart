@@ -81,10 +81,12 @@ class _EditMyProfileState extends State<EditMyProfile> {
 
       final profileImageRaw = data['profileImage'];
 
-      if (profileImageRaw.startsWith('http')) {
+      if (profileImageRaw != null && profileImageRaw.startsWith('http')) {
         networkImageUrl = profileImageRaw;
-      } else {
+      } else if (profileImageRaw != null) {
         networkImageUrl = '$base_URL/$profileImageRaw';
+      } else {
+        networkImageUrl = null;
       }
 
       myProfile = GuardianProfile(
