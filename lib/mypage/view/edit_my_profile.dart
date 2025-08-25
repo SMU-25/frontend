@@ -148,6 +148,22 @@ class _EditMyProfileState extends State<EditMyProfile> {
       isPasswordMatch
     );
 
+    if (isBirthdaySelected) {
+      try {
+        final DateTime selectedBirthday = DateTime(
+          int.parse(yearText!),
+          int.parse(monthText!),
+          int.parse(dayText!),
+        );
+        final DateTime today = DateTime.now();
+        if (selectedBirthday.isAfter(today)) {
+          return false;
+        }
+      } catch (e) {
+        return false;
+      }
+    }
+
     return _formKey.currentState?.validate() == true &&
       nameController.text.isNotEmpty &&
       gender != null &&

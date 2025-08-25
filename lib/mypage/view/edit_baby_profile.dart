@@ -162,12 +162,27 @@ class _EditBabyProfileState extends State<EditBabyProfile> {
   }
 
   bool get isFormValid {
-    return _formKey.currentState?.validate() == true &&
+    final bool isFieldsValid = _formKey.currentState?.validate() == true &&
         yearText != null &&
         monthText != null &&
         dayText != null &&
         gender != null &&
         seizure != null;
+
+    if (!isFieldsValid) {
+      return false;
+    }
+
+    final int selectedYear = int.parse(yearText!);
+    final int selectedMonth = int.parse(monthText!);
+    final int selectedDay = int.parse(dayText!);
+
+    final DateTime today = DateTime.now();
+    final DateTime selectedBirthday = DateTime(selectedYear, selectedMonth, selectedDay);
+
+    final bool isFutureDate = selectedBirthday.isAfter(today);
+
+    return !isFutureDate;
   }
 
   void onNextPressed() async {
