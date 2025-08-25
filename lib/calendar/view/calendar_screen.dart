@@ -184,8 +184,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         isScrollControlled: true,
                         builder: (_) {
                           return PlanAdd(
-                            titleController: titleController..text = planModel.title,
-                            contentController: contentController..text = planModel.content,
+                            titleController: titleController,
+                            contentController: contentController,
                             selectedDay: selectedDay!,
                             existingId: planModel.calendarId,
                           );
