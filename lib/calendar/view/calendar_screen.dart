@@ -107,27 +107,23 @@ class _CalendarScreenState extends State<CalendarScreen> {
             isScrollControlled: true,
             builder: (_) {
               return PlanAdd(
-                titleController: titleController..clear(),
-                contentController: contentController..clear(),
+                titleController: titleController,
+                contentController: contentController,
                 selectedDay: selectedDay!,
               );
             },
           );
 
           if(resp == null) {
+            titleController.clear();
+            contentController.clear();
             return;
           }
 
-          setState(() {
-            plans = {
-              ...plans,
-              resp.date: [
-                if(plans.containsKey(resp.date))
-                  ...plans[resp.date]!,
-                resp,
-              ]
-            };
-          });
+          titleController.clear();
+          contentController.clear();
+
+          await loadPlans();
         },
         child: Icon(
           size: 40,
