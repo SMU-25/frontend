@@ -162,15 +162,51 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     color: HIGH_FEVER_COLOR,
                     child: Icon(Icons.delete, color: Colors.white),
                   ),
-                  onDismissed: (_) => {
-                    setState(() {
-                      plans[selectedDay]!.removeAt(index);
-                    }),
+                  onDismissed: (_) async {
+                    final removedPlan = plans[selectedDay]!.removeAt(index);
 
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("삭제되었습니다.")),
-                    )
-                    // db에서 삭제하는 로직 구현 예정
+                      SnackBar(content: Text("삭제 중...")),
+                    );
+
+                    final accessToken = await SecureStorageService.getAccessToken();
+
+                    if (accessToken == null) {
+                      print('AccessToken 없음!');
+                      return;
+                    }
+
+                    final dio = Dio();
+                    try {
+                      final response = await dio.delete(
+                        'https://momfy.kr/api/calendars/${removedPlan.calendarId}',
+                        options: Options(
+                          headers: {'Authorization': 'Bearer $accessToken'},
+                        ),
+                      );
+
+                      if (response.statusCode == 200 && response.data['isSuccess']) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("일정이 삭제되었습니다.")),
+                        );
+                      } else {
+                        print('일정 삭제 실패: ${response.data['message']}');
+                        setState(() {
+                          plans[selectedDay]!.insert(index, removedPlan);
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("삭제 실패: ${response.data['message']}")),
+                        );
+                      }
+                    } catch (e) {
+                      print('일정 삭제 중 오류 발생: $e');
+                      setState(() {
+                        plans[selectedDay]!.insert(index, removedPlan);
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("삭제 중 알 수 없는 오류가 발생했습니다.")),
+                      );
+                    }
                   },
                   child: PlanCard(
                     title: planModel.title,
