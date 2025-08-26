@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:team_project_front/common/component/custom_navigation_bar.dart';
@@ -15,20 +16,6 @@ class RoomTemperatureHumidityGraphScreen extends StatefulWidget {
 class _RoomTemperatureHumidityGraphScreenState
     extends State<RoomTemperatureHumidityGraphScreen> {
   DateTime selectedDate = DateTime.now();
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: selectedDate,
-      firstDate: DateTime(2006),
-      lastDate: DateTime.now(),
-    );
-    if (picked != null && picked != selectedDate) {
-      setState(() {
-        selectedDate = picked;
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,24 +35,18 @@ class _RoomTemperatureHumidityGraphScreenState
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextButton(
-              onPressed: () => _selectDate(context),
+              onPressed: () => () {},
               style: TextButton.styleFrom(
                 foregroundColor: Colors.black,
                 textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(selectedDateText),
-                  SizedBox(width: 4),
-                  Icon(Icons.arrow_drop_down),
-                ],
+                children: [Text(selectedDateText)],
               ),
             ),
-
-            _ChartSectionWidget(chartType: ChartType.roomTemp),
-            _ChartSectionWidget(chartType: ChartType.humidity),
+            Image.asset('asset/img/graph/graph1.png'),
+            // _ChartSectionWidget(chartType: ChartType.humidity, chartData:),
           ],
         ),
       ),
@@ -82,15 +63,22 @@ class _RoomTemperatureHumidityGraphScreenState
 }
 
 class _ChartSectionWidget extends StatelessWidget {
-  const _ChartSectionWidget({required this.chartType});
+  const _ChartSectionWidget({required this.chartType, required this.chartData});
 
   final ChartType chartType;
+  final Map<PeriodType, List<FlSpot>> chartData;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: TemperatureChartWidget(chartType: chartType),
+    return Column(
+      children: [
+        TemperatureChartWidget(
+          chartType: chartType,
+          chartData: chartData,
+          createdAt: DateTime.now(),
+        ),
+        SizedBox(height: 40),
+      ],
     );
   }
 }
