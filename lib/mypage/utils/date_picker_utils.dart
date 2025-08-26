@@ -9,6 +9,9 @@ Future<void> showYearPicker({
   final currentYear = DateTime.now().year;
   final years = List.generate(100, (index) => (currentYear - index).toString());
 
+  final int initialIndex = initialYear != null ? years.indexOf(initialYear) : 0;
+  onSelected(years[initialIndex]);
+
   await showCupertinoModalPopup(
     context: context,
     builder: (_) => Container(
@@ -47,6 +50,9 @@ Future<void> showMonthPicker({
 }) async {
   final months = List.generate(12, (i) => (i + 1).toString().padLeft(2, '0'));
 
+  final int initialIndex = initialMonth != null ? months.indexOf(initialMonth) : 0;
+  onSelected(months[initialIndex]);
+
   await showCupertinoModalPopup(
     context: context,
     builder: (_) => Container(
@@ -84,6 +90,9 @@ Future<void> showDayPicker({
   String? initialDay,
 }) async {
   final days = List.generate(31, (i) => (i + 1).toString().padLeft(2, '0'));
+
+  final int initialIndex = initialDay != null ? days.indexOf(initialDay) : 0;
+  onSelected(days[initialIndex]);
 
   await showCupertinoModalPopup(
     context: context,

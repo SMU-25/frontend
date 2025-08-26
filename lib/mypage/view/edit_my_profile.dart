@@ -80,16 +80,13 @@ class _EditMyProfileState extends State<EditMyProfile> {
       final emailDomain = email.split('@')[1];
 
       final profileImageRaw = data['profileImage'];
-      // 소셜 로그인 시에 이 부분에서 에러가 납니다.
-      /*
-      flutter: 본인 정보 조회 실패: NoSuchMethodError: The method 'startsWith' was called on null.
-      Receiver: null
-      Tried calling: startsWith("http")
-      */
-      if (profileImageRaw.startsWith('http')) {
+
+      if (profileImageRaw != null && profileImageRaw.startsWith('http')) {
         networkImageUrl = profileImageRaw;
-      } else {
+      } else if (profileImageRaw != null) {
         networkImageUrl = '$base_URL/$profileImageRaw';
+      } else {
+        networkImageUrl = null;
       }
 
       myProfile = GuardianProfile(
@@ -152,6 +149,22 @@ class _EditMyProfileState extends State<EditMyProfile> {
             hasSpecial &&
             isLengthValid &&
             isPasswordMatch);
+
+    if (isBirthdaySelected) {
+      try {
+        final DateTime selectedBirthday = DateTime(
+          int.parse(yearText!),
+          int.parse(monthText!),
+          int.parse(dayText!),
+        );
+        final DateTime today = DateTime.now();
+        if (selectedBirthday.isAfter(today)) {
+          return false;
+        }
+      } catch (e) {
+        return false;
+      }
+    }
 
     return _formKey.currentState?.validate() == true &&
         nameController.text.isNotEmpty &&
