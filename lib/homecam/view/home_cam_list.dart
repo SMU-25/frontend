@@ -1,53 +1,104 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/common/const/colors.dart';
+import 'package:team_project_front/common/utils/error_dialog.dart';
+import 'package:team_project_front/common/utils/secure_storage_service.dart';
 import 'package:team_project_front/homecam/component/no_home_cam_view.dart';
 import 'package:team_project_front/homecam/model/home_cam.dart';
 import 'package:team_project_front/homecam/view/create_home_cam.dart';
 import 'package:team_project_front/homecam/view/delete_home_cam.dart';
 import 'package:team_project_front/homecam/view/home_cam.dart';
 
-class HomeCamListScreen extends StatelessWidget {
+class HomeCamListScreen extends StatefulWidget {
   const HomeCamListScreen({super.key});
 
   @override
+  State<HomeCamListScreen> createState() => _HomeCamListScreenState();
+}
+
+class _HomeCamListScreenState extends State<HomeCamListScreen> {
+  bool _isLoading = true;
+  List<HomeCam> _homeCams = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchHomeCams();
+  }
+
+  Future<void> _fetchHomeCams() async {
+    try {
+      final Dio dio = Dio();
+      final token = await SecureStorageService.getAccessToken();
+      final res = await dio.get(
+        '$base_URL/homecams/list',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (!mounted) return;
+
+      if (res.statusCode == 200) {
+        final List data = (res.data['result'] ?? []) as List;
+
+        final cams =
+            data.map((e) {
+              final m = e as Map<String, dynamic>;
+              return HomeCam(
+                name: m['name'] ?? '',
+                place: m['place'] ?? '',
+                childId: m['childId'] as int? ?? 0,
+                childName: m['childName'] ?? '',
+                serialNum: m['serialNum'] ?? '',
+                createdAt:
+                    DateTime.tryParse(m['createdAt'] ?? '') ?? DateTime.now(),
+                homecamId: m['homecamId'] as int? ?? 0,
+              );
+            }).toList();
+        setState(() {
+          _homeCams = List<HomeCam>.from(cams);
+          _isLoading = false;
+        });
+      } else {
+        setState(() => _isLoading = false);
+        showErrorDialog(context: context, message: '홈캠 목록 불러오기에 실패했습니다.');
+      }
+    } on DioException catch (err) {
+      if (!mounted) return;
+      final message = err.response?.data['message'] ?? '알 수 없는 오류가 발생했습니다.';
+      setState(() => _isLoading = false);
+      debugPrint(message);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final List<HomeCam> homeCams = [
-      HomeCam(
-        name: '준형의 홈캠',
-        place: '안방',
-        childId: 1,
-        childName: '준형',
-        serialNum: 'ABC1234',
-        videoUrl: 'test',
-        createdAt: DateTime(2025, 4, 8),
-      ),
-      HomeCam(
-        name: '강민의 홈캠',
-        place: '거실',
-        childId: 2,
-        childName: '강민',
-        serialNum: 'ABC1234',
-        videoUrl: 'test',
-        createdAt: DateTime(2025, 4, 9),
-      ),
-    ];
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
     return Scaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-        child: Column(
-          children:
-              homeCams.isEmpty
-                  ? [
-                    NoHomeCamView(),
-                    const SizedBox(height: 16),
-                    _buildAddButton(context),
-                  ]
-                  : [
-                    ...homeCams.map((cam) => _buildHomeCamCard(context, cam)),
-                    const SizedBox(height: 16),
-                    _buildAddButton(context),
-                  ],
+      body: RefreshIndicator(
+        onRefresh: _fetchHomeCams,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+          child: Column(
+            children:
+                _homeCams.isEmpty
+                    ? [
+                      const NoHomeCamView(),
+                      const SizedBox(height: 16),
+                      _buildAddButton(context),
+                    ]
+                    : [
+                      ..._homeCams.map(
+                        (cam) => _buildHomeCamCard(context, cam),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildAddButton(context),
+                    ],
+          ),
         ),
       ),
     );
@@ -99,22 +150,35 @@ class HomeCamListScreen extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.chevron_right, size: 30),
                 onPressed: () {
-                  Navigator.of(
-                    context,
-                  ).push(MaterialPageRoute(builder: (_) => HomeCamScreen()));
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => HomeCamScreen(homeCamId: cam.homecamId),
+                    ),
+                  );
                 },
               ),
               const SizedBox(height: 45),
               IconButton(
                 icon: const Icon(Icons.delete_outline, size: 30),
-                onPressed: () {
-                  Navigator.of(context).push(
+                onPressed: () async {
+                  final deleted = await Navigator.of(context).push<bool>(
                     MaterialPageRoute(
                       builder:
-                          (_) =>
-                              DeleteHomeCamScreen(homeCamName: cam.childName),
+                          (_) => DeleteHomeCamScreen(
+                            homeCamName: cam.childName,
+                            homeCamId: cam.homecamId,
+                          ),
                     ),
                   );
+                  if (deleted == true && mounted) {
+                    setState(() {
+                      // 낙관적 업데이트 적용
+                      _homeCams.removeWhere(
+                        (c) => c.homecamId == cam.homecamId,
+                      );
+                    });
+                    await _fetchHomeCams();
+                  }
                 },
               ),
             ],
@@ -126,10 +190,12 @@ class HomeCamListScreen extends StatelessWidget {
 
   Widget _buildAddButton(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.of(
+      onTap: () async {
+        await Navigator.of(
           context,
-        ).push(MaterialPageRoute(builder: (_) => CreateHomeCamScreen()));
+        ).push(MaterialPageRoute(builder: (_) => const CreateHomeCamScreen()));
+        // 등록 후 돌아오면 목록 갱신
+        if (mounted) _fetchHomeCams();
       },
       child: Container(
         width: double.infinity,

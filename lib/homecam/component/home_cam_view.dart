@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:team_project_front/common/component/temperature_chart_widget.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_mjpeg/flutter_mjpeg.dart';
+import 'package:team_project_front/common/component/temperature_chart_widget.dart';
+import 'package:team_project_front/homecam/model/home_cam.dart';
 
 class HomeCamView extends StatefulWidget {
-  const HomeCamView({super.key});
+  const HomeCamView({super.key, required this.homeCamData});
+
+  final HomeCam homeCamData;
 
   @override
-  State<HomeCamView> createState() {
-    return _HomeCamViewState();
-  }
+  State<HomeCamView> createState() => _HomeCamViewState();
 }
 
 class _HomeCamViewState extends State<HomeCamView> {
@@ -37,9 +39,20 @@ class _HomeCamViewState extends State<HomeCamView> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          Image.asset('asset/img/homecam_mock_data/mock.png'),
-          SizedBox(height: 12),
-          Text(
+          AspectRatio(
+            aspectRatio: 16 / 9,
+            child:
+                widget.homeCamData.videoUrl != null &&
+                        widget.homeCamData.videoUrl!.isNotEmpty
+                    ? Mjpeg(
+                      stream: widget.homeCamData.videoUrl!,
+                      isLive: true,
+                      timeout: const Duration(seconds: 5),
+                    )
+                    : const Center(child: Text("스트리밍 URL 없음")),
+          ),
+          const SizedBox(height: 12),
+          const Text(
             '방 온도/습도 그래프',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
           ),
@@ -47,20 +60,23 @@ class _HomeCamViewState extends State<HomeCamView> {
             onPressed: () => _selectDate(context),
             style: TextButton.styleFrom(
               foregroundColor: Colors.black,
-              textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              textStyle: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(selectedDateText),
-                SizedBox(width: 4),
-                Icon(Icons.arrow_drop_down),
+                const SizedBox(width: 4),
+                const Icon(Icons.arrow_drop_down),
               ],
             ),
           ),
-          _ChartSectionWidget(chartType: ChartType.roomTemp),
-          _ChartSectionWidget(chartType: ChartType.humidity),
+          const _ChartSectionWidget(chartType: ChartType.roomTemp),
+          const _ChartSectionWidget(chartType: ChartType.humidity),
         ],
       ),
     );
@@ -76,7 +92,7 @@ class _ChartSectionWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
-      child: TemperatureChartWidget(chartType: chartType),
+      // TemperatureChartWidget(chartType: chartType),
     );
   }
 }
