@@ -3,15 +3,18 @@ import 'package:team_project_front/common/const/colors.dart';
 import 'package:team_project_front/home/view/body_temperature_graph.dart';
 
 class BodyTemperatureCard extends StatelessWidget {
+  // 최근 시간
   const BodyTemperatureCard({
     super.key,
     required this.bodyTemperature,
     required this.feverThreshold,
     required this.getStatusColor,
     required this.isFever,
+    this.elapsedFeverRecordSec,
   });
-  final double bodyTemperature;
+  final double? bodyTemperature;
   final double feverThreshold;
+  final int? elapsedFeverRecordSec;
 
   final bool isFever;
 
@@ -25,7 +28,7 @@ class BodyTemperatureCard extends StatelessWidget {
         border: Border.all(color: INPUT_BORDER_COLOR),
         borderRadius: BorderRadius.circular(15),
         color:
-            bodyTemperature >= feverThreshold
+            bodyTemperature != null && bodyTemperature! >= feverThreshold
                 ? Color.fromARGB(255, 255, 222, 220)
                 : null,
       ),
@@ -40,19 +43,34 @@ class BodyTemperatureCard extends StatelessWidget {
           Row(
             children: [
               Text('최근 측정 :', style: TextStyle(color: Colors.grey)),
-              Text('1분 전', style: TextStyle(color: Colors.grey)),
+              Text(
+                // '$elapsedFeverRecordSec 초전',
+                '1분전',
+                style: TextStyle(color: Colors.grey),
+              ),
             ],
           ),
+          bodyTemperature != null
+              ? Text(
+                '${bodyTemperature!.toStringAsFixed(1)}℃',
+                style: TextStyle(
+                  color: getStatusColor(isFever),
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                ),
+              )
+              : const Text(
+                '데이터 없음',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
           Text(
-            '$bodyTemperature℃',
-            style: TextStyle(
-              color: getStatusColor(isFever),
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          Text(
-            bodyTemperature >= feverThreshold ? '열나요' : '정상이에요',
+            bodyTemperature != null && bodyTemperature! >= feverThreshold
+                ? '열나요'
+                : '정상이에요',
             style: TextStyle(
               color: getStatusColor(isFever),
 
@@ -72,7 +90,7 @@ class BodyTemperatureCard extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               minimumSize: Size(double.infinity, 26),
               backgroundColor: getStatusColor(
-                bodyTemperature >= feverThreshold,
+                bodyTemperature != null && bodyTemperature! >= feverThreshold,
               ),
             ),
             child: Text(
