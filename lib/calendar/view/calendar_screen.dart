@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:team_project_front/calendar/component/calendar.dart';
 import 'package:team_project_front/calendar/component/plan_add.dart';
@@ -5,6 +6,7 @@ import 'package:team_project_front/calendar/component/plan_banner.dart';
 import 'package:team_project_front/calendar/component/plan_card.dart';
 import 'package:team_project_front/calendar/model/plan.dart';
 import 'package:team_project_front/common/const/colors.dart';
+import 'package:team_project_front/common/utils/secure_storage_service.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -25,24 +27,72 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   DateTime focusedDay = DateTime.now();
 
-  Map<DateTime, List<Plan>> plans = {
-    DateTime.utc(2025, 6, 30) : [
-      Plan(
-        id: 1,
-        title: 'Voghair 응암역 2호점',
-        content: '10시 ~ 10:30, 서울특별시 은평구 은평로 41...',
-        date: DateTime.utc(2025, 6, 30),
-        createdAt: DateTime.now().toUtc(),
-      ),
-      Plan(
-        id: 2,
-        title: '상명대학교',
-        content: '졸프 회의 및 교수님 면담',
-        date: DateTime.utc(2025, 6, 30),
-        createdAt: DateTime.now().toUtc(),
-      )
-    ]
-  };
+  Map<DateTime, List<Plan>> plans = {};
+
+  bool isLoading = true;
+  String? accessToken;
+
+  @override
+  void initState() {
+    super.initState();
+    initialize();
+  }
+
+  Future<void> initialize() async {
+    final token = await SecureStorageService.getAccessToken();
+
+    if (token == null) {
+      print('AccessToken 없음. 로그인 필요');
+      setState(() {
+        isLoading = false;
+      });
+      return;
+    }
+
+    setState(() {
+      accessToken = 'Bearer $token';
+    });
+
+    await loadPlans();
+  }
+
+  Future<void> loadPlans() async {
+    if (accessToken == null) return;
+
+    final dio = Dio();
+    try {
+      final response = await dio.get(
+        'https://momfy.kr/api/calendars/my',
+        options: Options(headers: {'Authorization': accessToken}),
+      );
+
+      if (response.statusCode == 200 && response.data['isSuccess']) {
+        final List<dynamic> jsonList = response.data['result'];
+
+        final Map<DateTime, List<Plan>> tempPlans = {};
+
+        for (var json in jsonList) {
+          final plan = Plan.fromMap(json);
+          final scheduleDate = DateTime.utc(plan.date.year, plan.date.month, plan.date.day);
+
+          if (!tempPlans.containsKey(scheduleDate)) {
+            tempPlans[scheduleDate] = [];
+          }
+          tempPlans[scheduleDate]!.add(plan);
+        }
+
+        setState(() {
+          plans = tempPlans;
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('일정 조회 실패: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,27 +107,23 @@ class _CalendarScreenState extends State<CalendarScreen> {
             isScrollControlled: true,
             builder: (_) {
               return PlanAdd(
-                titleController: titleController..clear(),
-                contentController: contentController..clear(),
+                titleController: titleController,
+                contentController: contentController,
                 selectedDay: selectedDay!,
               );
             },
           );
 
           if(resp == null) {
+            titleController.clear();
+            contentController.clear();
             return;
           }
 
-          setState(() {
-            plans = {
-              ...plans,
-              resp.date: [
-                if(plans.containsKey(resp.date))
-                  ...plans[resp.date]!,
-                resp,
-              ]
-            };
-          });
+          titleController.clear();
+          contentController.clear();
+
+          await loadPlans();
         },
         child: Icon(
           size: 40,
@@ -108,7 +154,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 final planModel = selectedPlans[index];
 
                 return Dismissible(
-                  key: ValueKey(planModel.id),
+                  key: ValueKey(planModel.calendarId),
                   direction: DismissDirection.endToStart,
                   background: Container(
                     alignment: Alignment.centerRight,
@@ -116,15 +162,51 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     color: HIGH_FEVER_COLOR,
                     child: Icon(Icons.delete, color: Colors.white),
                   ),
-                  onDismissed: (_) => {
-                    setState(() {
-                      plans[selectedDay]!.removeAt(index);
-                    }),
+                  onDismissed: (_) async {
+                    final removedPlan = plans[selectedDay]!.removeAt(index);
 
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("삭제되었습니다.")),
-                    )
-                    // db에서 삭제하는 로직 구현 예정
+                      SnackBar(content: Text("삭제 중...")),
+                    );
+
+                    final accessToken = await SecureStorageService.getAccessToken();
+
+                    if (accessToken == null) {
+                      print('AccessToken 없음!');
+                      return;
+                    }
+
+                    final dio = Dio();
+                    try {
+                      final response = await dio.delete(
+                        'https://momfy.kr/api/calendars/${removedPlan.calendarId}',
+                        options: Options(
+                          headers: {'Authorization': 'Bearer $accessToken'},
+                        ),
+                      );
+
+                      if (response.statusCode == 200 && response.data['isSuccess']) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("일정이 삭제되었습니다.")),
+                        );
+                      } else {
+                        print('일정 삭제 실패: ${response.data['message']}');
+                        setState(() {
+                          plans[selectedDay]!.insert(index, removedPlan);
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("삭제 실패: ${response.data['message']}")),
+                        );
+                      }
+                    } catch (e) {
+                      print('일정 삭제 중 오류 발생: $e');
+                      setState(() {
+                        plans[selectedDay]!.insert(index, removedPlan);
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("삭제 중 알 수 없는 오류가 발생했습니다.")),
+                      );
+                    }
                   },
                   child: PlanCard(
                     title: planModel.title,
@@ -138,10 +220,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         isScrollControlled: true,
                         builder: (_) {
                           return PlanAdd(
-                            titleController: titleController..text = planModel.title,
-                            contentController: contentController..text = planModel.content,
+                            titleController: titleController,
+                            contentController: contentController,
                             selectedDay: selectedDay!,
-                            existingId: planModel.id,
+                            existingId: planModel.calendarId,
                           );
                         },
                       );

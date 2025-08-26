@@ -267,45 +267,48 @@ class FamilyProfile extends StatelessWidget {
         SizedBox(height: 28),
         Padding(
           padding: EdgeInsets.only(left: 48),
-          child: Row(
-            children: [
-              ...members.map((profile) => Padding(
-                padding: EdgeInsets.only(right: 24),
-                child: GestureDetector(
-                  onTap: () => onPressedEditBabyProfile?.call(profile),
-                  child: Column(
-                    children: [
-                      CircleAvatar(
-                        radius: 30,
-                        backgroundColor: Colors.transparent,
-                        backgroundImage: profile.profileImage != null
-                            ? NetworkImage(profile.profileImage!)
-                            : null,
-                        child: (profile.profileImage == null || profile.profileImage!.isEmpty)
-                            ? Icon(Icons.account_circle, size: 60, color: ICON_GREY_COLOR)
-                            : null,
-                      ),
-                      SizedBox(height: 8),
-                      Text(profile.name),
-                    ],
-                  ),
-                ),
-              )),
-              Column(
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundColor: Colors.transparent,
-                    child: GestureDetector(
-                      onTap: onPressedAdd,
-                      child: Icon(Icons.add_circle, size: 60, color: ICON_GREY_COLOR),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                ...members.map((profile) => Padding(
+                  padding: EdgeInsets.only(right: 24),
+                  child: GestureDetector(
+                    onTap: () => onPressedEditBabyProfile?.call(profile),
+                    child: Column(
+                      children: [
+                        CircleAvatar(
+                          radius: 30,
+                          backgroundColor: Colors.transparent,
+                          backgroundImage: profile.profileImage != null
+                              ? NetworkImage(profile.profileImage!)
+                              : null,
+                          child: (profile.profileImage == null || profile.profileImage!.isEmpty)
+                              ? Icon(Icons.account_circle, size: 60, color: ICON_GREY_COLOR)
+                              : null,
+                        ),
+                        SizedBox(height: 8),
+                        Text(profile.name),
+                      ],
                     ),
                   ),
-                  SizedBox(height: 8),
-                  Text('추가하기'),
-                ],
-              ),
-            ],
+                )),
+                Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: Colors.transparent,
+                      child: GestureDetector(
+                        onTap: onPressedAdd,
+                        child: Icon(Icons.add_circle, size: 60, color: ICON_GREY_COLOR),
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text('추가하기'),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
         SizedBox(height: 36),
