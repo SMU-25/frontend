@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/const/colors.dart';
-import 'package:team_project_front/report/view/create_report.dart';
 
 class FeverReportCard extends StatelessWidget {
   const FeverReportCard({
