@@ -64,7 +64,7 @@ class _EditMyProfileState extends State<EditMyProfile> {
   }
 
   Future<void> loadMyInfo() async {
-    if(accessToken == null) return;
+    if (accessToken == null) return;
 
     try {
       final dio = Dio();
@@ -121,7 +121,7 @@ class _EditMyProfileState extends State<EditMyProfile> {
       setState(() {
         isLoading = false;
       });
-    } catch(e) {
+    } catch (e) {
       print('본인 정보 조회 실패: $e');
     }
   }
@@ -136,17 +136,19 @@ class _EditMyProfileState extends State<EditMyProfile> {
     final isLengthValid = password.length >= 8 && password.length <= 16;
     final isPasswordMatch = password == confirmPassword;
 
-    final isEmailValid = emailIdController.text.isNotEmpty &&
-        (emailDomainController.text != '직접입력' || (customEmailDomain?.isNotEmpty ?? false));
+    final isEmailValid =
+        emailIdController.text.isNotEmpty &&
+        (emailDomainController.text != '직접입력' ||
+            (customEmailDomain?.isNotEmpty ?? false));
     final isBirthdaySelected =
-      yearText != null && monthText != null && dayText != null;
-    final isPasswordValid = password.isEmpty || (
-      hasLowercase &&
-      hasNumber &&
-      hasSpecial &&
-      isLengthValid &&
-      isPasswordMatch
-    );
+        yearText != null && monthText != null && dayText != null;
+    final isPasswordValid =
+        password.isEmpty ||
+        (hasLowercase &&
+            hasNumber &&
+            hasSpecial &&
+            isLengthValid &&
+            isPasswordMatch);
 
     if (isBirthdaySelected) {
       try {
@@ -165,20 +167,21 @@ class _EditMyProfileState extends State<EditMyProfile> {
     }
 
     return _formKey.currentState?.validate() == true &&
-      nameController.text.isNotEmpty &&
-      gender != null &&
-      isBirthdaySelected &&
-      isEmailValid &&
-      isPasswordValid;
+        nameController.text.isNotEmpty &&
+        gender != null &&
+        isBirthdaySelected &&
+        isEmailValid &&
+        isPasswordValid;
   }
 
   void onNextPressed() async {
-    if(accessToken == null) return;
+    if (accessToken == null) return;
 
     final dio = Dio();
-    final domain = emailDomainController.text == '직접입력'
-        ? customEmailDomain ?? ''
-        : emailDomainController.text;
+    final domain =
+        emailDomainController.text == '직접입력'
+            ? customEmailDomain ?? ''
+            : emailDomainController.text;
 
     final updatedProfile = GuardianProfile(
       name: nameController.text,
@@ -188,17 +191,19 @@ class _EditMyProfileState extends State<EditMyProfile> {
       gender: gender!,
       image: image,
       email: '${emailIdController.text}@$domain',
-      password: myProfile.socialType == 'LOCAL'
-          ? (passwordController.text.isEmpty
-          ? myProfile.password
-          : passwordController.text)
-          : '',
+      password:
+          myProfile.socialType == 'LOCAL'
+              ? (passwordController.text.isEmpty
+                  ? myProfile.password
+                  : passwordController.text)
+              : '',
       socialType: myProfile.socialType,
     );
 
     final requestBody = {
       "name": updatedProfile.name,
-      "birthdate": "${updatedProfile.birthYear}-${updatedProfile.birthMonth}-${updatedProfile.birthDay}",
+      "birthdate":
+          "${updatedProfile.birthYear}-${updatedProfile.birthMonth}-${updatedProfile.birthDay}",
       "gender": updatedProfile.gender == "여자" ? "FEMALE" : "MALE",
       if (updatedProfile.socialType == "LOCAL" &&
           updatedProfile.password.isNotEmpty)
@@ -221,7 +226,6 @@ class _EditMyProfileState extends State<EditMyProfile> {
 
       return File(compressedXFile.path);
     }
-
 
     try {
       if (image != null) {
@@ -251,7 +255,11 @@ class _EditMyProfileState extends State<EditMyProfile> {
             if (imageResponse.data["isSuccess"] != true) {
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("이미지 수정 실패: ${imageResponse.data['message']}")),
+                  SnackBar(
+                    content: Text(
+                      "이미지 수정 실패: ${imageResponse.data['message']}",
+                    ),
+                  ),
                 );
               }
               return;
@@ -259,9 +267,9 @@ class _EditMyProfileState extends State<EditMyProfile> {
           } catch (e) {
             print("이미지 업로드 실패: $e");
             if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("이미지 업로드 중 오류 발생")),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text("이미지 업로드 중 오류 발생")));
             }
           }
         } else {
@@ -272,17 +280,15 @@ class _EditMyProfileState extends State<EditMyProfile> {
       final response = await dio.patch(
         "$base_URL/my",
         data: requestBody,
-        options: Options(
-          headers: {"Authorization": accessToken},
-        ),
+        options: Options(headers: {"Authorization": accessToken}),
       );
 
       if (response.data["isSuccess"] == true) {
         if (context.mounted) {
           Navigator.of(context).pop(true);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("내 정보가 성공적으로 수정되었어요!")),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text("내 정보가 성공적으로 수정되었어요!")));
         }
       } else {
         if (context.mounted) {
@@ -291,31 +297,26 @@ class _EditMyProfileState extends State<EditMyProfile> {
           );
         }
       }
-    } catch(e) {
+    } catch (e) {
       print("PATCH 실패: $e");
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("알 수 없는 오류가 발생했어요.")),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("알 수 없는 오류가 발생했어요.")));
       }
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(90),
-        child: CustomAppbar(
-          title: '내 정보 수정',
-        ),
+        child: CustomAppbar(title: '내 정보 수정'),
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.symmetric(horizontal: 30),
@@ -334,14 +335,15 @@ class _EditMyProfileState extends State<EditMyProfile> {
                   bottom: 0,
                   right: -5,
                   radius: 50,
-                  onPressedChangePic: () => handleImagePick(
-                    context: context,
-                    onImageSelected: (selectedImage) {
-                      setState(() {
-                        image = File(selectedImage.path);
-                      });
-                    },
-                  ),
+                  onPressedChangePic:
+                      () => handleImagePick(
+                        context: context,
+                        onImageSelected: (selectedImage) {
+                          setState(() {
+                            image = File(selectedImage.path);
+                          });
+                        },
+                      ),
                 ),
               ),
               SizedBox(height: 20),
@@ -373,13 +375,10 @@ class _EditMyProfileState extends State<EditMyProfile> {
                 onGenderSelected: (val) => setState(() => gender = val),
               ),
               SizedBox(height: 20),
-              if(myProfile.socialType == 'LOCAL') ...[
+              if (myProfile.socialType == 'LOCAL') ...[
                 Text(
                   '새 비밀번호',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
                 SizedBox(height: 10),
                 PasswordInput(
@@ -398,7 +397,7 @@ class _EditMyProfileState extends State<EditMyProfile> {
           text: '수정 완료',
           onPressed: isFormValid ? onNextPressed : null,
         ),
-      )
+      ),
     );
   }
 }

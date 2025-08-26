@@ -8,7 +8,7 @@ class Baby {
   final double? weight;
   final Gender? gender;
   final String? seizure;
-  final String profileImage;
+  final String? profileImage;
   final List<String>? illnessTypes;
 
   Baby({
@@ -19,7 +19,7 @@ class Baby {
     this.weight,
     this.gender,
     this.seizure,
-    required this.profileImage,
+    this.profileImage,
     this.illnessTypes,
   });
 
