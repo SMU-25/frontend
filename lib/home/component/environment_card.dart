@@ -14,74 +14,92 @@ class EnvironmentCard extends StatelessWidget {
     required this.comfortStatus,
   });
 
-  final double bodyTemperature;
+  final double? bodyTemperature;
+  final double? airTemperature;
+  final double? humidity;
   final double feverThreshold;
-  final double airTemperature;
-  final double humidity;
 
   final Color Function(bool) getStatusColor;
 
   final bool isFever;
   final String comfortStatus;
 
+  String _fmt1(double? v, String unit) =>
+      v == null ? '데이터 없음' : '${v.toStringAsFixed(1)}$unit';
+
+  TextStyle _styleFor(
+    double? v,
+    Color normalColor, {
+    double normalSize = 30,
+    double emptySize = 18,
+  }) {
+    return TextStyle(
+      color: v == null ? Colors.grey : normalColor,
+      fontSize: v == null ? emptySize : normalSize,
+      fontWeight: FontWeight.bold,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final bool isAbnormalHumidity =
+        (humidity != null) && (humidity! < 40 || humidity! > 60);
+    final bool isFeverNow =
+        (bodyTemperature != null) && (bodyTemperature! >= feverThreshold);
+
     return Container(
       height: 290,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         border: Border.all(color: INPUT_BORDER_COLOR),
         borderRadius: BorderRadius.circular(17),
-        color: isFever ? Color.fromARGB(255, 255, 222, 220) : null,
+        color: isFeverNow ? const Color.fromARGB(255, 255, 222, 220) : null,
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             '환경',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
           ),
           Row(
-            children: [
+            children: const [
               Text('최근 측정 :', style: TextStyle(color: Colors.grey)),
+              SizedBox(width: 6),
               Text('1분 전', style: TextStyle(color: Colors.grey)),
             ],
           ),
           Row(
-            children: [Icon(Icons.thermostat), SizedBox(width: 2), Text('기온')],
+            children: const [
+              Icon(Icons.thermostat),
+              SizedBox(width: 2),
+              Text('기온'),
+            ],
           ),
           Text(
-            '$airTemperature℃',
-            style: TextStyle(
-              color: getStatusColor(isFever),
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
-            ),
+            _fmt1(airTemperature, '℃'),
+            style: _styleFor(airTemperature, getStatusColor(isFeverNow)),
           ),
           Row(
-            children: [
+            children: const [
               Icon(Icons.water_drop, size: 20),
               SizedBox(width: 2),
               Text('습도'),
             ],
           ),
           Text(
-            '$humidity%',
-            style: TextStyle(
-              color:
-                  (humidity < 40 || humidity > 60)
-                      ? HIGH_FEVER_COLOR
-                      : MAIN_COLOR,
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
+            _fmt1(humidity, '%'),
+            style: _styleFor(
+              humidity,
+              isAbnormalHumidity ? HIGH_FEVER_COLOR : MAIN_COLOR,
             ),
           ),
           Text(
             comfortStatus,
             style: TextStyle(
               color:
-                  (humidity < 40 || humidity > 60)
+                  (isAbnormalHumidity || isFeverNow)
                       ? HIGH_FEVER_COLOR
                       : MAIN_COLOR,
               fontSize: 20,
@@ -93,20 +111,19 @@ class EnvironmentCard extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => RoomTemperatureHumidityGraphScreen(),
+                  builder:
+                      (context) => const RoomTemperatureHumidityGraphScreen(),
                 ),
               );
             },
-            style: ElevatedButton.styleFrom(
-              minimumSize: Size(double.infinity, 26),
+            style: TextButton.styleFrom(
+              minimumSize: const Size(double.infinity, 26),
               backgroundColor:
-                  (humidity < 40 ||
-                          humidity > 60 ||
-                          bodyTemperature >= feverThreshold)
+                  (isAbnormalHumidity || isFeverNow)
                       ? HIGH_FEVER_COLOR
                       : MAIN_COLOR,
             ),
-            child: Text(
+            child: const Text(
               '온습도 그래프',
               style: TextStyle(
                 fontSize: 16,

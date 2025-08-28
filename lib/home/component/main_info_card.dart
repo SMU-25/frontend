@@ -6,35 +6,56 @@ class MainInfoCard extends StatelessWidget {
   const MainInfoCard({
     super.key,
     required this.baby,
-    required this.bodyTemperature,
+    this.bodyTemperature,
     required this.feverThreshold,
-    required this.airTemperature,
-    required this.humidity,
+    this.airTemperature,
+    this.humidity,
     required this.getStatusColor,
     required this.isFever,
     required this.isUncomfortableHumidity,
   });
 
-  final Baby baby;
-  final double bodyTemperature;
+  final Baby? baby;
+  final double? bodyTemperature;
   final double feverThreshold;
-  final double airTemperature;
-  final double humidity;
+  final double? airTemperature;
+  final double? humidity;
   final Color Function(bool) getStatusColor;
   final bool isFever;
   final bool isUncomfortableHumidity;
 
-  int _calculateMonths(DateTime birthDate) {
+  (int value, bool isMonth) _calculateAge(DateTime birthDate) {
     final now = DateTime.now();
     final yearDiff = now.year - birthDate.year;
     final monthDiff = now.month - birthDate.month;
     final totalMonths = yearDiff * 12 + monthDiff;
-    return totalMonths >= 0 ? totalMonths : 0;
+
+    if (totalMonths <= 0) {
+      final days = now.difference(birthDate).inDays;
+      return (days < 0 ? 0 : days, false);
+    }
+    return (totalMonths, true);
   }
 
   @override
   Widget build(BuildContext context) {
-    final months = _calculateMonths(baby.birthDate!);
+    if (baby == null || baby!.birthDate == null) {
+      return Container(
+        width: double.infinity,
+        height: 100,
+        decoration: BoxDecoration(
+          border: Border.all(color: INPUT_BORDER_COLOR),
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: const Center(
+          child: Text(
+            "아이 정보를 추가해 주세요",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ),
+      );
+    }
+    final (age, isMonth) = _calculateAge(baby!.birthDate!);
 
     return Container(
       width: double.infinity,
@@ -59,7 +80,10 @@ class MainInfoCard extends StatelessWidget {
                       color: Colors.black,
                     ),
                     children: [
-                      TextSpan(text: '${baby.name} / 생후 $months개월 / 오늘은 '),
+                      TextSpan(
+                        text:
+                            '${baby!.name} / 생후 $age${isMonth ? "개월" : "일"} / 오늘은 ',
+                      ),
                       TextSpan(
                         text: isFever ? '아파요 😢' : '건강해요! 😀',
                         style: TextStyle(color: getStatusColor(isFever)),
@@ -81,8 +105,14 @@ class MainInfoCard extends StatelessWidget {
                   children: [
                     const TextSpan(text: '체온 : '),
                     TextSpan(
-                      text: '$bodyTemperature℃',
-                      style: TextStyle(color: getStatusColor(isFever)),
+                      text:
+                          bodyTemperature != null
+                              ? '$bodyTemperature℃'
+                              : '데이터 없음',
+                      style:
+                          bodyTemperature != null
+                              ? TextStyle(color: getStatusColor(isFever))
+                              : TextStyle(color: Colors.grey),
                     ),
                   ],
                 ),
@@ -94,8 +124,14 @@ class MainInfoCard extends StatelessWidget {
                   children: [
                     const TextSpan(text: '기온 : '),
                     TextSpan(
-                      text: '$airTemperature℃',
-                      style: TextStyle(color: getStatusColor(isFever)),
+                      text:
+                          airTemperature != null
+                              ? '$airTemperature℃'
+                              : '데이터 없음',
+                      style:
+                          airTemperature != null
+                              ? TextStyle(color: getStatusColor(isFever))
+                              : TextStyle(color: Colors.grey),
                     ),
                   ],
                 ),
@@ -106,13 +142,17 @@ class MainInfoCard extends StatelessWidget {
                   style: const TextStyle(color: Colors.black),
                   children: [
                     const TextSpan(text: '습도 : '),
+
                     TextSpan(
-                      text: '$humidity%',
-                      style: TextStyle(
-                        color: getStatusColor(
-                          isFever || isUncomfortableHumidity,
-                        ),
-                      ),
+                      text: humidity != null ? '$humidity%' : '데이터 없음',
+                      style:
+                          humidity != null
+                              ? TextStyle(
+                                color: getStatusColor(
+                                  isFever || isUncomfortableHumidity,
+                                ),
+                              )
+                              : TextStyle(color: Colors.grey),
                     ),
                   ],
                 ),

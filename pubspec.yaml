@@ -74,6 +74,7 @@ flutter:
     - asset/img/logo/
     - asset/img/symptoms/
     - asset/img/login/
+    - asset/img/graph/
     - asset/img/homecam_mock_data/
 
   # To add assets to your application, add an assets section, like this:
