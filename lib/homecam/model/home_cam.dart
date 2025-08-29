@@ -18,4 +18,17 @@ class HomeCam {
     required this.createdAt,
     required this.homecamId,
   });
+
+  factory HomeCam.fromJson(Map<String, dynamic> json) {
+    return HomeCam(
+      name: json['name'] as String,
+      place: json['place'] as String,
+      childId: json['childId'] as int,
+      childName: json['childName'] as String,
+      serialNum: json['serialNum'] as String,
+      videoUrl: json['videoUrl'] as String?,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      homecamId: json['homecamId'] as int,
+    );
+  }
 }
