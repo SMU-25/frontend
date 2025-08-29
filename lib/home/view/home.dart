@@ -247,11 +247,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final String feverRecordAgoText =
         feverRecordData?.createdAt != null
             ? dateConvert(feverRecordData!.createdAt!)
-            : '데이터 없음';
+            : '없음';
     final String roomConditionAgoText =
         roomConditionData?.createdAt != null
             ? dateConvert(roomConditionData!.createdAt!)
-            : '데이터 없음';
+            : '없음';
 
     final double? slicedHumidity = oneDecimal(roomConditionData?.humidity);
     final double? slicedFever = oneDecimal(feverRecordData?.fever);
