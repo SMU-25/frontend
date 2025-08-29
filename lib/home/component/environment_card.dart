@@ -12,13 +12,14 @@ class EnvironmentCard extends StatelessWidget {
     required this.getStatusColor,
     required this.isFever,
     required this.comfortStatus,
+    required this.roomConditionAgoText,
   });
 
   final double? bodyTemperature;
   final double? airTemperature;
   final double? humidity;
   final double feverThreshold;
-
+  final String? roomConditionAgoText;
   final Color Function(bool) getStatusColor;
 
   final bool isFever;
@@ -64,10 +65,13 @@ class EnvironmentCard extends StatelessWidget {
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
           ),
           Row(
-            children: const [
-              Text('최근 측정 :', style: TextStyle(color: Colors.grey)),
-              SizedBox(width: 6),
-              Text('1분 전', style: TextStyle(color: Colors.grey)),
+            children: [
+              const Text('최근 측정 :', style: TextStyle(color: Colors.grey)),
+              const SizedBox(width: 8),
+              Text(
+                roomConditionAgoText!,
+                style: const TextStyle(color: Colors.grey),
+              ),
             ],
           ),
           Row(

@@ -10,15 +10,16 @@ class BodyTemperatureCard extends StatelessWidget {
     required this.feverThreshold,
     required this.getStatusColor,
     required this.isFever,
-    this.elapsedFeverRecordSec,
+    required this.feverRecordAgoText,
   });
   final double? bodyTemperature;
   final double feverThreshold;
-  final int? elapsedFeverRecordSec;
+  final String? feverRecordAgoText;
 
   final bool isFever;
 
   final Color Function(bool) getStatusColor;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -43,11 +44,8 @@ class BodyTemperatureCard extends StatelessWidget {
           Row(
             children: [
               Text('최근 측정 :', style: TextStyle(color: Colors.grey)),
-              Text(
-                // '$elapsedFeverRecordSec 초전',
-                '1분전',
-                style: TextStyle(color: Colors.grey),
-              ),
+              const SizedBox(width: 8),
+              Text(feverRecordAgoText!, style: TextStyle(color: Colors.grey)),
             ],
           ),
           bodyTemperature != null

@@ -13,6 +13,7 @@ import 'package:team_project_front/home/component/subscribe_card.dart';
 import 'package:team_project_front/common/model/baby.dart';
 import 'package:team_project_front/home/model/fever_record_data.dart';
 import 'package:team_project_front/home/model/room_condition.dart';
+import 'package:team_project_front/util/date_convert.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -243,15 +244,14 @@ class _HomeScreenState extends State<HomeScreen> {
       roomConditionData?.airTemperature,
     );
 
-    // final int? elapsedFeverRecordSec =
-    //     (feverRecordData?.createdAt != null)
-    //         ? DateTime.now().difference(feverRecordData!.createdAt!).inSeconds
-    //         : null;
-
-    // final int? elapsedRoomConditionSec =
-    //     (roomConditionData?.createdAt != null)
-    //         ? DateTime.now().difference(roomConditionData!.createdAt!).inSeconds
-    //         : null;
+    final String feverRecordAgoText =
+        feverRecordData?.createdAt != null
+            ? dateConvert(feverRecordData!.createdAt!)
+            : '없음';
+    final String roomConditionAgoText =
+        roomConditionData?.createdAt != null
+            ? dateConvert(roomConditionData!.createdAt!)
+            : '없음';
 
     final double? slicedHumidity = oneDecimal(roomConditionData?.humidity);
     final double? slicedFever = oneDecimal(feverRecordData?.fever);
@@ -357,7 +357,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 feverThreshold: feverThreshold,
                                 getStatusColor: getStatusColor,
                                 isFever: isFever,
-                                // elapsedFeverRecordSec: elapsedFeverRecordSec,
+                                feverRecordAgoText: feverRecordAgoText,
                               ),
                               const SizedBox(height: 16),
                               FeverReportCard(
@@ -379,6 +379,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 getStatusColor: getStatusColor,
                                 isFever: isFever,
                                 comfortStatus: comfortStatus,
+                                roomConditionAgoText: roomConditionAgoText,
                               ),
                               const SizedBox(height: 16),
                               const SubscribeCard(),
