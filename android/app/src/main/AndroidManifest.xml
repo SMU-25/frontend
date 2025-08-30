@@ -17,6 +17,8 @@
 		        <action android:name="android.intent.action.VIEW" />
 		        <category android:name="android.intent.category.DEFAULT" />
 		        <category android:name="android.intent.category.BROWSABLE" />
+            <!-- 안드로이드 앱에서 인터넷 접속 허용 -->
+            <uses-permission android:name="android.permission.INTERNET" />
 
 		  <!-- Redirect URI, "kakao${YOUR_NATIVE_APP_KEY}://oauth" 형식 -->
 		        <data android:scheme="kakaob3565aae8a5f99df7052455a2917cec7" android:host="oauth"/>
