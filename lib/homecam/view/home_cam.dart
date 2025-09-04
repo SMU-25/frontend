@@ -40,7 +40,6 @@ class _HomeCamScreenState extends State<HomeCamScreen> {
 
       if (res.statusCode == 200) {
         final m = (res.data['result'] ?? {}) as Map<String, dynamic>;
-        print(m);
         final detail = HomeCam(
           name: m['name'] ?? '',
           place: m['place'] ?? '',
