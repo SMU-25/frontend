@@ -72,7 +72,6 @@ class _UpdateHomeCamScreenState extends State<UpdateHomeCamScreen> {
 
       final dio = Dio();
       final token = await SecureStorageService.getAccessToken();
-      print(widget.homeCamId);
       final res = await dio.patch(
         '$base_URL/homecams/${widget.homeCamId}',
         data: {
