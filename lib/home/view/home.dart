@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/common/const/colors.dart';
-import 'package:team_project_front/common/utils/error_dialog.dart';
 import 'package:team_project_front/common/utils/secure_storage_service.dart';
 import 'package:team_project_front/home/component/body_temperature_card.dart';
 import 'package:team_project_front/home/component/environment_card.dart';
@@ -38,229 +37,196 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    fetchBabies();
+    _bootstrap(); // 최초 로드
   }
 
-  Future<void> fetchRoomCondition(int childId) async {
+  Future<RoomCondition?> fetchRoomConditionData(int childId) async {
     try {
       final dio = Dio();
       final token = await SecureStorageService.getAccessToken();
-
       final res = await dio.get(
         '$base_URL/rooms/$childId',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
-
-      if (!mounted) return;
-
       if (res.statusCode == 200) {
         final data = (res.data['result'] ?? {}) as Map<String, dynamic>;
-
-        final mappedData = RoomCondition(
+        return RoomCondition(
           airTemperature: (data['temperature'] as num?)?.toDouble(),
           humidity: (data['humidity'] as num?)?.toDouble(),
           createdAt: DateTime.tryParse(data['createdAt'] as String? ?? ''),
         );
-
-        setState(() {
-          roomConditionData = mappedData;
-          isLoading = false;
-        });
-      } else {
-        setState(() => isLoading = false);
-        showErrorDialog(context: context, message: '온습도 기록을 불러오지 못했습니다.');
       }
-    } on DioException catch (e) {
-      final msg = e.response?.data['message'] ?? '온습도 기록 불러오기에 실패했어요.';
-      if (!mounted) return;
-      showErrorDialog(context: context, message: msg);
+      // 실패: null 반환
+      return null;
     } catch (e) {
-      if (!mounted) return;
-      showErrorDialog(context: context, message: '알 수 없는 오류가 발생했어요.');
+      return null;
     }
   }
 
-  Future<void> fetchFeverRecord(int childId) async {
+  Future<FeverRecord?> fetchFeverRecordData(int childId) async {
     try {
       final dio = Dio();
       final token = await SecureStorageService.getAccessToken();
-
       final res = await dio.get(
         '$base_URL/feverRecords/$childId',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
-      if (!mounted) return;
-
       if (res.statusCode == 200) {
         final data = (res.data['result'] ?? {}) as Map<String, dynamic>;
-
-        final mappedData = FeverRecord(
-          fever: (data['fever'] as num).toDouble(),
-          createdAt: DateTime.parse(data['createdAt'] as String),
+        final fever = (data['fever'] as num?)?.toDouble();
+        final createdAtStr = data['createdAt'] as String?;
+        if (fever == null || createdAtStr == null) return null;
+        return FeverRecord(
+          fever: fever,
+          createdAt: DateTime.tryParse(createdAtStr) ?? DateTime.now(),
         );
-
-        setState(() {
-          feverRecordData = mappedData;
-          isLoading = false;
-        });
-      } else {
-        setState(() => isLoading = false);
-        showErrorDialog(context: context, message: '발열 기록을 불러오지 못했습니다.');
       }
-    } on DioException catch (e) {
-      final msg = e.response?.data['message'] ?? '발열 기록 불러오기에 실패했어요.';
-      if (!mounted) return;
-      showErrorDialog(context: context, message: msg);
-    } catch (e) {
-      if (!mounted) return;
-      showErrorDialog(context: context, message: '알 수 없는 오류가 발생했어요.');
+      return null;
+    } catch (_) {
+      return null;
     }
   }
 
-  Future<void> fetchBabies() async {
-    try {
-      final dio = Dio();
-      final token = await SecureStorageService.getAccessToken();
-
-      final res = await dio.get(
-        '$base_URL/children',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
-      );
-
-      if (res.statusCode == 200) {
-        List<Map<String, dynamic>> data = List<Map<String, dynamic>>.from(
-          res.data['result'],
-        );
-
-        final loadedBabies =
-            data.map((raw) {
-              final m = raw;
-
-              final childId = (m['childId'] as num?)?.toInt();
-              final name = (m['name'] as String?) ?? '이름 미등록';
-              final profileImage = (m['profileImage'] as String?) ?? '';
-
-              if (childId == null) {
-                debugPrint('Invalid child item: $m');
-                throw Exception('childId is null');
-              }
-
-              return Baby.forList(
-                childId: childId,
-                name: name,
-                profileImage: profileImage,
-              );
-            }).toList();
-        if (!mounted) return;
-        setState(() {
-          babies = loadedBabies;
-        });
-        if (babies.isEmpty) {
-          // 아이가 없을 때: 선택/추가 UI로 유도하거나 빈 화면 처리
-          setState(() {
-            selectedBaby = null;
-            isLoading = false;
-          });
-          return;
-        }
-
-        setState(() {
-          selectedBaby = babies[0];
-          isLoading = true;
-        });
-
-        final id = babies.first.childId;
-        if (!mounted) return;
-        setState(() {
-          selectedBaby = babies.first;
-          isLoading = true;
-        });
-        if (id != null) {
-          await fetchBaby(id);
-          await fetchFeverRecord(id);
-          await fetchRoomCondition(id);
-        }
-        setState(() => isLoading = false);
-      } else {
-        if (!mounted) return;
-        showErrorDialog(context: context, message: '아이들 불러오기에 실패했습니다.');
-      }
-    } on DioException catch (err) {
-      final message = err.response?.data['message'] ?? '알 수 없는 오류가 발생했습니다.';
-      if (!mounted) return;
-      showErrorDialog(context: context, message: message);
+  Future<List<Baby>> fetchBabiesData() async {
+    final dio = Dio();
+    final token = await SecureStorageService.getAccessToken();
+    final res = await dio.get(
+      '$base_URL/children',
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
+    );
+    if (res.statusCode == 200) {
+      final list = List<Map<String, dynamic>>.from(res.data['result']);
+      return list
+          .map((m) {
+            final childId = (m['childId'] as num?)?.toInt();
+            return Baby.forList(
+              childId: childId ?? -1,
+              name: (m['name'] as String?) ?? '이름 미등록',
+              profileImage: (m['profileImage'] as String?) ?? '',
+            );
+          })
+          .where((b) => b.childId != -1)
+          .toList();
     }
+    return [];
   }
 
-  Future<void> fetchBaby(int childId) async {
+  Future<Baby?> fetchBabyData(int childId) async {
     try {
       final dio = Dio();
       final token = await SecureStorageService.getAccessToken();
-
       final res = await dio.get(
         '$base_URL/children/$childId',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
-
       if (res.statusCode == 200) {
-        final babyData = res.data['result'];
-        setState(() {
-          selectedBaby = Baby(
-            childId: babyData['childId'],
-            name: babyData['name'],
-            birthDate:
-                babyData['birthdate'] != null
-                    ? DateTime.parse(babyData['birthdate'])
-                    : null,
-            height: (babyData['height'] as num?)?.toDouble(),
-            weight: (babyData['weight'] as num?)?.toDouble(),
-            gender:
-                babyData['gender'] == 'FEMALE' ? Gender.female : Gender.male,
-            seizure: babyData['seizure'],
-            profileImage: babyData['profileImage'],
-            illnessTypes: List<String>.from(babyData['illnessTypes'] ?? []),
-          );
-          isLoading = false;
-        });
-      } else {
-        if (!mounted) return;
-        showErrorDialog(context: context, message: '아이 정보를 불러오지 못했습니다.');
+        final m = res.data['result'] as Map<String, dynamic>;
+        return Baby(
+          childId: m['childId'],
+          name: m['name'],
+          birthDate:
+              (m['birthdate'] != null)
+                  ? DateTime.tryParse(m['birthdate'])
+                  : null,
+          height: (m['height'] as num?)?.toDouble(),
+          weight: (m['weight'] as num?)?.toDouble(),
+          gender: m['gender'] == 'FEMALE' ? Gender.female : Gender.male,
+          seizure: m['seizure'],
+          profileImage: m['profileImage'],
+          illnessTypes: List<String>.from(m['illnessTypes'] ?? []),
+        );
       }
-    } on DioException catch (err) {
-      final message = err.response?.data['message'] ?? '알 수 없는 오류가 발생했습니다.';
-      if (!mounted) return;
-      showErrorDialog(context: context, message: message);
+      return null;
+    } catch (_) {
+      return null;
     }
+  }
+
+  Future<void> _bootstrap() async {
+    setState(() => isLoading = true);
+    final loadedBabies = await fetchBabiesData();
+
+    if (!mounted) return;
+    if (loadedBabies.isEmpty) {
+      setState(() {
+        babies = [];
+        selectedBaby = null;
+        roomConditionData = null;
+        feverRecordData = null;
+        isLoading = false;
+      });
+      return;
+    }
+
+    final first = loadedBabies.first;
+    final babyDetail = await fetchBabyData(first.childId!);
+    final fever = await fetchFeverRecordData(first.childId!);
+    final room = await fetchRoomConditionData(first.childId!);
+
+    if (!mounted) return;
+    setState(() {
+      babies = loadedBabies;
+      selectedBaby = babyDetail ?? first;
+      feverRecordData = fever;
+      roomConditionData = room;
+      isLoading = false;
+    });
+  }
+
+  // 선택 변경도 동일 패턴
+  Future<void> _onBabySelected(Baby baby) async {
+    if (!mounted) return;
+    setState(() {
+      selectedBaby = baby;
+      isLoading = true;
+    });
+    final id = baby.childId!;
+    final babyDetail = await fetchBabyData(id);
+    final fever = await fetchFeverRecordData(id);
+    final room = await fetchRoomConditionData(id);
+
+    if (!mounted) return;
+    setState(() {
+      selectedBaby = babyDetail ?? baby;
+      feverRecordData = fever;
+      roomConditionData = room;
+      isLoading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    double? oneDecimal(double? value) {
-      if (value == null) return null;
-      return double.parse(value.toStringAsFixed(1));
+    if (isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    final double? slicedAirTemperature = oneDecimal(
-      roomConditionData?.airTemperature,
-    );
+    if (babies.isEmpty) {
+      return const Scaffold(
+        body: Center(child: Text('등록된 아이가 없습니다. 아이를 먼저 등록해주세요.')),
+      );
+    }
 
-    final String feverRecordAgoText =
-        feverRecordData?.createdAt != null
+    double? oneDecimal(double? v) =>
+        v == null ? null : double.parse(v.toStringAsFixed(1));
+    final slicedAirTemperature = oneDecimal(roomConditionData?.airTemperature);
+    final slicedHumidity = oneDecimal(roomConditionData?.humidity);
+    final slicedFever = oneDecimal(feverRecordData?.fever);
+
+    final feverRecordAgoText =
+        (feverRecordData?.createdAt != null)
             ? dateConvert(feverRecordData!.createdAt!)
             : '없음';
-    final String roomConditionAgoText =
-        roomConditionData?.createdAt != null
+    final roomConditionAgoText =
+        (roomConditionData?.createdAt != null)
             ? dateConvert(roomConditionData!.createdAt!)
             : '없음';
 
-    final double? slicedHumidity = oneDecimal(roomConditionData?.humidity);
-    final double? slicedFever = oneDecimal(feverRecordData?.fever);
-    final bool isFever = (slicedFever != null && slicedFever >= feverThreshold);
-    final bool isUncomfortableHumidity =
+    final isFever = (slicedFever != null && slicedFever >= feverThreshold);
+    final isUncomfortableHumidity =
         (slicedHumidity != null) &&
         (slicedHumidity < 40 || slicedHumidity > 60);
 
-    final String comfortStatus =
+    final comfortStatus =
         (slicedHumidity == null || slicedAirTemperature == null)
             ? '데이터 없음'
             : (slicedHumidity > 60)
@@ -276,16 +242,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ? '춥고 건조해요'
                 : '건조해요')
             : (slicedAirTemperature <= 22 ? '추워요' : '쾌적해요 ☺️');
-
-    if (isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
-    if (babies.isEmpty) {
-      return const Scaffold(
-        body: Center(child: Text('등록된 아이가 없습니다. 아이를 먼저 등록해주세요.')),
-      );
-    }
 
     return Scaffold(
       appBar: AppBar(
@@ -307,23 +263,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: HomeHeader(
                   babies: babies,
                   selectedBaby: selectedBaby!,
-                  onBabySelected: (baby) async {
-                    if (!mounted) return;
-                    setState(() {
-                      selectedBaby = baby;
-                      isLoading = true;
-                    });
-
-                    final id = baby.childId;
-                    if (id != null) {
-                      await fetchBaby(id);
-                      await fetchFeverRecord(id);
-                      await fetchRoomCondition(id);
-                    }
-
-                    if (!mounted) return;
-                    setState(() => isLoading = false);
-                  },
+                  onBabySelected: _onBabySelected,
                 ),
               ),
               const Divider(),
