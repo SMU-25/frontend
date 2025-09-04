@@ -69,7 +69,6 @@ class _CreateHomeCamScreenState extends State<CreateHomeCamScreen> {
         showErrorDialog(context: context, message: '홈캠 등록에 실패했습니다.');
       }
     } on DioException catch (err) {
-      print(err);
       final message = err.response?.data['message'] ?? '알 수 없는 오류가 발생했습니다.';
       if (!mounted) return;
       showErrorDialog(context: context, message: message);

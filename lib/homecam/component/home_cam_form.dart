@@ -57,7 +57,6 @@ class _HomeCamFormState extends State<HomeCamForm> {
 
       if (res.statusCode == 200) {
         final data = List<Map<String, dynamic>>.from(res.data['result']);
-        print(data);
         final loadedBabies =
             data
                 .map((baby) {
