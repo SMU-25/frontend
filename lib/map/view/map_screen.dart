@@ -35,6 +35,35 @@ class _MapScreenState extends State<MapScreen> {
   NaverPlace? _selectedPlace;
 
   double _toCoord(String s) => double.parse(s) / 1e7;
+  @override
+  void initState() {
+    super.initState();
+    _prepareOverlayImages();
+  }
+
+  Future<void> _prepareOverlayImages() async {
+    // 폰트/트리 안정화 대기
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
+    // 한 프레임 더 대기(폰트 콜백 잔여 제거에 도움)
+    await Future<void>.delayed(Duration.zero);
+    if (!mounted) return;
+
+    _hospitalIconF = NOverlayImage.fromWidget(
+      context: context,
+      widget: const Icon(Icons.add_circle, color: MAIN_COLOR, size: 40),
+      size: const Size(40, 40),
+    );
+
+    _searchIconF = NOverlayImage.fromWidget(
+      context: context,
+      widget: const Icon(Icons.place, color: Colors.blueAccent, size: 36),
+      size: const Size(36, 36),
+    );
+
+    // 필요하면 setState로 로딩 끝 알림
+    if (mounted) setState(() {});
+  }
 
   Future<Position?> _getCurrentPosition() async {
     if (!await Geolocator.isLocationServiceEnabled()) return null;
@@ -84,8 +113,9 @@ class _MapScreenState extends State<MapScreen> {
       final name = (m['title'] as String).replaceAll(RegExp(r'<\/?b>'), '');
       final mapx = m['mapx'] as String;
       final mapy = m['mapy'] as String;
+      final safeId = 'hosp_${mapx}_$mapy';
       return NaverPlace(
-        id: '${m['link'] ?? ''}_${mapx}_$mapy',
+        id: safeId,
         name: name,
         lng: _toCoord(mapx),
         lat: _toCoord(mapy),
@@ -131,8 +161,9 @@ class _MapScreenState extends State<MapScreen> {
         final name = (m['title'] as String).replaceAll(RegExp(r'<\/?b>'), '');
         final mapx = m['mapx'] as String;
         final mapy = m['mapy'] as String;
+        final safeId = 'place_${mapx}_$mapy';
         return NaverPlace(
-          id: '${m['link'] ?? ''}_${mapx}_$mapy',
+          id: safeId,
           name: name,
           lng: _toCoord(mapx),
           lat: _toCoord(mapy),
@@ -262,7 +293,7 @@ class _MapScreenState extends State<MapScreen> {
       );
 
       for (final m in _hospitalMarkers) {
-        await _mapController?.deleteOverlay(m.info); // ✅ NOverlayInfo 전달
+        await _mapController?.deleteOverlay(m.info);
       }
 
       _hospitalMarkers.clear();
@@ -278,6 +309,21 @@ class _MapScreenState extends State<MapScreen> {
           caption: NOverlayCaption(text: h.name, minZoom: 14),
           isHideCollidedSymbols: true,
         );
+        // 병원 마커 탭 시 상세 패널 노출 + 카메라 이동
+        m.setOnTapListener((overlay) async {
+          if (!mounted) return;
+          _skipNextMapTap = true;
+          setState(() {
+            _selectedPlace = h;
+          });
+          await _mapController?.updateCamera(
+            NCameraUpdate.scrollAndZoomTo(
+              target: NLatLng(h.lat, h.lng),
+              zoom: 15,
+            ),
+          );
+        });
+
         _mapController!.addOverlay(m);
         _hospitalMarkers.add(m);
       }
@@ -544,7 +590,7 @@ class _MapScreenState extends State<MapScreen> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const Icon(Icons.favorite_border, color: Colors.grey),
+                        const Icon(Icons.star_border, color: Colors.grey),
                       ],
                     ),
                     const SizedBox(height: 8),
