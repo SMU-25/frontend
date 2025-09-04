@@ -47,6 +47,12 @@ dependencies:
   kakao_flutter_sdk: ^1.9.7+3
   flutter_naver_login: ^2.1.1
   flutter_mjpeg: ^2.0.4
+  firebase_messaging: ^16.0.0
+  googleapis_auth: ^1.4.1
+  flutter_local_notifications: ^18.0.1
+  flutter_naver_map: ^1.4.1+1
+  geolocator: ^14.0.2
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:
@@ -76,6 +82,7 @@ flutter:
     - asset/img/login/
     - asset/img/graph/
     - asset/img/homecam_mock_data/
+    - asset/data/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk_template.dart';
 import 'package:team_project_front/common/view/root_tab.dart';
 import 'package:team_project_front/init/view/init.dart';
@@ -16,11 +17,27 @@ void main() async {
   await initializeDateFormatting();
   KakaoSdk.init(nativeAppKey: 'b3565aae8a5f99df7052455a2917cec7');
 
+  await FlutterNaverMap().init(
+    clientId: 'zyezii413y',
+    onAuthFailed: (ex) {
+      switch (ex) {
+        case NQuotaExceededException(:final message):
+          print("사용량 초과 (message: $message)");
+          break;
+        case NUnauthorizedClientException() ||
+            NClientUnspecifiedException() ||
+            NAnotherAuthFailedException():
+          print("인증 실패: $ex");
+          break;
+      }
+    },
+  );
+
   runApp(ProviderScope(child: _App()));
 }
 
 class _App extends StatelessWidget {
-  const _App({super.key});
+  const _App();
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +60,6 @@ class _App extends StatelessWidget {
         '/login': (context) => LoginScreen(),
         '/signup': (context) => SignupAgreementScreen(),
         '/report': (context) => Report(),
-        // '/signup/email': (context) => SignupInfoScreen(),
       },
     );
   }
