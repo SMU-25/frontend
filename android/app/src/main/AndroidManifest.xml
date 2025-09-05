@@ -1,4 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<!-- 위치 정보를 받기 위해 권한 설정 -->
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+  <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:label="team_project_front"
         android:name="${applicationName}"
@@ -20,8 +24,7 @@
 		        <action android:name="android.intent.action.VIEW" />
 		        <category android:name="android.intent.category.DEFAULT" />
 		        <category android:name="android.intent.category.BROWSABLE" />
-            <!-- 안드로이드 앱에서 인터넷 접속 허용 -->
-            <uses-permission android:name="android.permission.INTERNET" />
+            
 
 		  <!-- Redirect URI, "kakao${YOUR_NATIVE_APP_KEY}://oauth" 형식 -->
 		        <data android:scheme="kakaob3565aae8a5f99df7052455a2917cec7" android:host="oauth"/>
