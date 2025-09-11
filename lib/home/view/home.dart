@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // ⬅ 추가
 import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/common/const/colors.dart';
 import 'package:team_project_front/common/utils/secure_storage_service.dart';
@@ -13,16 +14,15 @@ import 'package:team_project_front/common/model/baby.dart';
 import 'package:team_project_front/home/model/fever_record_data.dart';
 import 'package:team_project_front/home/model/room_condition.dart';
 import 'package:team_project_front/util/date_convert.dart';
+import 'package:team_project_front/home/provider/selected_baby_provider.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
   @override
-  State<StatefulWidget> createState() {
-    return _HomeScreenState();
-  }
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   final double feverThreshold = 37.5;
 
   Color getStatusColor(bool condition) =>
@@ -37,7 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _bootstrap(); // 최초 로드
+    _bootstrap();
   }
 
   Future<RoomCondition?> fetchRoomConditionData(int childId) async {
@@ -56,9 +56,8 @@ class _HomeScreenState extends State<HomeScreen> {
           createdAt: DateTime.tryParse(data['createdAt'] as String? ?? ''),
         );
       }
-      // 실패: null 반환
       return null;
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }
@@ -144,9 +143,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _bootstrap() async {
     setState(() => isLoading = true);
-    final loadedBabies = await fetchBabiesData();
 
+    final loadedBabies = await fetchBabiesData();
     if (!mounted) return;
+
     if (loadedBabies.isEmpty) {
       setState(() {
         babies = [];
@@ -158,34 +158,48 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    final first = loadedBabies.first;
-    final babyDetail = await fetchBabyData(first.childId!);
-    final fever = await fetchFeverRecordData(first.childId!);
-    final room = await fetchRoomConditionData(first.childId!);
+    final savedId = ref.read(selectedBabyIdProvider);
+    final initial =
+        (savedId != null)
+            ? loadedBabies.firstWhere(
+              (b) => b.childId == savedId,
+              orElse: () => loadedBabies.first,
+            )
+            : loadedBabies.first;
 
+    final babyDetail = await fetchBabyData(initial.childId!);
+    final fever = await fetchFeverRecordData(initial.childId!);
+    final room = await fetchRoomConditionData(initial.childId!);
     if (!mounted) return;
+
     setState(() {
       babies = loadedBabies;
-      selectedBaby = babyDetail ?? first;
+      selectedBaby = babyDetail ?? initial;
       feverRecordData = fever;
       roomConditionData = room;
       isLoading = false;
     });
+
+    // 최초 진입 시 전역 상태 세팅
+    ref.read(selectedBabyIdProvider.notifier).set(selectedBaby!.childId);
   }
 
-  // 선택 변경도 동일 패턴
   Future<void> _onBabySelected(Baby baby) async {
     if (!mounted) return;
     setState(() {
       selectedBaby = baby;
       isLoading = true;
     });
+
+    // 전역 상태 업데이트 (세션 유지)
+    ref.read(selectedBabyIdProvider.notifier).set(baby.childId);
+
     final id = baby.childId!;
     final babyDetail = await fetchBabyData(id);
     final fever = await fetchFeverRecordData(id);
     final room = await fetchRoomConditionData(id);
-
     if (!mounted) return;
+
     setState(() {
       selectedBaby = babyDetail ?? baby;
       feverRecordData = fever;
@@ -284,7 +298,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       isFever: isFever,
                       isUncomfortableHumidity: isUncomfortableHumidity,
                     ),
-
                     const SizedBox(height: 16),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
