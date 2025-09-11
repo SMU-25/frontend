@@ -211,21 +211,6 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  // @override
-  // void didChangeDependencies() {
-  //   super.didChangeDependencies();
-  //   _hospitalIconF = NOverlayImage.fromWidget(
-  //     context: context,
-  //     widget: const Icon(Icons.add_circle, color: MAIN_COLOR, size: 40),
-  //     size: const Size(40, 40),
-  //   );
-  //   _searchIconF = NOverlayImage.fromWidget(
-  //     context: context,
-  //     widget: const Icon(Icons.place, color: Colors.blueAccent, size: 36),
-  //     size: const Size(36, 36),
-  //   );
-  // }
-
   Future<void> _clearSearchMarkers() async {
     if (_mapController == null) return;
     for (final m in _searchMarkers) {

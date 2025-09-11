@@ -66,12 +66,14 @@ class BodyTemperatureCard extends StatelessWidget {
                 ),
               ),
           Text(
-            bodyTemperature != null && bodyTemperature! >= feverThreshold
-                ? '열나요'
-                : '정상이에요',
+            bodyTemperature == null
+                ? '데이터 없음'
+                : (bodyTemperature! >= feverThreshold ? '열나요' : '정상이에요'),
             style: TextStyle(
-              color: getStatusColor(isFever),
-
+              color:
+                  bodyTemperature == null
+                      ? Colors.grey
+                      : getStatusColor(isFever),
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
