@@ -101,7 +101,7 @@ class _RoomTemperatureHumidityGraphScreenState
           valueKey: 'avghumidity',
         );
 
-        // ✅ 온도 데이터 파싱
+        // 온도 데이터 파싱
         final tempParsed = _parseGraphData(
           graphData,
           seriesKey: 'temperature',
@@ -206,15 +206,29 @@ class _RoomTemperatureHumidityGraphScreenState
                         ),
                       ),
                       const SizedBox(height: 16),
-
-                      _ChartSectionWidget(
-                        chartType: ChartType.humidity,
-                        chartData: _humidityChartData,
+                      const Text(
+                        '방 온도 그래프',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
-
+                      const SizedBox(height: 16),
                       _ChartSectionWidget(
                         chartType: ChartType.roomTemp,
                         chartData: _roomTempChartData,
+                      ),
+                      const Text(
+                        '방 습도 그래프',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _ChartSectionWidget(
+                        chartType: ChartType.humidity,
+                        chartData: _humidityChartData,
                       ),
                     ],
                   ),
