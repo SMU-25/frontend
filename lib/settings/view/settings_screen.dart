@@ -25,41 +25,38 @@ class SettingsScreen extends StatelessWidget {
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(90),
-        child: CustomAppbar(
-          title: '설정',
-        ),
+        child: CustomAppbar(title: '설정'),
       ),
-      body: _SettingsListView(
-          settingsItems: settingsItems,
-      ),
+      body: _SettingsListView(settingsItems: settingsItems),
     );
   }
 
   void onPressedTerms(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => TermsScreen()),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => TermsScreen()));
   }
-  
+
   void onPressedNotification(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => NotificationSettingsScreen())
+      MaterialPageRoute(builder: (context) => NotificationSettingsScreen()),
     );
   }
 
   void onPressedLogout(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => YesOrNoDialog(
-        title: '로그아웃',
-        content: '정말 로그아웃 하시겠습니까?',
-        onPressedYes: () async {
-          Navigator.of(context).pop();
-          await logoutUser();
-        },
-        yesText: '예',
-        noText: '아니오',
-      ),
+      builder:
+          (context) => YesOrNoDialog(
+            title: '로그아웃',
+            content: '정말 로그아웃 하시겠습니까?',
+            onPressedYes: () async {
+              Navigator.of(context).pop();
+              await logoutUser();
+            },
+            yesText: '예',
+            noText: '아니오',
+          ),
     );
   }
 
@@ -77,23 +74,20 @@ class SettingsScreen extends StatelessWidget {
     try {
       final response = await dio.post(
         '$base_URL/auth/logout',
-        options: Options(headers: {
-          'Authorization': accessToken,
-        }),
+        options: Options(headers: {'Authorization': accessToken}),
       );
 
       if (response.data['isSuccess'] == true) {
-        await SecureStorageService.deleteAccessToken();
-        // refreshToken 관련 로직 추가 예정
+        await SecureStorageService.clearTokens();
 
         navigatorKey.currentState?.pushNamedAndRemoveUntil(
           '/login',
-              (route) => false,
+          (route) => false,
         );
       } else {
         print('로그아웃 실패: ${response.data['message']}');
       }
-    } catch(e) {
+    } catch (e) {
       print('로그아웃 오류: $e');
     }
   }
@@ -101,19 +95,20 @@ class SettingsScreen extends StatelessWidget {
   void onPressedWithdraw(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => YesOrNoDialog(
-        title: '회원 탈퇴',
-        content:
-          '회원 탈퇴 시 기록하신 모든 데이터가\n'
-          '삭제되어 복구가 불가능합니다.\n'
-          '정말 탈퇴하시겠습니까?',
-        onPressedYes: () async {
-          Navigator.of(context).pop();
-          await withdrawUser();
-        },
-        yesText: '예',
-        noText: '아니오',
-      ),
+      builder:
+          (context) => YesOrNoDialog(
+            title: '회원 탈퇴',
+            content:
+                '회원 탈퇴 시 기록하신 모든 데이터가\n'
+                '삭제되어 복구가 불가능합니다.\n'
+                '정말 탈퇴하시겠습니까?',
+            onPressedYes: () async {
+              Navigator.of(context).pop();
+              await withdrawUser();
+            },
+            yesText: '예',
+            noText: '아니오',
+          ),
     );
   }
 }
@@ -132,20 +127,19 @@ Future<void> withdrawUser() async {
   try {
     final response = await dio.delete(
       '$base_URL/my',
-      options: Options(headers: {
-        'Authorization': accessToken,
-      }),
+      options: Options(headers: {'Authorization': accessToken}),
     );
 
     if (response.data['isSuccess'] == true) {
-      await SecureStorageService.deleteAccessToken();
-      // refreshToken 관련 로직 추가 예정
-
-      navigatorKey.currentState?.pushNamedAndRemoveUntil('/login', (route) => false);
+      await SecureStorageService.clearTokens();
+      navigatorKey.currentState?.pushNamedAndRemoveUntil(
+        '/login',
+        (route) => false,
+      );
     } else {
       print('탈퇴 실패: ${response.data['message']}');
     }
-  } catch(e) {
+  } catch (e) {
     print('회원 탈퇴 오류: $e');
   }
 }
@@ -153,10 +147,7 @@ Future<void> withdrawUser() async {
 class _SettingsListView extends StatelessWidget {
   final List<Map<String, dynamic>> settingsItems;
 
-  const _SettingsListView({
-    required this.settingsItems,
-    super.key,
-  });
+  const _SettingsListView({required this.settingsItems});
 
   @override
   Widget build(BuildContext context) {
@@ -168,34 +159,27 @@ class _SettingsListView extends StatelessWidget {
 
         return Column(
           children: [
-            Divider(
-              color: ICON_GREY_COLOR,
-              height: 0.5,
-              thickness: 1,
-            ),
+            Divider(color: ICON_GREY_COLOR, height: 0.5, thickness: 1),
             ListTile(
               title: Text(
                 item['title'],
-                style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                ),
+                style: TextStyle(fontWeight: FontWeight.w500),
               ),
-              trailing: item['trailing'] != null ? Text(
-                item['trailing'],
-                style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: ICON_GREY_COLOR,
-                    fontSize: 15
-                ),
-              ) : null,
+              trailing:
+                  item['trailing'] != null
+                      ? Text(
+                        item['trailing'],
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: ICON_GREY_COLOR,
+                          fontSize: 15,
+                        ),
+                      )
+                      : null,
               onTap: item['onTap'],
             ),
-            Divider(
-              color: ICON_GREY_COLOR,
-              height: 0.5,
-              thickness: 1,
-            ),
-            if(item['title'] == '로그아웃' || item['title'] == '버전 정보')
+            Divider(color: ICON_GREY_COLOR, height: 0.5, thickness: 1),
+            if (item['title'] == '로그아웃' || item['title'] == '버전 정보')
               SizedBox(height: 64),
           ],
         );
