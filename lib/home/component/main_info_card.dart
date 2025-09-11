@@ -82,10 +82,15 @@ class MainInfoCard extends StatelessWidget {
                     children: [
                       TextSpan(
                         text:
-                            '${baby!.name} / 생후 $age${isMonth ? "개월" : "일"} / 오늘은 ',
+                            '${baby!.name} / 생후 $age${isMonth ? "개월" : "일"} / ',
                       ),
                       TextSpan(
-                        text: isFever ? '아파요 😢' : '건강해요! 😀',
+                        text:
+                            bodyTemperature == null
+                                ? '데이터 없음'
+                                : isFever
+                                ? '오늘은 아파요 😢'
+                                : '오늘은 건강해요! 😀',
                         style: TextStyle(color: getStatusColor(isFever)),
                       ),
                     ],
