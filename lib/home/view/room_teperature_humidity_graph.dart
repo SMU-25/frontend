@@ -4,9 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:team_project_front/common/component/custom_navigation_bar.dart';
 import 'package:team_project_front/common/component/temperature_chart_widget.dart';
-import 'package:team_project_front/common/const/base_url.dart';
+import 'package:team_project_front/common/network/dio_client.dart';
 import 'package:team_project_front/common/utils/error_dialog.dart';
-import 'package:team_project_front/common/utils/secure_storage_service.dart';
 import 'package:team_project_front/common/view/root_tab.dart';
 import 'package:team_project_front/homecam/model/home_cam.dart';
 
@@ -46,13 +45,9 @@ class _RoomTemperatureHumidityGraphScreenState
     try {
       setState(() => _isLoading = true);
 
-      final dio = Dio();
-      final token = await SecureStorageService.getAccessToken();
+      final dio = buildAuthedDio();
 
-      final res = await dio.get(
-        '$base_URL/homecams/list',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
-      );
+      final res = await dio.get('/homecams/list');
 
       if (res.statusCode == 200) {
         final data = res.data['result'];
@@ -85,13 +80,9 @@ class _RoomTemperatureHumidityGraphScreenState
     try {
       setState(() => _isLoading = true);
 
-      final dio = Dio();
-      final token = await SecureStorageService.getAccessToken();
+      final dio = buildAuthedDio();
 
-      final res = await dio.get(
-        '$base_URL/homecams/graph/$homecamId',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
-      );
+      final res = await dio.get('/homecams/graph/$homecamId');
 
       if (res.statusCode == 200) {
         final graphData = res.data['result'] as Map<String, dynamic>;

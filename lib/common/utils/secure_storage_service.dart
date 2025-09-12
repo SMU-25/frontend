@@ -16,10 +16,6 @@ class SecureStorageService {
     return await _storage.read(key: SecureStorageKey.accessToken);
   }
 
-  static Future<void> deleteAccessToken() async {
-    await _storage.delete(key: SecureStorageKey.accessToken);
-  }
-
   static Future<void> saveRefreshToken(String token) async {
     await _storage.write(key: SecureStorageKey.refreshToken, value: token);
   }
@@ -28,7 +24,8 @@ class SecureStorageService {
     return await _storage.read(key: SecureStorageKey.refreshToken);
   }
 
-  static Future<void> deleteRefreshToken() async {
+  static Future<void> clearTokens() async {
+    await _storage.delete(key: SecureStorageKey.accessToken);
     await _storage.delete(key: SecureStorageKey.refreshToken);
   }
 }

@@ -25,8 +25,8 @@ class StatInfoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final baseColor = color ?? theme.colorScheme.primary;
-    final bg = baseColor.withOpacity(0.08);
-    final iconBg = baseColor.withOpacity(0.15);
+    final bg = baseColor.withValues(alpha: 0.08);
+    final iconBg = baseColor.withValues(alpha: 0.15);
 
     Widget body;
     if (isLoading) {

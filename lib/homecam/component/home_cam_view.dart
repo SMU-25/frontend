@@ -1,9 +1,7 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_mjpeg/flutter_mjpeg.dart';
-import 'package:team_project_front/common/const/base_url.dart';
-import 'package:team_project_front/common/utils/secure_storage_service.dart';
+import 'package:team_project_front/common/network/dio_client.dart';
 import 'package:team_project_front/home/model/fever_record_data.dart';
 import 'package:team_project_front/home/model/room_condition.dart';
 import 'package:team_project_front/homecam/component/state_info_card.dart';
@@ -56,12 +54,9 @@ class _HomeCamViewState extends State<HomeCamView> {
 
   Future<RoomCondition?> fetchRoomConditionData(int childId) async {
     try {
-      final dio = Dio();
-      final token = await SecureStorageService.getAccessToken();
-      final res = await dio.get(
-        '$base_URL/rooms/$childId',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
-      );
+      final dio = buildAuthedDio();
+
+      final res = await dio.get('/rooms/$childId');
       if (res.statusCode == 200) {
         final data = (res.data['result'] ?? {}) as Map<String, dynamic>;
         return RoomCondition(
@@ -78,12 +73,9 @@ class _HomeCamViewState extends State<HomeCamView> {
 
   Future<FeverRecord?> fetchFeverRecordData(int childId) async {
     try {
-      final dio = Dio();
-      final token = await SecureStorageService.getAccessToken();
-      final res = await dio.get(
-        '$base_URL/feverRecords/$childId',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
-      );
+      final dio = buildAuthedDio();
+
+      final res = await dio.get('/feverRecords/$childId');
       if (res.statusCode == 200) {
         final data = (res.data['result'] ?? {}) as Map<String, dynamic>;
         final fever = (data['fever'] as num?)?.toDouble();

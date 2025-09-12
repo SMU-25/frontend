@@ -34,37 +34,67 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isObscure = true;
 
   Future<void> _login() async {
-    if (_formKey.currentState!.validate()) {
-      try {
-        final dio = Dio();
+    if (!_formKey.currentState!.validate()) return;
 
-        final res = await dio.post(
-          '$base_URL/auth/login',
-          data: {
-            'email': _idController.text.trim(),
-            'password': _passwordController.text,
-          },
-        );
-        if (res.statusCode == 200) {
-          final accessToken = res.data['result']['accessToken'];
-          final refreshToken = res.data['result']['refreshToken'];
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: base_URL,
+        connectTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 10),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        validateStatus: (_) => true,
+      ),
+    );
 
-          await SecureStorageService.saveAccessToken(accessToken);
-          await SecureStorageService.saveRefreshToken(refreshToken);
-          if (!mounted) return;
-          Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
-        } else {
-          if (!mounted) return;
-          showErrorDialog(context: context, message: '로그인에 실패했습니다.');
-        }
-      } on DioException catch (err) {
-        String message = '알 수 없는 오류가 발생했습니다.';
-        if (err.response != null && err.response?.data != null) {
-          message = err.response?.data['message'] ?? message;
-        }
+    try {
+      final res = await dio.post(
+        '/auth/login',
+        data: {
+          'email': _idController.text.trim(),
+          'password': _passwordController.text,
+        },
+      );
+
+      final sc = res.statusCode ?? 0;
+      if (sc < 200 || sc >= 300) {
+        final serverMsg = (res.data is Map) ? res.data['message'] : null;
         if (!mounted) return;
-        showErrorDialog(context: context, message: message);
+        return showErrorDialog(
+          context: context,
+          message: serverMsg ?? '로그인 실패 (HTTP $sc)',
+        );
       }
+
+      final result =
+          (res.data is Map)
+              ? res.data['result'] as Map<String, dynamic>?
+              : null;
+      final String? accessToken = result?['accessToken'] as String?;
+      final String? refreshToken = result?['refreshToken'] as String?;
+      if (accessToken == null || refreshToken == null) {
+        if (!mounted) return;
+        return showErrorDialog(context: context, message: '응답에 토큰 정보가 없습니다.');
+      }
+
+      await SecureStorageService.saveAccessToken(accessToken);
+      await SecureStorageService.saveRefreshToken(refreshToken);
+
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+    } on DioException catch (e) {
+      final serverMsg =
+          (e.response?.data is Map) ? e.response?.data['message'] : null;
+      if (!mounted) return;
+      showErrorDialog(
+        context: context,
+        message: serverMsg ?? '네트워크 오류가 발생했습니다.',
+      );
+    } catch (e) {
+      if (!mounted) return;
+      showErrorDialog(context: context, message: '알 수 없는 오류가 발생했습니다.');
     }
   }
 
@@ -77,8 +107,11 @@ class _LoginScreenState extends State<LoginScreen> {
         data: {'provider': provider, 'accessToken': accessToken},
       );
       if (res.statusCode == 200) {
-        final token = res.data['result']['accessToken'];
-        await SecureStorageService.saveAccessToken(token);
+        final accessToken = res.data['result']['accessToken'];
+        final refreshToken = res.data['result']['refreshToken'];
+
+        await SecureStorageService.saveAccessToken(accessToken);
+        await SecureStorageService.saveRefreshToken(refreshToken);
 
         if (!mounted) return;
         Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
