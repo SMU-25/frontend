@@ -53,8 +53,12 @@ dependencies:
   flutter_naver_map: ^1.4.1+1
   geolocator: ^14.0.2
   url_launcher: ^6.3.2
+  firebase_core: ^4.1.0
+  json_annotation: ^4.9.0
+  flutter_dotenv: ^6.0.0
 
 dev_dependencies:
+  build_runner: ^2.8.0
   flutter_test:
     sdk: flutter
 
@@ -64,6 +68,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+  json_serializable: ^6.11.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -83,6 +88,7 @@ flutter:
     - asset/img/graph/
     - asset/img/homecam_mock_data/
     - asset/data/
+    - .env
 
   # To add assets to your application, add an assets section, like this:
   # assets:
