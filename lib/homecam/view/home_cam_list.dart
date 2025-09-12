@@ -1,9 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/common/const/colors.dart';
+import 'package:team_project_front/common/network/dio_client.dart';
 import 'package:team_project_front/common/utils/error_dialog.dart';
-import 'package:team_project_front/common/utils/secure_storage_service.dart';
 import 'package:team_project_front/homecam/component/no_home_cam_view.dart';
 import 'package:team_project_front/homecam/model/home_cam.dart';
 import 'package:team_project_front/homecam/view/create_home_cam.dart';
@@ -29,12 +28,8 @@ class _HomeCamListScreenState extends State<HomeCamListScreen> {
 
   Future<void> _fetchHomeCams() async {
     try {
-      final Dio dio = Dio();
-      final token = await SecureStorageService.getAccessToken();
-      final res = await dio.get(
-        '$base_URL/homecams/list',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
-      );
+      final dio = buildAuthedDio();
+      final res = await dio.get('/homecams/list');
 
       if (!mounted) return;
 

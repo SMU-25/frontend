@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:team_project_front/common/const/base_url.dart';
-import 'package:team_project_front/common/utils/secure_storage_service.dart';
+import 'package:team_project_front/common/network/dio_client.dart';
 import 'package:team_project_front/common/utils/error_dialog.dart';
 import 'package:team_project_front/homecam/component/home_cam_view.dart';
 import 'package:team_project_front/homecam/model/home_cam.dart';
@@ -28,13 +27,9 @@ class _HomeCamScreenState extends State<HomeCamScreen> {
 
   Future<void> _fetchDetail() async {
     try {
-      final dio = Dio();
-      final token = await SecureStorageService.getAccessToken();
+      final dio = buildAuthedDio();
 
-      final res = await dio.get(
-        '$base_URL/homecams/${widget.homeCamId}',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
-      );
+      final res = await dio.get('/homecams/${widget.homeCamId}');
 
       if (!mounted) return;
 

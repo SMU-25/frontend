@@ -1,8 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:team_project_front/common/const/base_url.dart';
+import 'package:team_project_front/common/network/dio_client.dart';
 import 'package:team_project_front/common/utils/error_dialog.dart';
-import 'package:team_project_front/common/utils/secure_storage_service.dart';
 import 'package:team_project_front/common/view/root_tab.dart';
 import 'package:team_project_front/homecam/component/home_cam_form.dart';
 import 'package:team_project_front/homecam/view/create_home_cam_complete.dart';
@@ -40,18 +39,16 @@ class _CreateHomeCamScreenState extends State<CreateHomeCamScreen> {
 
   Future<void> createHomeCam() async {
     try {
-      final dio = Dio();
-      final token = await SecureStorageService.getAccessToken();
+      final dio = buildAuthedDio();
 
       final res = await dio.post(
-        '$base_URL/homecams',
+        '/homecams',
         data: {
           'childId': int.parse(selectedChild!),
           'serial_num': homeCamSerialNumController.text.trim(),
           'name': nameController.text.trim(),
           'place': installationPlaceController.text.trim(),
         },
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (res.statusCode == 200) {

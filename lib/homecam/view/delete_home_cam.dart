@@ -1,9 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/common/const/colors.dart';
+import 'package:team_project_front/common/network/dio_client.dart';
 import 'package:team_project_front/common/utils/error_dialog.dart';
-import 'package:team_project_front/common/utils/secure_storage_service.dart';
 
 class DeleteHomeCamScreen extends StatefulWidget {
   const DeleteHomeCamScreen({
@@ -27,12 +26,8 @@ class _DeleteHomeCamScreenState extends State<DeleteHomeCamScreen> {
     setState(() => _isDeleting = true);
 
     try {
-      final dio = Dio();
-      final token = await SecureStorageService.getAccessToken();
-      final res = await dio.delete(
-        '$base_URL/homecams/${widget.homeCamId}',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
-      );
+      final dio = buildAuthedDio();
+      final res = await dio.delete('/homecams/${widget.homeCamId}');
 
       if (!mounted) return;
 

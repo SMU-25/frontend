@@ -1,9 +1,8 @@
-import 'package:dio/dio.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // ⬅ 추가
-import 'package:team_project_front/common/const/base_url.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:team_project_front/common/const/colors.dart';
-import 'package:team_project_front/common/utils/secure_storage_service.dart';
+import 'package:team_project_front/common/network/dio_client.dart';
 import 'package:team_project_front/home/component/body_temperature_card.dart';
 import 'package:team_project_front/home/component/environment_card.dart';
 import 'package:team_project_front/home/component/fever_report_card.dart';
@@ -37,24 +36,35 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _requestNotificationPermission();
     _bootstrap();
+  }
+
+  Future<void> _requestNotificationPermission() async {
+    // 포그라운드 표시 옵션(iOS)
+    await FirebaseMessaging.instance
+        .setForegroundNotificationPresentationOptions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+
+    // 토큰 확인(테스트용)
+    final token = await FirebaseMessaging.instance.getToken();
+    print('FCM token: $token');
+
+    FirebaseMessaging.onMessage.listen((message) {
+      print('onMessage: ${message.notification?.title}');
+    });
   }
 
   Future<RoomCondition?> fetchRoomConditionData(int childId) async {
     try {
-      final dio = Dio();
-      final token = await SecureStorageService.getAccessToken();
-      final res = await dio.get(
-        '$base_URL/rooms/$childId',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
-      );
+      final dio = buildAuthedDio();
+      final res = await dio.get('/rooms/$childId');
       if (res.statusCode == 200) {
         final data = (res.data['result'] ?? {}) as Map<String, dynamic>;
-        return RoomCondition(
-          airTemperature: (data['temperature'] as num?)?.toDouble(),
-          humidity: (data['humidity'] as num?)?.toDouble(),
-          createdAt: DateTime.tryParse(data['createdAt'] as String? ?? ''),
-        );
+        return RoomCondition.fromJson(data);
       }
       return null;
     } catch (_) {
@@ -64,12 +74,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Future<FeverRecord?> fetchFeverRecordData(int childId) async {
     try {
-      final dio = Dio();
-      final token = await SecureStorageService.getAccessToken();
-      final res = await dio.get(
-        '$base_URL/feverRecords/$childId',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
-      );
+      final dio = buildAuthedDio();
+      final res = await dio.get('/feverRecords/$childId');
+
       if (res.statusCode == 200) {
         final data = (res.data['result'] ?? {}) as Map<String, dynamic>;
         final fever = (data['fever'] as num?)?.toDouble();
@@ -87,12 +94,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<List<Baby>> fetchBabiesData() async {
-    final dio = Dio();
-    final token = await SecureStorageService.getAccessToken();
-    final res = await dio.get(
-      '$base_URL/children',
-      options: Options(headers: {'Authorization': 'Bearer $token'}),
-    );
+    final dio = buildAuthedDio();
+    final res = await dio.get('/children');
     if (res.statusCode == 200) {
       final list = List<Map<String, dynamic>>.from(res.data['result']);
       return list
@@ -112,12 +115,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Future<Baby?> fetchBabyData(int childId) async {
     try {
-      final dio = Dio();
-      final token = await SecureStorageService.getAccessToken();
-      final res = await dio.get(
-        '$base_URL/children/$childId',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
-      );
+      final dio = buildAuthedDio();
+      final res = await dio.get('/children/$childId');
       if (res.statusCode == 200) {
         final m = res.data['result'] as Map<String, dynamic>;
         return Baby(

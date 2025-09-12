@@ -2,10 +2,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/component/custom_input.dart';
 import 'package:team_project_front/common/component/navigation_button.dart';
-import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/common/model/baby.dart';
+import 'package:team_project_front/common/network/dio_client.dart';
 import 'package:team_project_front/common/utils/error_dialog.dart';
-import 'package:team_project_front/common/utils/secure_storage_service.dart';
 import 'package:team_project_front/mypage/view/add_profile_screen.dart';
 
 class HomeCamForm extends StatefulWidget {
@@ -47,13 +46,8 @@ class _HomeCamFormState extends State<HomeCamForm> {
   // 추후 캐싱 이용하면 좋을듯
   Future<void> fetchBabies() async {
     try {
-      final dio = Dio();
-      final token = await SecureStorageService.getAccessToken();
-
-      final res = await dio.get(
-        '$base_URL/children',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
-      );
+      final dio = buildAuthedDio();
+      final res = await dio.get('/children');
 
       if (res.statusCode == 200) {
         final data = List<Map<String, dynamic>>.from(res.data['result']);

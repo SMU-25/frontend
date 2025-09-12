@@ -1,8 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/component/custom_navigation_bar.dart';
-import 'package:team_project_front/common/const/base_url.dart';
-import 'package:team_project_front/common/utils/secure_storage_service.dart';
+import 'package:team_project_front/common/network/dio_client.dart';
 import 'package:team_project_front/common/utils/error_dialog.dart';
 import 'package:team_project_front/common/view/root_tab.dart';
 import 'package:team_project_front/homecam/component/home_cam_form.dart';
@@ -70,17 +69,16 @@ class _UpdateHomeCamScreenState extends State<UpdateHomeCamScreen> {
         return;
       }
 
-      final dio = Dio();
-      final token = await SecureStorageService.getAccessToken();
+      final dio = buildAuthedDio();
+
       final res = await dio.patch(
-        '$base_URL/homecams/${widget.homeCamId}',
+        '/homecams/${widget.homeCamId}',
         data: {
           'childId': int.parse(selectedChild!),
           'serialNum': homeCamSerialNumController.text.trim(),
           'name': nameController.text.trim(),
           'place': installationPlaceController.text.trim(),
         },
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (!mounted) return;
