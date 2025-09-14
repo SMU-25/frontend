@@ -50,12 +50,12 @@ dependencies:
   firebase_messaging: ^16.0.0
   googleapis_auth: ^1.4.1
   flutter_local_notifications: ^18.0.1
-  flutter_naver_map: ^1.4.1+1
   geolocator: ^14.0.2
   url_launcher: ^6.3.2
   firebase_core: ^4.1.0
   json_annotation: ^4.9.0
   flutter_dotenv: ^6.0.0
+  kakao_map_sdk: ^1.1.4
 
 dev_dependencies:
   build_runner: ^2.8.0
@@ -87,6 +87,7 @@ flutter:
     - asset/img/login/
     - asset/img/graph/
     - asset/img/homecam_mock_data/
+    - asset/img/map/pin.png
     - asset/data/
     - .env
 
