@@ -1,605 +1,327 @@
 import 'dart:async';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:team_project_front/common/const/colors.dart';
-import 'package:team_project_front/map/model/naver_place.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:kakao_map_sdk/kakao_map_sdk.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+// .env 에서 REST 키 (검색 API용)
+final restKey = dotenv.env['KAKAO_REST_API_KEY']!;
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
-
   @override
   State<MapScreen> createState() => _MapScreenState();
 }
 
 class _MapScreenState extends State<MapScreen> {
-  NaverMapController? _mapController;
-  bool _skipNextMapTap = false;
+  KakaoMapController? _controller;
+  bool _loading = false;
 
-  late Future<NOverlayImage> _hospitalIconF;
-  late Future<NOverlayImage> _searchIconF;
-  static const NLatLng _fallback = NLatLng(37.5666, 126.9790);
+  // 기본 카메라: 서울시청
+  LatLng _center = const LatLng(37.5666, 126.9790);
 
-  bool _isLoading = false;
-
-  final List<NMarker> _hospitalMarkers = [];
-  final List<NMarker> _searchMarkers = [];
-
-  final _searchController = TextEditingController();
-  final _searchFocusNode = FocusNode();
+  // 검색
+  final _searchCtl = TextEditingController();
+  final _focusNode = FocusNode();
   Timer? _debouncer;
-  List<NaverPlace> _searchResults = [];
 
-  NaverPlace? _selectedPlace;
+  // 결과 / 선택
+  List<_Place> _places = [];
+  _Place? _selected;
 
-  double _toCoord(String s) => double.parse(s) / 1e7;
+  final PoiStyle _poiStyle = PoiStyle(
+    icon: KImage.fromAsset("asset/img/map/pin.png", 20, 20),
+  );
+  // 검색 결과 리스트 표시 여부
+  bool _showResults = false;
+  // 재 지도에 올라간 Poi 관리
+  final List<Poi> _poiList = [];
   @override
   void initState() {
     super.initState();
-    _prepareOverlayImages();
-  }
-
-  Future<void> _prepareOverlayImages() async {
-    // 폰트/트리 안정화 대기
-    await WidgetsBinding.instance.endOfFrame;
-    if (!mounted) return;
-    // 한 프레임 더 대기(폰트 콜백 잔여 제거에 도움)
-    await Future<void>.delayed(Duration.zero);
-    if (!mounted) return;
-
-    _hospitalIconF = NOverlayImage.fromWidget(
-      context: context,
-      widget: const Icon(Icons.add_circle, color: MAIN_COLOR, size: 40),
-      size: const Size(40, 40),
-    );
-
-    _searchIconF = NOverlayImage.fromWidget(
-      context: context,
-      widget: const Icon(Icons.place, color: Colors.blueAccent, size: 36),
-      size: const Size(36, 36),
-    );
-
-    // 필요하면 setState로 로딩 끝 알림
-    if (mounted) setState(() {});
-  }
-
-  Future<Position?> _getCurrentPosition() async {
-    if (!await Geolocator.isLocationServiceEnabled()) return null;
-
-    var perm = await Geolocator.checkPermission();
-    if (perm == LocationPermission.denied) {
-      perm = await Geolocator.requestPermission();
-      if (perm == LocationPermission.denied) return null;
-    }
-    if (perm == LocationPermission.deniedForever) return null;
-
-    return Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
-    );
-  }
-
-  Future<List<NaverPlace>> fetchNearbyHospitalsNaver({
-    required double lat,
-    required double lng,
-    int display = 20,
-  }) async {
-    final dio = Dio(
-      BaseOptions(
-        headers: {
-          'X-Naver-Client-Id': 'KWi9VShsCyUlGL54hJyX',
-          'X-Naver-Client-Secret': 'uzVmuAa2lG',
-        },
-        connectTimeout: const Duration(seconds: 8),
-        receiveTimeout: const Duration(seconds: 8),
-      ),
-    );
-
-    final res = await dio.get(
-      'https://openapi.naver.com/v1/search/local.json',
-      queryParameters: {
-        'query': '소아과',
-        'display': display.toString(),
-        'start': '1',
-        'sort': 'random',
-        'coordinate': '$lng,$lat',
-      },
-    );
-    final items = (res.data['items'] as List?) ?? const [];
-
-    return items.map((e) {
-      final m = e as Map<String, dynamic>;
-      final name = (m['title'] as String).replaceAll(RegExp(r'<\/?b>'), '');
-      final mapx = m['mapx'] as String;
-      final mapy = m['mapy'] as String;
-      final safeId = 'hosp_${mapx}_$mapy';
-      return NaverPlace(
-        id: safeId,
-        name: name,
-        lng: _toCoord(mapx),
-        lat: _toCoord(mapy),
-        phone: m['telephone'] as String?,
-        roadAddress: m['roadAddress'] as String?,
-      );
-    }).toList();
-  }
-
-  Future<List<NaverPlace>> _searchPlacesNaver(
-    String query, {
-    required double lat,
-    required double lng,
-  }) async {
-    if (query.isEmpty) {
-      return [];
-    }
-    final dio = Dio(
-      BaseOptions(
-        headers: {
-          'X-Naver-Client-Id': 'KWi9VShsCyUlGL54hJyX',
-          'X-Naver-Client-Secret': 'uzVmuAa2lG',
-        },
-        connectTimeout: const Duration(seconds: 8),
-        receiveTimeout: const Duration(seconds: 8),
-      ),
-    );
-
-    try {
-      final res = await dio.get(
-        'https://openapi.naver.com/v1/search/local.json',
-        queryParameters: {
-          'query': query,
-          'display': '10',
-          'start': '1',
-          'sort': 'random',
-          'coordinate': '$lng,$lat',
-        },
-      );
-      final items = (res.data['items'] as List?) ?? const [];
-      return items.map((e) {
-        final m = e as Map<String, dynamic>;
-        final name = (m['title'] as String).replaceAll(RegExp(r'<\/?b>'), '');
-        final mapx = m['mapx'] as String;
-        final mapy = m['mapy'] as String;
-        final safeId = 'place_${mapx}_$mapy';
-        return NaverPlace(
-          id: safeId,
-          name: name,
-          lng: _toCoord(mapx),
-          lat: _toCoord(mapy),
-          phone: m['telephone'] as String?,
-          roadAddress: m['roadAddress'] as String?,
-        );
-      }).toList();
-    } on DioException catch (e) {
-      debugPrint(
-        'Naver API search error: ${e.response?.statusCode} ${e.response?.data}',
-      );
-      return [];
-    }
-  }
-
-  void _onSearchChanged(String query, double lat, double lng) {
-    if (_debouncer?.isActive ?? false) _debouncer!.cancel();
-    _debouncer = Timer(const Duration(milliseconds: 500), () async {
-      final results = await _searchPlacesNaver(query, lat: lat, lng: lng);
-      setState(() {
-        _searchResults = results;
-      });
-      await _updateSearchMarkers(results);
-    });
-  }
-
-  Future<void> _onSelectPlace(NaverPlace place) async {
-    _mapController?.updateCamera(
-      NCameraUpdate.scrollAndZoomTo(
-        target: NLatLng(place.lat, place.lng),
-        zoom: 15,
-      ),
-    );
-    setState(() {
-      _searchResults = [];
-      _searchFocusNode.unfocus();
-
-      _selectedPlace = place;
-    });
-    final hasMarker = _searchMarkers.any(
-      (m) => m.info.id == 'srch_${place.id}',
-    );
-    if (!hasMarker) {
-      await _updateSearchMarkers([place]);
-    }
-  }
-
-  Future<void> _clearSearchMarkers() async {
-    if (_mapController == null) return;
-    for (final m in _searchMarkers) {
-      await _mapController!.deleteOverlay(m.info);
-    }
-    _searchMarkers.clear();
-  }
-
-  Future<void> _updateSearchMarkers(List<NaverPlace> results) async {
-    if (_mapController == null) return;
-    // 기존 검색 마커 제거
-    await _clearSearchMarkers();
-
-    // 아이콘 준비
-    final icon = await _searchIconF;
-
-    // 새 검색 마커 추가
-    for (final p in results) {
-      final marker = NMarker(
-        id: 'srch_${p.id}',
-        position: NLatLng(p.lat, p.lng),
-        icon: icon,
-        anchor: const NPoint(0.5, 1.0),
-        caption: NOverlayCaption(text: p.name, minZoom: 14),
-        isHideCollidedSymbols: true,
-      );
-
-      // 마커 탭 시 상세 패널 노출 + 카메라 살짝 이동
-      marker.setOnTapListener((overlay) async {
-        if (!mounted) return;
-        _skipNextMapTap = true;
-        setState(() {
-          _selectedPlace = p;
-        });
-        await _mapController?.updateCamera(
-          NCameraUpdate.scrollAndZoomTo(
-            target: NLatLng(p.lat, p.lng),
-            zoom: 15,
-          ),
-        );
-      });
-
-      _mapController!.addOverlay(marker);
-      _searchMarkers.add(marker);
-    }
-  }
-
-  Future<void> _showHospitalsNearMe() async {
-    if (_mapController == null) return;
-
-    setState(() => _isLoading = true);
-    try {
-      final pos = await _getCurrentPosition();
-      final here =
-          (pos != null) ? NLatLng(pos.latitude, pos.longitude) : _fallback;
-
-      await _mapController!.updateCamera(
-        NCameraUpdate.scrollAndZoomTo(target: here, zoom: 15),
-      );
-
-      final hospitals = await fetchNearbyHospitalsNaver(
-        lat: here.latitude,
-        lng: here.longitude,
-        display: 20,
-      );
-
-      for (final m in _hospitalMarkers) {
-        await _mapController?.deleteOverlay(m.info);
-      }
-
-      _hospitalMarkers.clear();
-
-      final hospitalIcon = await _hospitalIconF;
-
-      for (final h in hospitals) {
-        final m = NMarker(
-          id: h.id,
-          position: NLatLng(h.lat, h.lng),
-          icon: hospitalIcon,
-          anchor: const NPoint(0.5, 1.0),
-          caption: NOverlayCaption(text: h.name, minZoom: 14),
-          isHideCollidedSymbols: true,
-        );
-        // 병원 마커 탭 시 상세 패널 노출 + 카메라 이동
-        m.setOnTapListener((overlay) async {
-          if (!mounted) return;
-          _skipNextMapTap = true;
-          setState(() {
-            _selectedPlace = h;
-          });
-          await _mapController?.updateCamera(
-            NCameraUpdate.scrollAndZoomTo(
-              target: NLatLng(h.lat, h.lng),
-              zoom: 15,
-            ),
-          );
-        });
-
-        _mapController!.addOverlay(m);
-        _hospitalMarkers.add(m);
-      }
-
-      final overlay = _mapController!.getLocationOverlay();
-      overlay.setIsVisible(true);
-      overlay.setPosition(here);
-    } on DioException catch (e) {
-      debugPrint(
-        'Naver API error: ${e.response?.statusCode} ${e.response?.data}',
-      );
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('병원 데이터를 불러오지 못했습니다.')));
-    } catch (e) {
-      debugPrint('Unexpected: $e');
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('오류가 발생했습니다.')));
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _makePhoneCall(String phoneNumber) async {
-    final Uri launchUri = Uri(
-      scheme: 'tel',
-      path: phoneNumber.replaceAll(RegExp(r'[^0-9]'), ''),
-    );
-    if (await canLaunchUrl(launchUri)) {
-      await launchUrl(launchUri);
-    } else {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('전화를 걸 수 없습니다.')));
-    }
+    _initCurrentLocation();
   }
 
   @override
   void dispose() {
     _debouncer?.cancel();
-    _searchController.dispose();
-    _searchFocusNode.dispose();
+    _searchCtl.dispose();
+    _focusNode.dispose();
     super.dispose();
+  }
+
+  Future<void> _initCurrentLocation() async {
+    setState(() => _loading = true);
+    try {
+      if (!await Geolocator.isLocationServiceEnabled()) return;
+      var perm = await Geolocator.checkPermission();
+      if (perm == LocationPermission.denied) {
+        perm = await Geolocator.requestPermission();
+        if (perm == LocationPermission.denied) return;
+      }
+      if (perm == LocationPermission.deniedForever) return;
+
+      final pos = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+      _center = LatLng(pos.latitude, pos.longitude);
+
+      // 초기 자동 검색
+      await _searchByKeyword('소아청소년과', near: _center, size: 14);
+      await _moveCamera(_center, 14);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _moveCamera(LatLng target, int zoom) async {
+    final c = _controller;
+    if (c == null) return;
+    await c.moveCamera(CameraUpdate.newCenterPosition(target, zoomLevel: zoom));
+  }
+
+  void _onChanged(String q) {
+    if (_debouncer?.isActive ?? false) _debouncer!.cancel();
+    _debouncer = Timer(const Duration(milliseconds: 500), () async {
+      if (!mounted) return;
+
+      final cam = await _controller?.getCameraPosition();
+      final center = cam?.position ?? _center;
+      setState(() => _showResults = q.trim().isNotEmpty);
+      await _searchByKeyword(q.trim(), near: center);
+    });
+  }
+
+  /// 카카오 로컬 API로 장소 검색 → 리스트/POI 반영
+  Future<void> _searchByKeyword(
+    String query, {
+    required LatLng near,
+    int size = 14,
+  }) async {
+    if (query.isEmpty) {
+      setState(() {
+        _places = [];
+        _selected = null;
+      });
+      // 기존 POI 숨김/정리
+      await _hideAllPoi();
+      return;
+    }
+
+    setState(() => _loading = true);
+    try {
+      final dio = Dio(
+        BaseOptions(headers: {'Authorization': 'KakaoAK $restKey'}),
+      );
+
+      final res = await dio.get(
+        'https://dapi.kakao.com/v2/local/search/keyword.json',
+        queryParameters: {
+          'query': query,
+          'y': near.latitude.toString(),
+          'x': near.longitude.toString(),
+          'radius': '5000',
+          'size': size.toString(),
+          'sort': 'accuracy',
+        },
+      );
+
+      final docs = (res.data['documents'] as List?) ?? const [];
+      final list =
+          docs.map((e) {
+            final m = e as Map<String, dynamic>;
+            final x = double.tryParse('${m['x']}') ?? near.longitude;
+            final y = double.tryParse('${m['y']}') ?? near.latitude;
+            return _Place(
+              id: '${m['id']}',
+              name: m['place_name'] as String? ?? '이름 없음',
+              latLng: LatLng(y, x),
+              roadAddr: m['road_address_name'] as String?,
+              phone: m['phone'] as String?,
+            );
+          }).toList();
+
+      // 지도에 표시된 기존 POI 숨기고 새로 그리기
+      await _hideAllPoi();
+      await _drawPois(list);
+
+      setState(() {
+        _places = list;
+        if (list.isNotEmpty) _selected = list.first;
+      });
+    } on DioException catch (e) {
+      debugPrint(
+        'Kakao search error: ${e.response?.statusCode} ${e.response?.data}',
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('검색에 실패했습니다.')));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  /// 기존 POI 전체 숨김
+  Future<void> _hideAllPoi() async {
+    final c = _controller;
+    if (c == null) return;
+    // SDK가 removeAllPoi() 를 제공하지 않는 버전도 있어 hide로 처리
+    await c.labelLayer.hideAllPoi();
+  }
+
+  /// 검색 결과를 POI로 지도에 표시
+  Future<void> _drawPois(List<_Place> places) async {
+    final c = _controller;
+    if (c == null) return;
+
+    for (final poi in _poiList) {
+      await c.labelLayer.removePoi(poi);
+    }
+    _poiList.clear();
+
+    for (final p in places) {
+      final poi = await c.labelLayer.addPoi(
+        p.latLng,
+        id: p.id,
+        text: p.name,
+        style: _poiStyle, // 커스텀 아이콘 쓰려면 위에서 _poiStyle 세팅
+        visible: true,
+        onClick: () {
+          if (!mounted) return;
+          setState(() {
+            _selected = p;
+            _showResults = false; // 리스트는 닫은 상태 유지
+          });
+        },
+      );
+      _poiList.add(poi); // 리스트에 Poi 저장
+    }
+  }
+
+  Future<void> _call(String number) async {
+    final clean = number.replaceAll(RegExp(r'[^0-9]'), '');
+    final uri = Uri(scheme: 'tel', path: clean);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('전화 앱을 열 수 없어요.')));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final safeAreaPadding = MediaQuery.paddingOf(context);
+    final pad = MediaQuery.paddingOf(context);
 
     return Scaffold(
       body: Stack(
         children: [
-          NaverMap(
-            options: NaverMapViewOptions(
-              contentPadding: safeAreaPadding,
-              initialCameraPosition: const NCameraPosition(
-                target: _fallback,
-                zoom: 14,
-              ),
-              locationButtonEnable: false,
-              indoorEnable: true,
+          KakaoMap(
+            option: KakaoMapOption(
+              position: _center,
+              zoomLevel: 14,
+              mapType: MapType.normal,
             ),
-            onMapReady: (controller) async {
-              _mapController = controller;
-
-              final pos = await _getCurrentPosition();
-              final here =
-                  (pos != null)
-                      ? NLatLng(pos.latitude, pos.longitude)
-                      : _fallback;
-
-              await controller.updateCamera(
-                NCameraUpdate.scrollAndZoomTo(target: here, zoom: 14),
-              );
-
-              final overlay = controller.getLocationOverlay();
-              overlay.setIsVisible(true);
-              overlay.setPosition(here);
+            onMapReady: (controller) {
+              _controller = controller;
             },
-            onMapTapped: (point, latLng) {
-              if (_skipNextMapTap) {
-                _skipNextMapTap = false;
-                return;
-              }
-              if (_searchFocusNode.hasFocus) {
-                _searchFocusNode.unfocus();
-              }
-              // 지도 탭 시 UI 닫기
-              setState(() {
-                _selectedPlace = null;
-              });
+            onMapClick: (point, position) {
+              // 지도 클릭 시 상세 패널 닫기
+              setState(() => _selected = null);
+              _focusNode.unfocus();
+              _showResults = false;
             },
           ),
 
-          // 검색창 및 검색 결과 리스트
+          // 검색 상자
           Positioned(
-            top: 16 + safeAreaPadding.top,
+            top: 16 + pad.top,
             left: 16,
             right: 16,
-            child: Column(
-              children: [
-                // 검색창
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 6,
-                        offset: Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: TextField(
-                    controller: _searchController,
-                    focusNode: _searchFocusNode,
-                    onChanged: (query) {
-                      _onSearchChanged(
-                        query,
-                        _fallback.latitude,
-                        _fallback.longitude,
-                      );
-                    },
-                    decoration: InputDecoration(
-                      hintText: '원하는 장소를 검색하세요',
-                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                      suffixIcon:
-                          _searchController.text.isNotEmpty
-                              ? IconButton(
-                                icon: const Icon(
-                                  Icons.clear,
-                                  color: Colors.grey,
-                                ),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  setState(() {
-                                    _searchResults = [];
-                                  });
-                                },
-                              )
-                              : null,
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
-                    ),
-                  ),
-                ),
-
-                // 검색 결과 리스트
-                if (_searchResults.isNotEmpty)
-                  Container(
-                    margin: const EdgeInsets.only(top: 8),
-                    constraints: const BoxConstraints(maxHeight: 200),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black12,
-                          blurRadius: 6,
-                          offset: Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: ListView.separated(
-                      shrinkWrap: true,
-                      padding: EdgeInsets.zero, // 리스트 자체 패딩 제거
-                      itemCount: _searchResults.length,
-                      separatorBuilder:
-                          (_, __) => const Divider(height: 1, thickness: 0.5),
-                      itemBuilder: (context, index) {
-                        final place = _searchResults[index];
-                        return ListTile(
-                          contentPadding: const EdgeInsets.fromLTRB(
-                            12,
-                            8,
-                            12,
-                            8,
-                          ),
-                          minLeadingWidth: 0,
-                          leading: const SizedBox(width: 0),
-                          // 텍스트 정리
-                          title: Text(
-                            place.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          subtitle: Text(
-                            place.roadAddress ?? '',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: Colors.black54),
-                          ),
-                          onTap: () => _onSelectPlace(place),
-                        );
-                      },
-                    ),
-                  ),
-              ],
+            child: _SearchBox(
+              controller: _searchCtl,
+              focusNode: _focusNode,
+              onChanged: _onChanged,
+              onClear: () {
+                _searchCtl.clear();
+                setState(() => _showResults = false);
+                _searchByKeyword('', near: _center);
+              },
             ),
           ),
 
-          // 로딩 오버레이
-          if (_isLoading)
-            Positioned.fill(
-              child: IgnorePointer(
-                ignoring: false,
-                child: Container(
-                  color: Colors.black45,
-                  child: const Center(child: CircularProgressIndicator()),
-                ),
+          // 검색 결과 리스트
+          if (_showResults && _places.isNotEmpty)
+            Positioned(
+              top: 76 + pad.top,
+              left: 16,
+              right: 16,
+              child: _ResultList(
+                places: _places,
+                onTap: (p) async {
+                  _showResults = false;
+                  setState(() => _selected = p);
+                  await _moveCamera(p.latLng, 15);
+                },
               ),
             ),
 
-          // 하단 우측 “현 위치에서 병원 보기” 버튼
+          // 내 위치 버튼
           Positioned(
             right: 16,
-            bottom: 150 + safeAreaPadding.bottom,
-            child: ElevatedButton(
-              onPressed: _isLoading ? null : _showHospitalsNearMe,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                shape: const CircleBorder(),
-                padding: const EdgeInsets.all(12),
-              ),
+            bottom: 150 + pad.bottom,
+            child: FloatingActionButton.small(
+              heroTag: 'myLoc',
+              backgroundColor: Colors.white,
+              onPressed:
+                  _loading
+                      ? null
+                      : () async {
+                        setState(() => _loading = true);
+                        try {
+                          final pos = await Geolocator.getCurrentPosition(
+                            locationSettings: const LocationSettings(
+                              accuracy: LocationAccuracy.high,
+                            ),
+                          );
+                          _center = LatLng(pos.latitude, pos.longitude);
+                          await _moveCamera(_center, 15);
+                          await _searchByKeyword(
+                            _searchCtl.text.isNotEmpty
+                                ? _searchCtl.text
+                                : '소아청소년과',
+                            near: _center,
+                          );
+                        } finally {
+                          if (mounted) setState(() => _loading = false);
+                        }
+                      },
               child: const Icon(Icons.my_location, color: Colors.black),
             ),
           ),
 
-          // 선택된 병원 정보 UI
-          if (_selectedPlace != null)
+          // 선택 상세 카드
+          if (_selected != null)
             Positioned(
-              bottom: 20,
-              left: 10,
-              right: 10,
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.all(Radius.circular(16)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          _selectedPlace!.name,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const Icon(Icons.star_border, color: Colors.grey),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
+              left: 12,
+              right: 12,
+              bottom: 16 + pad.bottom,
+              child: _PlaceCard(place: _selected!, onCall: (ph) => _call(ph)),
+            ),
 
-                    Text(
-                      _selectedPlace!.roadAddress ?? '주소 정보 없음',
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                    if (_selectedPlace!.phone != null &&
-                        _selectedPlace!.phone!.isNotEmpty)
-                      InkWell(
-                        onTap: () => _makePhoneCall(_selectedPlace!.phone!),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.phone, color: Colors.grey),
-                            const SizedBox(width: 8),
-                            Text(
-                              _selectedPlace!.phone!,
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
+          if (_loading)
+            const Positioned.fill(
+              child: IgnorePointer(
+                child: ColoredBox(
+                  color: Color(0x33000000),
+                  child: Center(child: CircularProgressIndicator()),
                 ),
               ),
             ),
@@ -607,4 +329,147 @@ class _MapScreenState extends State<MapScreen> {
       ),
     );
   }
+}
+
+class _SearchBox extends StatelessWidget {
+  const _SearchBox({
+    required this.controller,
+    required this.focusNode,
+    required this.onChanged,
+    required this.onClear,
+  });
+
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      elevation: 6,
+      borderRadius: BorderRadius.circular(10),
+      child: TextField(
+        controller: controller,
+        focusNode: focusNode,
+        onChanged: onChanged,
+        decoration: InputDecoration(
+          hintText: '장소를 검색하세요',
+          prefixIcon: const Icon(Icons.search, color: Colors.grey),
+          suffixIcon:
+              controller.text.isNotEmpty
+                  ? IconButton(
+                    onPressed: onClear,
+                    icon: const Icon(Icons.clear, color: Colors.grey),
+                  )
+                  : null,
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 14,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ResultList extends StatelessWidget {
+  const _ResultList({required this.places, required this.onTap});
+  final List<_Place> places;
+  final ValueChanged<_Place> onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      elevation: 6,
+      borderRadius: BorderRadius.circular(10),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 220),
+        child: ListView.separated(
+          padding: EdgeInsets.zero,
+          itemCount: places.length,
+          separatorBuilder: (_, __) => const Divider(height: 1),
+          itemBuilder: (_, i) {
+            final p = places[i];
+            return ListTile(
+              title: Text(p.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+              subtitle: Text(
+                p.roadAddr ?? '',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Colors.black54),
+              ),
+              onTap: () => onTap(p),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _PlaceCard extends StatelessWidget {
+  const _PlaceCard({required this.place, required this.onCall});
+  final _Place place;
+  final void Function(String phone) onCall;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      elevation: 8,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              place.name,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              place.roadAddr ?? '주소 정보 없음',
+              style: const TextStyle(color: Colors.grey),
+            ),
+            if ((place.phone ?? '').isNotEmpty) ...[
+              const SizedBox(height: 8),
+              InkWell(
+                onTap: () => onCall(place.phone!),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.phone, color: Colors.grey),
+                    const SizedBox(width: 8),
+                    Text(place.phone!, style: const TextStyle(fontSize: 16)),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Place {
+  final String id;
+  final String name;
+  final LatLng latLng;
+  final String? phone;
+  final String? roadAddr;
+  const _Place({
+    required this.id,
+    required this.name,
+    required this.latLng,
+    this.phone,
+    this.roadAddr,
+  });
 }
