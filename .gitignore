@@ -53,3 +53,6 @@ asset/data/firebase_auth.json
 google-services.json
 GoogleService-Info.plist
 firebase_options.dart
+
+# env
+.env
