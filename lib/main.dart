@@ -10,7 +10,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:kakao_map_sdk/kakao_map_sdk.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -22,20 +21,20 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 void main() async {
-  await dotenv.load(fileName: ".env");
-
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  final kakaoNativeKey = dotenv.env['KAKAO_NATIVE_APP_KEY'];
+  const kakaoNativeKey = String.fromEnvironment('KAKAO_NATIVE_APP_KEY');
 
-  if (kakaoNativeKey == null || kakaoNativeKey.isEmpty) {
-    throw Exception("Kakao Native App Key 없음!");
+  if (kakaoNativeKey == '') {
+    throw Exception(
+      "Kakao Native App Key가 주입되지 않았습니다. --dart-define으로 전달해주세요.",
+    );
   }
 
   await KakaoMapSdk.instance.initialize(kakaoNativeKey);
 
   await initializeDateFormatting();
-  KakaoSdk.init(nativeAppKey: dotenv.env['KAKAO_REST_API_KEY']);
+  KakaoSdk.init(nativeAppKey: kakaoNativeKey);
   // 백그라운드 핸들러 등록
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 

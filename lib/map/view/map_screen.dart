@@ -2,12 +2,17 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:kakao_map_sdk/kakao_map_sdk.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-// .env 에서 REST 키 (검색 API용)
-final restKey = dotenv.env['KAKAO_REST_API_KEY']!;
+// REST 키 (검색 API용)
+const kakaoRestKey = String.fromEnvironment('KAKAO_REST_API_KEY');
+
+void _validateKakaoRestKey() {
+  if (kakaoRestKey == '') {
+    throw Exception(" Kakao REST API 키가 주입되지 않았습니다. --dart-define으로 전달해주세요.");
+  }
+}
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -19,8 +24,7 @@ class _MapScreenState extends State<MapScreen> {
   KakaoMapController? _controller;
   bool _loading = false;
 
-  // 기본 카메라: 서울시청
-  LatLng _center = const LatLng(37.5666, 126.9790);
+  LatLng _center = const LatLng(37.6026, 126.9553);
 
   // 검색
   final _searchCtl = TextEditingController();
@@ -38,9 +42,11 @@ class _MapScreenState extends State<MapScreen> {
   bool _showResults = false;
   // 재 지도에 올라간 Poi 관리
   final List<Poi> _poiList = [];
+
   @override
   void initState() {
     super.initState();
+    _validateKakaoRestKey();
     _initCurrentLocation();
   }
 
@@ -115,7 +121,7 @@ class _MapScreenState extends State<MapScreen> {
     setState(() => _loading = true);
     try {
       final dio = Dio(
-        BaseOptions(headers: {'Authorization': 'KakaoAK $restKey'}),
+        BaseOptions(headers: {'Authorization': 'KakaoAK $kakaoRestKey'}),
       );
 
       final res = await dio.get(
