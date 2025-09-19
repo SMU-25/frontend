@@ -44,15 +44,17 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+
 # Ios 
 ios/Pods/
 ios/Podfile.lock
 
-# firebase
+# Firebase
 asset/data/firebase_auth.json
 google-services.json
 GoogleService-Info.plist
 firebase_options.dart
 
-# env
-.env
+
+.vscode
+android
