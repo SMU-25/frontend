@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk_template.dart';
 import 'package:team_project_front/common/view/root_tab.dart';
 import 'package:team_project_front/init/view/init.dart';
@@ -11,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
+import 'package:kakao_map_sdk/kakao_map_sdk.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -23,9 +23,18 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  const kakaoNativeKey = String.fromEnvironment('KAKAO_NATIVE_APP_KEY');
+
+  if (kakaoNativeKey == '') {
+    throw Exception(
+      "Kakao Native App Key가 주입되지 않았습니다. --dart-define으로 전달해주세요.",
+    );
+  }
+
+  await KakaoMapSdk.instance.initialize(kakaoNativeKey);
 
   await initializeDateFormatting();
-  KakaoSdk.init(nativeAppKey: 'b3565aae8a5f99df7052455a2917cec7');
+  KakaoSdk.init(nativeAppKey: kakaoNativeKey);
   // 백그라운드 핸들러 등록
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
@@ -37,21 +46,6 @@ void main() async {
       print('Message also contained a notification: ${message.notification}');
     }
   });
-  await FlutterNaverMap().init(
-    clientId: 'zyezii413y',
-    onAuthFailed: (ex) {
-      switch (ex) {
-        case NQuotaExceededException(:final message):
-          print("사용량 초과 (message: $message)");
-          break;
-        case NUnauthorizedClientException() ||
-            NClientUnspecifiedException() ||
-            NAnotherAuthFailedException():
-          print("인증 실패: $ex");
-          break;
-      }
-    },
-  );
 
   runApp(ProviderScope(child: _App()));
 }
