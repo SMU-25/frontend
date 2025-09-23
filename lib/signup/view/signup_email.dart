@@ -57,27 +57,45 @@ class _SignupEmailScreenState extends State<SignupEmailScreen> {
           '$base_URL/email/verification-code',
           data: {'email': email},
         );
-        if (!mounted) return;
-        Navigator.of(context).pop();
 
-        if (res.statusCode == 200) {
+        final sc = res.statusCode ?? 0;
+
+        if (sc == 200) {
           if (!mounted) return;
-          showEmailVerificationDialog(
-            context: context,
-            email: email,
-            onVerified: onVerified,
-          );
+          Future.microtask(() {
+            if (!mounted) return;
+            showEmailVerificationDialog(
+              context: context,
+              email: email,
+              onVerified: onVerified,
+            );
+          });
         } else {
+          final serverMsg =
+              (res.data is Map) ? res.data['message']?.toString() : null;
           if (!mounted) return;
-          showErrorDialog(context: context, message: '이메일 인증 전송에 실패했습니다.');
+          Future.microtask(() {
+            if (!mounted) return;
+            showErrorDialog(
+              context: context,
+              message: serverMsg ?? '이메일 인증 전송에 실패했습니다. (HTTP $sc)',
+            );
+          });
         }
       } on DioException catch (err) {
         String message = '알 수 없는 오류가 발생했습니다.';
-        if (err.response != null && err.response?.data != null) {
-          message = err.response?.data['message'] ?? message;
+        if (err.response?.data is Map) {
+          message = err.response?.data['message']?.toString() ?? message;
         }
         if (!mounted) return;
-        showErrorDialog(context: context, message: message);
+        Future.microtask(() {
+          if (!mounted) return;
+          showErrorDialog(context: context, message: message);
+        });
+      } finally {
+        if (mounted && Navigator.canPop(context)) {
+          Navigator.of(context).pop();
+        }
       }
     }
   }
