@@ -68,6 +68,14 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
   json_serializable: ^6.11.1
+  flutter_launcher_icons: ^0.14.4
+  # flutter_launcher_icons 패키지 설정
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: "AppIcon"
+  image_path_ios: "asset/img/icons/icon.png"
+  image_path_android: "asset/img/icons/round-icon.png"
+  remove_alpha_ios: true
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
