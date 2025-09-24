@@ -1,3 +1,8 @@
+import 'package:json_annotation/json_annotation.dart';
+
+part 'notification.g.dart';
+
+@JsonSerializable()
 class NotificationItem {
   final int notificationId;
   final String type;
@@ -21,17 +26,8 @@ class NotificationItem {
     required this.read,
   });
 
-  factory NotificationItem.fromJson(Map<String, dynamic> json) {
-    return NotificationItem(
-      notificationId: json['notificationId'] as int,
-      type: json['type'] as String,
-      message: json['message'] as String,
-      fever: (json['fever'] as num?)?.toDouble(),
-      temperature: (json['temperature'] as num?)?.toDouble(),
-      humidity: (json['humidity'] as num?)?.toDouble(),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      childName: json['childName'] as String,
-      read: json['read'] as bool,
-    );
-  }
+  factory NotificationItem.fromJson(Map<String, dynamic> json) =>
+      _$NotificationItemFromJson(json);
+
+  Map<String, dynamic> toJson() => _$NotificationItemToJson(this);
 }
