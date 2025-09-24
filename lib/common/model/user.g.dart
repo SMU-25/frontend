@@ -24,4 +24,4 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
   'gender': _$GenderEnumMap[instance.gender]!,
 };
 
-const _$GenderEnumMap = {Gender.male: 'male', Gender.female: 'female'};
+const _$GenderEnumMap = {Gender.male: 'MALE', Gender.female: 'FEMALE'};
