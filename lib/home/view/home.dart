@@ -78,14 +78,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       final res = await dio.get('/feverRecords/$childId');
 
       if (res.statusCode == 200) {
-        final data = (res.data['result'] ?? {}) as Map<String, dynamic>;
-        final fever = (data['fever'] as num?)?.toDouble();
-        final createdAtStr = data['createdAt'] as String?;
-        if (fever == null || createdAtStr == null) return null;
-        return FeverRecord(
-          fever: fever,
-          createdAt: DateTime.tryParse(createdAtStr) ?? DateTime.now(),
-        );
+        final data = res.data['result'] as Map<String, dynamic>?;
+        if (data == null) return null;
+        return FeverRecord.fromJson(data);
       }
       return null;
     } catch (_) {
@@ -97,18 +92,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final dio = buildAuthedDio();
     final res = await dio.get('/children');
     if (res.statusCode == 200) {
-      final list = List<Map<String, dynamic>>.from(res.data['result']);
-      return list
-          .map((m) {
-            final childId = (m['childId'] as num?)?.toInt();
-            return Baby.forList(
-              childId: childId ?? -1,
-              name: (m['name'] as String?) ?? '이름 미등록',
-              profileImage: (m['profileImage'] as String?) ?? '',
-            );
-          })
-          .where((b) => b.childId != -1)
-          .toList();
+      final list = res.data['result'] as List<dynamic>;
+      return list.map((m) => Baby.fromJson(m as Map<String, dynamic>)).toList();
     }
     return [];
   }
@@ -118,21 +103,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       final dio = buildAuthedDio();
       final res = await dio.get('/children/$childId');
       if (res.statusCode == 200) {
-        final m = res.data['result'] as Map<String, dynamic>;
-        return Baby(
-          childId: m['childId'],
-          name: m['name'],
-          birthDate:
-              (m['birthdate'] != null)
-                  ? DateTime.tryParse(m['birthdate'])
-                  : null,
-          height: (m['height'] as num?)?.toDouble(),
-          weight: (m['weight'] as num?)?.toDouble(),
-          gender: m['gender'] == 'FEMALE' ? Gender.female : Gender.male,
-          seizure: m['seizure'],
-          profileImage: m['profileImage'],
-          illnessTypes: List<String>.from(m['illnessTypes'] ?? []),
-        );
+        final m = res.data['result'] as Map<String, dynamic>?;
+        if (m == null) return null;
+        return Baby.fromJson(m);
       }
       return null;
     } catch (_) {
@@ -158,13 +131,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
 
     final savedId = ref.read(selectedBabyIdProvider);
-    final initial =
-        (savedId != null)
-            ? loadedBabies.firstWhere(
-              (b) => b.childId == savedId,
-              orElse: () => loadedBabies.first,
-            )
-            : loadedBabies.first;
+    final initial = (savedId != null)
+        ? loadedBabies.firstWhere(
+            (b) => b.childId == savedId,
+            orElse: () => loadedBabies.first,
+          )
+        : loadedBabies.first;
 
     final babyDetail = await fetchBabyData(initial.childId!);
     final fever = await fetchFeverRecordData(initial.childId!);
@@ -225,14 +197,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final slicedHumidity = oneDecimal(roomConditionData?.humidity);
     final slicedFever = oneDecimal(feverRecordData?.fever);
 
-    final feverRecordAgoText =
-        (feverRecordData?.createdAt != null)
-            ? dateConvert(feverRecordData!.createdAt!)
-            : '없음';
-    final roomConditionAgoText =
-        (roomConditionData?.createdAt != null)
-            ? dateConvert(roomConditionData!.createdAt!)
-            : '없음';
+    final feverRecordAgoText = (feverRecordData?.createdAt != null)
+        ? dateConvert(feverRecordData!.createdAt!)
+        : '없음';
+    final roomConditionAgoText = (roomConditionData?.createdAt != null)
+        ? dateConvert(roomConditionData!.createdAt!)
+        : '없음';
 
     final isFever = (slicedFever != null && slicedFever >= feverThreshold);
     final isUncomfortableHumidity =
@@ -241,20 +211,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final comfortStatus =
         (slicedHumidity == null || slicedAirTemperature == null)
-            ? '데이터 없음'
-            : (slicedHumidity > 60)
-            ? (slicedAirTemperature > 24
-                ? '덥고 습해요'
-                : slicedAirTemperature < 22
-                ? '춥고 습해요'
-                : '습해요')
-            : (slicedHumidity < 40)
-            ? (slicedAirTemperature > 24
-                ? '덥고 건조해요'
-                : slicedAirTemperature < 22
-                ? '춥고 건조해요'
-                : '건조해요')
-            : (slicedAirTemperature <= 22 ? '추워요' : '쾌적해요 ☺️');
+        ? '데이터 없음'
+        : (slicedHumidity > 60)
+        ? (slicedAirTemperature > 24
+              ? '덥고 습해요'
+              : slicedAirTemperature < 22
+              ? '춥고 습해요'
+              : '습해요')
+        : (slicedHumidity < 40)
+        ? (slicedAirTemperature > 24
+              ? '덥고 건조해요'
+              : slicedAirTemperature < 22
+              ? '춥고 건조해요'
+              : '건조해요')
+        : (slicedAirTemperature <= 22 ? '추워요' : '쾌적해요 ☺️');
 
     return Scaffold(
       appBar: AppBar(

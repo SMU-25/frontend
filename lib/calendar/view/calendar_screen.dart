@@ -72,8 +72,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
         final Map<DateTime, List<Plan>> tempPlans = {};
 
         for (var json in jsonList) {
-          final plan = Plan.fromMap(json);
-          final scheduleDate = DateTime.utc(plan.date.year, plan.date.month, plan.date.day);
+          final plan = Plan.fromJson(json);
+          final scheduleDate = DateTime.utc(
+            plan.date.year,
+            plan.date.month,
+            plan.date.day,
+          );
 
           if (!tempPlans.containsKey(scheduleDate)) {
             tempPlans[scheduleDate] = [];
@@ -114,7 +118,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             },
           );
 
-          if(resp == null) {
+          if (resp == null) {
             titleController.clear();
             contentController.clear();
             return;
@@ -125,11 +129,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
           await loadPlans();
         },
-        child: Icon(
-          size: 40,
-          Icons.add_circle,
-          color: MAIN_COLOR,
-        ),
+        child: Icon(size: 40, Icons.add_circle, color: MAIN_COLOR),
       ),
       body: Column(
         children: [
@@ -143,12 +143,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
             },
           ),
           SizedBox(height: 16),
-          PlanBanner(
-            selectedDay: selectedDay!,
-          ),
+          PlanBanner(selectedDay: selectedDay!),
           Expanded(
             child: ListView.builder(
-              itemCount: plans.containsKey(selectedDay) ? plans[selectedDay]!.length : 0,
+              itemCount: plans.containsKey(selectedDay)
+                  ? plans[selectedDay]!.length
+                  : 0,
               itemBuilder: (BuildContext context, int index) {
                 final selectedPlans = plans[selectedDay]!;
                 final planModel = selectedPlans[index];
@@ -165,11 +165,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   onDismissed: (_) async {
                     final removedPlan = plans[selectedDay]!.removeAt(index);
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("삭제 중...")),
-                    );
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text("삭제 중...")));
 
-                    final accessToken = await SecureStorageService.getAccessToken();
+                    final accessToken =
+                        await SecureStorageService.getAccessToken();
 
                     if (accessToken == null) {
                       print('AccessToken 없음!');
@@ -185,17 +186,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         ),
                       );
 
-                      if (response.statusCode == 200 && response.data['isSuccess']) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("일정이 삭제되었습니다.")),
-                        );
+                      if (response.statusCode == 200 &&
+                          response.data['isSuccess']) {
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text("일정이 삭제되었습니다.")));
                       } else {
                         print('일정 삭제 실패: ${response.data['message']}');
                         setState(() {
                           plans[selectedDay]!.insert(index, removedPlan);
                         });
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("삭제 실패: ${response.data['message']}")),
+                          SnackBar(
+                            content: Text("삭제 실패: ${response.data['message']}"),
+                          ),
                         );
                       }
                     } catch (e) {
@@ -254,7 +258,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   bool selectedDayPredicate(DateTime date) {
-    if(selectedDay == null) {
+    if (selectedDay == null) {
       return false;
     }
 
