@@ -1,5 +1,8 @@
 import 'package:fl_chart/fl_chart.dart';
+import 'package:json_annotation/json_annotation.dart';
+part 'report_info.g.dart';
 
+@JsonSerializable(createToJson: false)
 class ReportInfo {
   // 리포트 고유 ID
   final int reportId;
@@ -17,9 +20,11 @@ class ReportInfo {
   final List<String> illnesses;
   // AI 분석 설명
   final String special;
-
+  @JsonKey(fromJson: ReportStats.fromJson)
   final ReportStats? day1;
+  @JsonKey(fromJson: ReportStats.fromJson)
   final ReportStats? day3;
+  @JsonKey(fromJson: ReportStats.fromJson)
   final ReportStats? day7;
 
   ReportInfo({
@@ -35,22 +40,8 @@ class ReportInfo {
     this.day3,
     this.day7,
   });
-
-  factory ReportInfo.fromJson(Map<String, dynamic> json) {
-    return ReportInfo(
-      reportId: json['reportId'] ?? 0,
-      childId: json['childId'] ?? 0,
-      createdAt: DateTime.parse(json['createdAt']),
-      symptoms: List<String>.from(json['symptoms'] ?? []),
-      etcSymptom: json['etc_symptom'] ?? '',
-      outingRecord: json['outing'] ?? '',
-      illnesses: List<String>.from(json['illnesses'] ?? []),
-      special: json['special'] ?? '',
-      day1: json['day1'] != null ? ReportStats.fromJson(json['day1']) : null,
-      day3: json['day3'] != null ? ReportStats.fromJson(json['day3']) : null,
-      day7: json['day7'] != null ? ReportStats.fromJson(json['day7']) : null,
-    );
-  }
+  factory ReportInfo.fromJson(Map<String, dynamic> json) =>
+      _$ReportInfoFromJson(json);
 }
 
 class ReportStats {
@@ -67,7 +58,7 @@ class ReportStats {
   static ReportStats fromJson(Map<String, dynamic> json) {
     List<double> parseAvgList(List<dynamic> rawList, String key) {
       return rawList.map((e) {
-        if(e[key] == null) return 0.0;
+        if (e[key] == null) return 0.0;
         return (e[key] as num).toDouble();
       }).toList();
     }
