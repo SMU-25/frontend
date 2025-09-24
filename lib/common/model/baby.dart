@@ -1,12 +1,23 @@
-enum Gender { male, female }
+import 'package:json_annotation/json_annotation.dart';
 
+part 'baby.g.dart';
+
+@JsonEnum(alwaysCreate: true)
+enum BabyGender {
+  @JsonValue('MALE')
+  male,
+  @JsonValue('FEMALE')
+  female,
+}
+
+@JsonSerializable()
 class Baby {
   final int? childId;
   final String name;
   final DateTime? birthDate;
   final double? height;
   final double? weight;
-  final Gender? gender;
+  final BabyGender? gender;
   final String? seizure;
   final String? profileImage;
   final List<String>? illnessTypes;
@@ -31,8 +42,6 @@ class Baby {
     return Baby(childId: childId, name: name, profileImage: profileImage);
   }
 
-  @override
-  String toString() {
-    return 'Baby(childId: $childId, name: $name, birthDate: $birthDate, height: $height, weight: $weight, gender: $gender, seizure: $seizure, profileImage: $profileImage, illnessTypes: $illnessTypes)';
-  }
+  factory Baby.fromJson(Map<String, dynamic> json) => _$BabyFromJson(json);
+  Map<String, dynamic> toJson() => _$BabyToJson(this);
 }
