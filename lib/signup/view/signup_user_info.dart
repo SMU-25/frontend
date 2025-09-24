@@ -67,34 +67,28 @@ class _SignupUserInfoState extends State<SignupUserInfoScreen> {
         socialType: 'local',
         gender: _selectedGender!,
       );
-
       try {
         final dio = Dio();
         final response = await dio.post(
           '$base_URL/auth/signup',
-          data: {
-            'email': user.email,
-            'password': user.password,
-            'name': user.name,
-            'birthDate': user.birthDate.toIso8601String().split('T').first,
-            'gender': user.gender.name.toUpperCase(),
-            'socialType': user.socialType.toUpperCase(),
-          },
+          data: user.toJson(),
           options: Options(headers: {'Content-Type': 'application/json'}),
         );
 
         if (!mounted) return;
 
-        if (response.statusCode == 200 && response.data['result'] == true) {
+        if (response.statusCode == 200) {
           await showSignupCompleteDialog(context);
-        } else {
-          showErrorDialog(context: context, message: '회원가입에 실패했습니다.');
         }
       } on DioException catch (err) {
         if (!mounted) return;
         String message = '알 수 없는 오류가 발생했습니다.';
-        if (err.response?.data != null) {
-          message = err.response?.data['message'] ?? message;
+        if (err.response != null) {
+          if (err.response?.statusCode == 409) {
+            message = '이미 가입된 이메일입니다.';
+          } else {
+            message = err.response?.data['message'] ?? message;
+          }
         }
         showErrorDialog(context: context, message: message);
       }
