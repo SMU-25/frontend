@@ -1,5 +1,10 @@
 import 'package:team_project_front/home/model/notification.dart';
 
+import 'package:json_annotation/json_annotation.dart';
+
+part 'notification_response.g.dart';
+
+@JsonSerializable()
 class NotificationResponse {
   final List<NotificationItem> content;
   final int? nextCursor;
@@ -11,14 +16,8 @@ class NotificationResponse {
     required this.hasNext,
   });
 
-  factory NotificationResponse.fromJson(Map<String, dynamic> json) {
-    return NotificationResponse(
-      content:
-          (json['content'] as List<dynamic>)
-              .map((e) => NotificationItem.fromJson(e as Map<String, dynamic>))
-              .toList(),
-      nextCursor: (json['nextCursor'] as num?)?.toInt(),
-      hasNext: json['hasNext'] as bool? ?? false,
-    );
-  }
+  factory NotificationResponse.fromJson(Map<String, dynamic> json) =>
+      _$NotificationResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$NotificationResponseToJson(this);
 }
