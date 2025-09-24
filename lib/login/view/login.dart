@@ -13,7 +13,7 @@ import 'package:team_project_front/common/component/social_login_button.dart';
 import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/common/utils/error_dialog.dart';
 import 'package:team_project_front/common/utils/secure_storage_service.dart';
-import 'package:team_project_front/login/view/find_password.dart';
+import 'package:team_project_front/login/view/reset_password.dart';
 import 'package:dio/dio.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -270,8 +270,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              // 수정
-                              builder: (context) => FindPasswordScreen(),
+                              builder: (context) => ResetPasswordScreen(),
                             ),
                           );
                         },
