@@ -1,3 +1,8 @@
+import 'package:json_annotation/json_annotation.dart';
+
+part 'room_condition.g.dart';
+
+@JsonSerializable()
 class RoomCondition {
   final double? airTemperature;
   final double? humidity;
@@ -8,9 +13,9 @@ class RoomCondition {
     required this.humidity,
     required this.createdAt,
   });
-  factory RoomCondition.fromJson(Map<String, dynamic> j) => RoomCondition(
-    airTemperature: (j['temperature'] as num).toDouble(),
-    humidity: (j['humidity'] as num).toDouble(),
-    createdAt: DateTime.parse(j['createdAt'] as String),
-  );
+
+  factory RoomCondition.fromJson(Map<String, dynamic> json) =>
+      _$RoomConditionFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RoomConditionToJson(this);
 }
