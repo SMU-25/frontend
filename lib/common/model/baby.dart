@@ -14,6 +14,11 @@ enum BabyGender {
 class Baby {
   final int? childId;
   final String name;
+  @JsonKey(
+    name: 'birthdate',
+    fromJson: _fromJsonBirthDate,
+    toJson: _toJsonBirthDate,
+  )
   final DateTime? birthDate;
   final double? height;
   final double? weight;
@@ -45,3 +50,15 @@ class Baby {
   factory Baby.fromJson(Map<String, dynamic> json) => _$BabyFromJson(json);
   Map<String, dynamic> toJson() => _$BabyToJson(this);
 }
+
+DateTime? _fromJsonBirthDate(String? date) {
+  if (date == null) return null;
+  try {
+    return DateTime.parse(date);
+  } catch (_) {
+    return null;
+  }
+}
+
+String? _toJsonBirthDate(DateTime? date) =>
+    date?.toIso8601String().split('T').first;

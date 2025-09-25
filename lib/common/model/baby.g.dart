@@ -9,9 +9,7 @@ part of 'baby.dart';
 Baby _$BabyFromJson(Map<String, dynamic> json) => Baby(
   childId: (json['childId'] as num?)?.toInt(),
   name: json['name'] as String,
-  birthDate: json['birthDate'] == null
-      ? null
-      : DateTime.parse(json['birthDate'] as String),
+  birthDate: _fromJsonBirthDate(json['birthdate'] as String?),
   height: (json['height'] as num?)?.toDouble(),
   weight: (json['weight'] as num?)?.toDouble(),
   gender: $enumDecodeNullable(_$BabyGenderEnumMap, json['gender']),
@@ -25,7 +23,7 @@ Baby _$BabyFromJson(Map<String, dynamic> json) => Baby(
 Map<String, dynamic> _$BabyToJson(Baby instance) => <String, dynamic>{
   'childId': instance.childId,
   'name': instance.name,
-  'birthDate': instance.birthDate?.toIso8601String(),
+  'birthdate': _toJsonBirthDate(instance.birthDate),
   'height': instance.height,
   'weight': instance.weight,
   'gender': _$BabyGenderEnumMap[instance.gender],
