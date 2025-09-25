@@ -74,9 +74,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
         for (var json in jsonList) {
           final plan = Plan.fromJson(json);
           final scheduleDate = DateTime.utc(
-            plan.date.year,
-            plan.date.month,
-            plan.date.day,
+            plan.date!.year,
+            plan.date!.month,
+            plan.date!.day,
           );
 
           if (!tempPlans.containsKey(scheduleDate)) {
