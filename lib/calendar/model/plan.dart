@@ -9,10 +9,11 @@ class Plan {
   final String title;
   // 내용
   final String content;
-  // 날짜
-  final DateTime date;
+
+  @JsonKey(name: 'scheduleDate')
+  final DateTime? date;
   // 일정 생성날짜시간
-  final String recordDate;
+  final String? recordDate;
 
   Plan({
     required this.calendarId,
