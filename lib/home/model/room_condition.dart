@@ -4,6 +4,7 @@ part 'room_condition.g.dart';
 
 @JsonSerializable()
 class RoomCondition {
+  @JsonKey(name: 'temperature')
   final double? airTemperature;
   final double? humidity;
   final DateTime? createdAt;

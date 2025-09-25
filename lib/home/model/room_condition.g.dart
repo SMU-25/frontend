@@ -8,7 +8,7 @@ part of 'room_condition.dart';
 
 RoomCondition _$RoomConditionFromJson(Map<String, dynamic> json) =>
     RoomCondition(
-      airTemperature: (json['airTemperature'] as num?)?.toDouble(),
+      airTemperature: (json['temperature'] as num?)?.toDouble(),
       humidity: (json['humidity'] as num?)?.toDouble(),
       createdAt: json['createdAt'] == null
           ? null
@@ -17,7 +17,7 @@ RoomCondition _$RoomConditionFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$RoomConditionToJson(RoomCondition instance) =>
     <String, dynamic>{
-      'airTemperature': instance.airTemperature,
+      'temperature': instance.airTemperature,
       'humidity': instance.humidity,
       'createdAt': instance.createdAt?.toIso8601String(),
     };
