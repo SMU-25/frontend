@@ -32,6 +32,14 @@ class _HomeCamViewState extends State<HomeCamView> {
   void initState() {
     super.initState();
     _loadLatest();
+
+    _loadLatest();
+  }
+
+  @override
+  void dispose() {
+    // 메모리 누수 제거 (화면 벗어나면 타이머 제거)
+    super.dispose();
   }
 
   Future<void> _loadLatest() async {
@@ -58,12 +66,9 @@ class _HomeCamViewState extends State<HomeCamView> {
 
       final res = await dio.get('/rooms/$childId');
       if (res.statusCode == 200) {
-        final data = (res.data['result'] ?? {}) as Map<String, dynamic>;
-        return RoomCondition(
-          airTemperature: (data['temperature'] as num?)?.toDouble(),
-          humidity: (data['humidity'] as num?)?.toDouble(),
-          createdAt: DateTime.tryParse(data['createdAt'] as String? ?? ''),
-        );
+        final data = res.data['result'] as Map<String, dynamic>?;
+        if (data == null) return null;
+        return RoomCondition.fromJson(data);
       }
       return null;
     } catch (_) {
@@ -74,17 +79,11 @@ class _HomeCamViewState extends State<HomeCamView> {
   Future<FeverRecord?> fetchFeverRecordData(int childId) async {
     try {
       final dio = buildAuthedDio();
-
       final res = await dio.get('/feverRecords/$childId');
       if (res.statusCode == 200) {
-        final data = (res.data['result'] ?? {}) as Map<String, dynamic>;
-        final fever = (data['fever'] as num?)?.toDouble();
-        final createdAtStr = data['createdAt'] as String?;
-        if (fever == null || createdAtStr == null) return null;
-        return FeverRecord(
-          fever: fever,
-          createdAt: DateTime.tryParse(createdAtStr) ?? DateTime.now(),
-        );
+        final data = res.data['result'] as Map<String, dynamic>?;
+        if (data == null) return null;
+        return FeverRecord.fromJson(data);
       }
       return null;
     } catch (_) {
@@ -101,37 +100,37 @@ class _HomeCamViewState extends State<HomeCamView> {
             aspectRatio: 16 / 9,
             child:
                 widget.homeCamData.videoUrl != null &&
-                        widget.homeCamData.videoUrl!.isNotEmpty
-                    ? Mjpeg(
-                      key: ValueKey(
-                        'mjpeg_${_reload}_${widget.homeCamData.videoUrl}',
-                      ),
-                      stream: widget.homeCamData.videoUrl!,
-                      isLive: true,
-                      timeout: const Duration(seconds: 5),
+                    widget.homeCamData.videoUrl!.isNotEmpty
+                ? Mjpeg(
+                    key: ValueKey(
+                      'mjpeg_${_reload}_${widget.homeCamData.videoUrl}',
+                    ),
+                    stream: widget.homeCamData.videoUrl!,
+                    isLive: true,
+                    timeout: const Duration(seconds: 5),
 
-                      // 연결 시 로딩 표시
-                      loading:
-                          (_) => const _StatusPanel(
-                            icon: Icons.wifi_tethering,
-                            message: '스트림 연결 중…',
-                            busy: true,
-                          ),
+                    // 연결 시 로딩 표시
+                    loading: (_) => const _StatusPanel(
+                      icon: Icons.wifi_tethering,
+                      message: '스트림 연결 중…',
+                      busy: true,
+                    ),
 
-                      // 연결 실패/타임아웃 등 에러 처리 + 재시도
-                      error: (
-                        BuildContext context,
-                        dynamic error,
-                        dynamic stackTrace,
-                      ) {
-                        return _StatusPanel(
-                          icon: Icons.error_outline,
-                          message: _prettyError(error),
-                          onRetry: () => setState(() => _reload++),
-                        );
-                      },
-                    )
-                    : const Center(child: Text("스트리밍 URL 없음")),
+                    // 연결 실패/타임아웃 등 에러 처리 + 재시도
+                    error:
+                        (
+                          BuildContext context,
+                          dynamic error,
+                          dynamic stackTrace,
+                        ) {
+                          return _StatusPanel(
+                            icon: Icons.error_outline,
+                            message: _prettyError(error),
+                            onRetry: () => setState(() => _reload++),
+                          );
+                        },
+                  )
+                : const Center(child: Text("스트리밍 URL 없음")),
           ),
           const SizedBox(height: 12),
           Padding(
