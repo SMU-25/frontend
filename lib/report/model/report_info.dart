@@ -57,17 +57,15 @@ class ReportStats {
   final List<double> fever;
   final List<double> humidity;
   final List<double> temperature;
-
   ReportStats({
     required this.fever,
     required this.humidity,
     required this.temperature,
   });
-
   static ReportStats fromJson(Map<String, dynamic> json) {
     List<double> parseAvgList(List<dynamic> rawList, String key) {
       return rawList.map((e) {
-        if(e[key] == null) return 0.0;
+        if (e[key] == null) return 0.0;
         return (e[key] as num).toDouble();
       }).toList();
     }

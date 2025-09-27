@@ -1,3 +1,7 @@
+import 'package:json_annotation/json_annotation.dart';
+part 'plan.g.dart';
+
+@JsonSerializable()
 class Plan {
   // 식별 가능한 ID
   final int calendarId;
@@ -5,10 +9,11 @@ class Plan {
   final String title;
   // 내용
   final String content;
-  // 날짜
-  final DateTime date;
+
+  @JsonKey(name: 'scheduleDate')
+  final DateTime? date;
   // 일정 생성날짜시간
-  final String recordDate;
+  final String? recordDate;
 
   Plan({
     required this.calendarId,
@@ -18,13 +23,8 @@ class Plan {
     required this.content,
   });
 
-  factory Plan.fromMap(Map<String, dynamic> json) {
-    return Plan(
-      calendarId: json['calendarId'] as int,
-      recordDate: json['recordDate'] as String,
-      date: DateTime.parse(json['scheduleDate'] as String),
-      title: json['title'] as String,
-      content: json['content'] as String,
-    );
-  }
+  factory Plan.fromJson(Map<String, dynamic> json) => _$PlanFromJson(json);
+
+  /// Plan → JSON
+  Map<String, dynamic> toJson() => _$PlanToJson(this);
 }

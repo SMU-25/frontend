@@ -31,7 +31,7 @@ class SymptomSummaryDialog extends StatelessWidget {
         outingRecord: outingRecord,
       );
 
-      if(report == null) return;
+      if (report == null) return;
 
       Navigator.of(context).push(
         MaterialPageRoute(
@@ -40,21 +40,20 @@ class SymptomSummaryDialog extends StatelessWidget {
             report: report,
             allSymptoms: allSymptoms,
             showBackButton: false,
-         ),
+          ),
         ),
       );
-    } catch(e) {
-      if (e is DioException &&
-          e.response?.data['code'] == 'FEVER_RECORD404') {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('홈캠을 통한 체온, 온습도 정보가 존재해야 합니다')),
-        );
+    } catch (e) {
+      if (e is DioException && e.response?.data['code'] == 'FEVER_RECORD404') {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('홈캠을 통한 체온, 온습도 정보가 존재해야 합니다')));
         Navigator.of(context).pushNamed('/home');
       } else {
         print('리포트 생성 실패: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('리포트 생성에 실패했어요.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('리포트 생성에 실패했어요.')));
       }
     }
   }
@@ -69,10 +68,16 @@ class SymptomSummaryDialog extends StatelessWidget {
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text('아이의 증상', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+          Text(
+            '아이의 증상',
+            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
+          ),
           TextButton(
             onPressed: () => _navigateToResultReport(context),
-            child: Text('확인', style: TextStyle(color: MAIN_COLOR, fontWeight: FontWeight.w900)),
+            child: Text(
+              '확인',
+              style: TextStyle(color: MAIN_COLOR, fontWeight: FontWeight.w900),
+            ),
           ),
         ],
       ),
@@ -86,17 +91,11 @@ class SymptomSummaryDialog extends StatelessWidget {
           ),
           SizedBox(height: 16),
           if (etcSymptom.trim().isNotEmpty) ...[
-            InfoSection(
-              title: '기타 증상',
-              content: etcSymptom,
-            ),
+            InfoSection(title: '기타 증상', content: etcSymptom),
           ],
           SizedBox(height: 16),
           if (outingRecord.trim().isNotEmpty) ...[
-            InfoSection(
-              title: '외출 기록',
-              content: outingRecord,
-            ),
+            InfoSection(title: '외출 기록', content: outingRecord),
           ],
           SizedBox(height: 24),
         ],
@@ -113,7 +112,9 @@ Future<ReportInfo?> createReport({
 }) async {
   final dio = Dio();
 
-  final convertedSymptoms = symptoms.map((s) => s.replaceAll(' ', '_')).toList();
+  final convertedSymptoms = symptoms
+      .map((s) => s.replaceAll(' ', '_'))
+      .toList();
 
   final token = await SecureStorageService.getAccessToken();
   if (token == null) {
@@ -130,9 +131,7 @@ Future<ReportInfo?> createReport({
       'outing': outingRecord,
     },
     options: Options(
-      headers: {
-        'Authorization': accessToken,
-      },
+      headers: {'Authorization': accessToken},
       validateStatus: (status) => status != null && status < 500,
     ),
   );
@@ -149,7 +148,7 @@ Future<ReportInfo?> createReport({
   }
 
   final result = response.data['result'];
-
+  // day1 등이 외부라이브러리라 serializable 적용에 어려움이 있음 추후에 수정할 것
   return ReportInfo(
     reportId: result['reportId'],
     childId: childId,
@@ -190,9 +189,7 @@ class ChildSymptomsWidget extends StatelessWidget {
           label: Text(symptom),
           backgroundColor: MAIN_COLOR.withValues(alpha: 0.18),
           labelStyle: TextStyle(fontWeight: FontWeight.w700),
-          shape: StadiumBorder(
-            side: BorderSide(color: MAIN_COLOR),
-          ),
+          shape: StadiumBorder(side: BorderSide(color: MAIN_COLOR)),
         );
       }).toList(),
     );
@@ -203,11 +200,7 @@ class InfoSection extends StatelessWidget {
   final String title;
   final String content;
 
-  const InfoSection({
-    super.key,
-    required this.title,
-    required this.content,
-  });
+  const InfoSection({super.key, required this.title, required this.content});
 
   @override
   Widget build(BuildContext context) {

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:dio/dio.dart';
 import 'package:kakao_map_sdk/kakao_map_sdk.dart';
+import 'package:team_project_front/map/model/place.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 // REST 키 (검색 API용)
@@ -32,8 +33,8 @@ class _MapScreenState extends State<MapScreen> {
   Timer? _debouncer;
 
   // 결과 / 선택
-  List<_Place> _places = [];
-  _Place? _selected;
+  List<Place> _places = [];
+  Place? _selected;
 
   final PoiStyle _poiStyle = PoiStyle(
     icon: KImage.fromAsset("asset/img/map/pin.png", 20, 20),
@@ -137,27 +138,17 @@ class _MapScreenState extends State<MapScreen> {
       );
 
       final docs = (res.data['documents'] as List?) ?? const [];
-      final list =
-          docs.map((e) {
-            final m = e as Map<String, dynamic>;
-            final x = double.tryParse('${m['x']}') ?? near.longitude;
-            final y = double.tryParse('${m['y']}') ?? near.latitude;
-            return _Place(
-              id: '${m['id']}',
-              name: m['place_name'] as String? ?? '이름 없음',
-              latLng: LatLng(y, x),
-              roadAddr: m['road_address_name'] as String?,
-              phone: m['phone'] as String?,
-            );
-          }).toList();
+      final places = docs
+          .map((e) => Place.fromJson(e as Map<String, dynamic>))
+          .toList();
 
       // 지도에 표시된 기존 POI 숨기고 새로 그리기
       await _hideAllPoi();
-      await _drawPois(list);
+      await _drawPois(places);
 
       setState(() {
-        _places = list;
-        if (list.isNotEmpty) _selected = list.first;
+        _places = places;
+        if (places.isNotEmpty) _selected = places.first;
       });
     } on DioException catch (e) {
       debugPrint(
@@ -181,7 +172,7 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   /// 검색 결과를 POI로 지도에 표시
-  Future<void> _drawPois(List<_Place> places) async {
+  Future<void> _drawPois(List<Place> places) async {
     final c = _controller;
     if (c == null) return;
 
@@ -192,16 +183,16 @@ class _MapScreenState extends State<MapScreen> {
 
     for (final p in places) {
       final poi = await c.labelLayer.addPoi(
-        p.latLng,
+        LatLng(p.latitude, p.longitude),
         id: p.id,
-        text: p.name,
-        style: _poiStyle, // 커스텀 아이콘 쓰려면 위에서 _poiStyle 세팅
+        text: p.placeName,
+        style: _poiStyle,
         visible: true,
         onClick: () {
           if (!mounted) return;
           setState(() {
             _selected = p;
-            _showResults = false; // 리스트는 닫은 상태 유지
+            _showResults = false;
           });
         },
       );
@@ -274,7 +265,7 @@ class _MapScreenState extends State<MapScreen> {
                 onTap: (p) async {
                   _showResults = false;
                   setState(() => _selected = p);
-                  await _moveCamera(p.latLng, 15);
+                  await _moveCamera(LatLng(p.latitude, p.longitude), 15);
                 },
               ),
             ),
@@ -286,29 +277,28 @@ class _MapScreenState extends State<MapScreen> {
             child: FloatingActionButton.small(
               heroTag: 'myLoc',
               backgroundColor: Colors.white,
-              onPressed:
-                  _loading
-                      ? null
-                      : () async {
-                        setState(() => _loading = true);
-                        try {
-                          final pos = await Geolocator.getCurrentPosition(
-                            locationSettings: const LocationSettings(
-                              accuracy: LocationAccuracy.high,
-                            ),
-                          );
-                          _center = LatLng(pos.latitude, pos.longitude);
-                          await _moveCamera(_center, 15);
-                          await _searchByKeyword(
-                            _searchCtl.text.isNotEmpty
-                                ? _searchCtl.text
-                                : '소아청소년과',
-                            near: _center,
-                          );
-                        } finally {
-                          if (mounted) setState(() => _loading = false);
-                        }
-                      },
+              onPressed: _loading
+                  ? null
+                  : () async {
+                      setState(() => _loading = true);
+                      try {
+                        final pos = await Geolocator.getCurrentPosition(
+                          locationSettings: const LocationSettings(
+                            accuracy: LocationAccuracy.high,
+                          ),
+                        );
+                        _center = LatLng(pos.latitude, pos.longitude);
+                        await _moveCamera(_center, 15);
+                        await _searchByKeyword(
+                          _searchCtl.text.isNotEmpty
+                              ? _searchCtl.text
+                              : '소아청소년과',
+                          near: _center,
+                        );
+                      } finally {
+                        if (mounted) setState(() => _loading = false);
+                      }
+                    },
               child: const Icon(Icons.my_location, color: Colors.black),
             ),
           ),
@@ -362,13 +352,12 @@ class _SearchBox extends StatelessWidget {
         decoration: InputDecoration(
           hintText: '장소를 검색하세요',
           prefixIcon: const Icon(Icons.search, color: Colors.grey),
-          suffixIcon:
-              controller.text.isNotEmpty
-                  ? IconButton(
-                    onPressed: onClear,
-                    icon: const Icon(Icons.clear, color: Colors.grey),
-                  )
-                  : null,
+          suffixIcon: controller.text.isNotEmpty
+              ? IconButton(
+                  onPressed: onClear,
+                  icon: const Icon(Icons.clear, color: Colors.grey),
+                )
+              : null,
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 14,
@@ -382,8 +371,8 @@ class _SearchBox extends StatelessWidget {
 
 class _ResultList extends StatelessWidget {
   const _ResultList({required this.places, required this.onTap});
-  final List<_Place> places;
-  final ValueChanged<_Place> onTap;
+  final List<Place> places;
+  final ValueChanged<Place> onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -399,9 +388,13 @@ class _ResultList extends StatelessWidget {
           itemBuilder: (_, i) {
             final p = places[i];
             return ListTile(
-              title: Text(p.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+              title: Text(
+                p.placeName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
               subtitle: Text(
-                p.roadAddr ?? '',
+                p.roadAddressName ?? '',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(color: Colors.black54),
@@ -417,7 +410,7 @@ class _ResultList extends StatelessWidget {
 
 class _PlaceCard extends StatelessWidget {
   const _PlaceCard({required this.place, required this.onCall});
-  final _Place place;
+  final Place place;
   final void Function(String phone) onCall;
 
   @override
@@ -436,12 +429,12 @@ class _PlaceCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              place.name,
+              place.placeName,
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 6),
             Text(
-              place.roadAddr ?? '주소 정보 없음',
+              place.roadAddressName ?? '주소 정보 없음',
               style: const TextStyle(color: Colors.grey),
             ),
             if ((place.phone ?? '').isNotEmpty) ...[
@@ -463,19 +456,4 @@ class _PlaceCard extends StatelessWidget {
       ),
     );
   }
-}
-
-class _Place {
-  final String id;
-  final String name;
-  final LatLng latLng;
-  final String? phone;
-  final String? roadAddr;
-  const _Place({
-    required this.id,
-    required this.name,
-    required this.latLng,
-    this.phone,
-    this.roadAddr,
-  });
 }

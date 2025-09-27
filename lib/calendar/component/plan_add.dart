@@ -6,7 +6,6 @@ import 'package:team_project_front/common/component/navigation_button.dart';
 import 'package:team_project_front/common/const/base_url.dart';
 import 'package:team_project_front/common/utils/secure_storage_service.dart';
 
-
 class PlanAdd extends StatefulWidget {
   final TextEditingController titleController;
   final TextEditingController contentController;
@@ -38,7 +37,7 @@ class _PlanAddState extends State<PlanAdd> {
     }
   }
 
-  void onPressed () async {
+  void onPressed() async {
     final accessToken = await SecureStorageService.getAccessToken();
 
     if (accessToken == null) {
@@ -59,20 +58,12 @@ class _PlanAddState extends State<PlanAdd> {
         final response = await dio.put(
           '$base_URL/calendars/${widget.existingId}',
           data: requestBody,
-          options: Options(
-            headers: {'Authorization': 'Bearer $accessToken'},
-          ),
+          options: Options(headers: {'Authorization': 'Bearer $accessToken'}),
         );
 
         if (response.statusCode == 200 && response.data['isSuccess'] == true) {
           final result = response.data['result'];
-          final updatedPlan = Plan.fromMap({
-            'calendarId': result['calendarId'],
-            'recordDate': result['recordDate'],
-            'scheduleDate': result['scheduleDate'],
-            'title': result['title'],
-            'content': result['content'],
-          });
+          final updatedPlan = Plan.fromJson(result);
           Navigator.of(context).pop(updatedPlan);
         } else {
           print('일정 수정 실패: ${response.data['message']}');
@@ -89,20 +80,12 @@ class _PlanAddState extends State<PlanAdd> {
         final response = await dio.post(
           '$base_URL/calendars',
           data: requestBody,
-          options: Options(
-            headers: {'Authorization': 'Bearer $accessToken'},
-          ),
+          options: Options(headers: {'Authorization': 'Bearer $accessToken'}),
         );
 
         if (response.statusCode == 200 && response.data['isSuccess'] == true) {
           final result = response.data['result'];
-          final newPlan = Plan.fromMap({
-            'calendarId': result['calendarId'],
-            'recordDate': result['recordDate'],
-            'scheduleDate': result['scheduleDate'],
-            'title': result['title'],
-            'content': result['content'],
-          });
+          final newPlan = Plan.fromJson(result);
           Navigator.of(context).pop(newPlan);
         } else {
           print('일정 생성 실패: ${response.data['message']}');
@@ -179,6 +162,5 @@ class _PlanAddState extends State<PlanAdd> {
         ),
       ),
     );
-    ;
   }
 }
