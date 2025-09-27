@@ -13,6 +13,7 @@ class SubscribeScreen extends StatelessWidget {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         surfaceTintColor: Colors.transparent,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         scrolledUnderElevation: 0,
       ),
       body: SingleChildScrollView(
