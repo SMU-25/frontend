@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/const/colors.dart';
+import 'package:team_project_front/subscribe/view/subscribe_screen.dart';
 
 class SubscribeCard extends StatelessWidget {
   const SubscribeCard({super.key});
@@ -17,8 +18,11 @@ class SubscribeCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           TextButton(
-            // 구독 사이트 라우팅 연결
-            onPressed: () {},
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => SubscribeScreen()),
+              );
+            },
             style: ElevatedButton.styleFrom(
               minimumSize: Size(double.infinity, 20),
               backgroundColor: Color(0xFFFBBC05),
