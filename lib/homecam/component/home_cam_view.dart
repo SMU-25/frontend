@@ -6,6 +6,7 @@ import 'package:team_project_front/home/model/fever_record_data.dart';
 import 'package:team_project_front/home/model/room_condition.dart';
 import 'package:team_project_front/homecam/component/state_info_card.dart';
 import 'package:team_project_front/homecam/model/home_cam.dart';
+import 'dart:async';
 
 class HomeCamView extends StatefulWidget {
   const HomeCamView({super.key, required this.homeCamData});
@@ -24,6 +25,8 @@ class _HomeCamViewState extends State<HomeCamView> {
   ).format(DateTime.now());
 
   int _reload = 0;
+  Timer? _timer;
+
   RoomCondition? _roomCondition;
   FeverRecord? _feverRecord;
   bool _isLoading = true;
@@ -32,14 +35,16 @@ class _HomeCamViewState extends State<HomeCamView> {
   void initState() {
     super.initState();
     _loadLatest();
-
-    _loadLatest();
+    _timer = Timer.periodic(const Duration(seconds: 5), (_) {
+      _loadLatest();
+    });
   }
 
   @override
   void dispose() {
     // 메모리 누수 제거 (화면 벗어나면 타이머 제거)
     super.dispose();
+    _timer?.cancel();
   }
 
   Future<void> _loadLatest() async {
