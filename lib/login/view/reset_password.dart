@@ -52,15 +52,13 @@ class ResetPasswordScreenState extends State<ResetPasswordScreen> {
       }
 
       // 정상 응답 처리
-      final serverMsg = (res.data is Map) ? res.data['message'] : null;
-
       if (!mounted) return;
       await showDialog(
         context: context,
         builder:
             (_) => AlertDialog(
               title: const Text('비밀번호 재설정 완료'),
-              content: Text(serverMsg ?? '임시 비밀번호가 이메일로 전송되었습니다.'),
+              content: Text('임시 비밀번호가 이메일로 전송되었습니다.'),
               actions: [
                 TextButton(
                   onPressed: () {
