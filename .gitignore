@@ -57,4 +57,5 @@ firebase_options.dart
 
 
 .vscode
-android
+build_release.sh
+android/build/ios/
