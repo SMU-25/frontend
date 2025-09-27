@@ -12,6 +12,8 @@ class SubscribeScreen extends StatelessWidget {
           '맘편해 멤버십',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
+        surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0,
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -463,25 +465,23 @@ class _PlanCard extends StatelessWidget {
             const SizedBox(height: 17),
             Column(
               crossAxisAlignment: CrossAxisAlignment.center,
-              children:
-                  features
-                      .map(
-                        (f) => Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
-                          child: Text(
-                            f,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color:
-                                  f.contains('발열 리포트')
-                                      ? Colors.red
-                                      : Colors.black,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+              children: features
+                  .map(
+                    (f) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Text(
+                        f,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: f.contains('발열 리포트')
+                              ? Colors.red
+                              : Colors.black,
+                          fontWeight: FontWeight.w600,
                         ),
-                      )
-                      .toList(),
+                      ),
+                    ),
+                  )
+                  .toList(),
             ),
           ],
         ),
