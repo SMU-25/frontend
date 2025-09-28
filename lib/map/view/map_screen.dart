@@ -6,6 +6,7 @@ import 'package:kakao_map_sdk/kakao_map_sdk.dart';
 import 'package:team_project_front/common/const/colors.dart';
 import 'package:team_project_front/map/model/place.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/services.dart';
 
 // REST 키 (검색 API용)
 const kakaoRestKey = String.fromEnvironment('KAKAO_REST_API_KEY');
@@ -592,9 +593,28 @@ class _PlaceCard extends StatelessWidget {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 6),
-            Text(
-              place.roadAddressName ?? '주소 정보 없음',
-              style: const TextStyle(color: Colors.grey),
+            InkWell(
+              onTap: () async {
+                if (place.roadAddressName != null) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('주소가 복사되었습니다.')));
+                  await Clipboard.setData(
+                    ClipboardData(text: place.roadAddressName!),
+                  );
+                }
+              },
+              child: Row(
+                children: [
+                  Text(
+                    place.roadAddressName ?? '주소 정보 없음',
+                    style: const TextStyle(color: Colors.grey),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(width: 20),
+                  const Icon(Icons.copy, size: 15, color: Colors.grey),
+                ],
+              ),
             ),
             if ((place.phone ?? '').isNotEmpty) ...[
               const SizedBox(height: 8),
