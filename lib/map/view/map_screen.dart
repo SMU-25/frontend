@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:dio/dio.dart';
 import 'package:kakao_map_sdk/kakao_map_sdk.dart';
+import 'package:team_project_front/common/const/colors.dart';
 import 'package:team_project_front/map/model/place.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/services.dart';
 
 // REST 키 (검색 API용)
 const kakaoRestKey = String.fromEnvironment('KAKAO_REST_API_KEY');
@@ -24,7 +26,7 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   KakaoMapController? _controller;
   bool _loading = false;
-
+  StreamSubscription<Position>? _positionStream;
   LatLng _center = const LatLng(37.6026, 126.9553);
 
   // 검색
@@ -44,16 +46,22 @@ class _MapScreenState extends State<MapScreen> {
   // 재 지도에 올라간 Poi 관리
   final List<Poi> _poiList = [];
 
+  String? _selectedCategory;
+
+  Poi? _myLocationPoi;
+
   @override
   void initState() {
     super.initState();
     _validateKakaoRestKey();
     _initCurrentLocation();
+    _trackLocation(); // 위치 추적 시작
   }
 
   @override
   void dispose() {
     _debouncer?.cancel();
+    _positionStream?.cancel(); // 스트림 해제
     _searchCtl.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -75,14 +83,53 @@ class _MapScreenState extends State<MapScreen> {
           accuracy: LocationAccuracy.high,
         ),
       );
-      _center = LatLng(pos.latitude, pos.longitude);
 
+      setState(() {
+        _center = LatLng(pos.latitude, pos.longitude);
+      });
       // 초기 자동 검색
-      await _searchByKeyword('소아청소년과', near: _center, size: 14);
       await _moveCamera(_center, 14);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  void _trackLocation() {
+    _positionStream =
+        Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 10,
+          ),
+        ).listen((pos) async {
+          final c = _controller;
+          if (c == null) return;
+
+          final current = LatLng(pos.latitude, pos.longitude);
+
+          setState(() {
+            _center = current;
+          });
+
+          // 이전 내 위치 Poi 삭제
+          if (_myLocationPoi != null) {
+            await c.labelLayer.removePoi(_myLocationPoi!);
+          }
+
+          // 파란 원 아이콘 Poi 추가
+          _myLocationPoi = await c.labelLayer.addPoi(
+            current,
+            id: "myLocation",
+            style: PoiStyle(
+              icon: KImage.fromAsset(
+                "asset/img/map/my_location_dot.png",
+                20,
+                20,
+              ),
+            ),
+            visible: true,
+          );
+        });
   }
 
   Future<void> _moveCamera(LatLng target, int zoom) async {
@@ -163,12 +210,63 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+  Future<void> _searchByCategory({
+    required String categoryCode,
+    required LatLng near,
+    int size = 14,
+  }) async {
+    setState(() => _loading = true);
+    try {
+      final dio = Dio(
+        BaseOptions(headers: {'Authorization': 'KakaoAK $kakaoRestKey'}),
+      );
+
+      final res = await dio.get(
+        'https://dapi.kakao.com/v2/local/search/category.json',
+        queryParameters: {
+          'category_group_code': categoryCode,
+          'y': near.latitude.toString(),
+          'x': near.longitude.toString(),
+          'radius': '5000',
+          'size': size.toString(),
+          'sort': 'distance', // 거리순
+        },
+      );
+
+      final docs = (res.data['documents'] as List?) ?? const [];
+      final places = docs
+          .map((e) => Place.fromJson(e as Map<String, dynamic>))
+          .toList();
+
+      await _hideAllPoi();
+      await _drawPois(places);
+
+      setState(() {
+        _places = places;
+        if (places.isNotEmpty) _selected = places.first;
+      });
+    } on DioException catch (e) {
+      debugPrint(
+        'Kakao category search error: ${e.response?.statusCode} ${e.response?.data}',
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('카테고리 검색에 실패했습니다.')));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
   /// 기존 POI 전체 숨김
   Future<void> _hideAllPoi() async {
     final c = _controller;
     if (c == null) return;
-    // SDK가 removeAllPoi() 를 제공하지 않는 버전도 있어 hide로 처리
-    await c.labelLayer.hideAllPoi();
+
+    for (final poi in _poiList) {
+      await c.labelLayer.removePoi(poi);
+    }
+    _poiList.clear();
   }
 
   /// 검색 결과를 POI로 지도에 표시
@@ -270,6 +368,74 @@ class _MapScreenState extends State<MapScreen> {
               ),
             ),
 
+          Positioned(
+            top: 76 + pad.top,
+            left: 0,
+            right: 0,
+            height: 50,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              children: [
+                _CategoryChip(
+                  label: "소아청소년과",
+                  isSelected: _selectedCategory == "소아청소년과",
+                  onTap: () {
+                    setState(() => _selectedCategory = "소아청소년과");
+                    _searchByKeyword("소아청소년과", near: _center);
+                  },
+                ),
+                _CategoryChip(
+                  label: "병원",
+                  isSelected: _selectedCategory == "병원",
+                  onTap: () {
+                    setState(() => _selectedCategory = "병원");
+                    _searchByCategory(categoryCode: "HP8", near: _center);
+                  },
+                ),
+                _CategoryChip(
+                  label: "응급실",
+                  isSelected: _selectedCategory == "응급실",
+                  onTap: () {
+                    setState(() => _selectedCategory = "응급실");
+                    _searchByKeyword("응급실", near: _center);
+                  },
+                ),
+                _CategoryChip(
+                  label: "약국",
+                  isSelected: _selectedCategory == "약국",
+                  onTap: () {
+                    setState(() => _selectedCategory = "약국");
+                    _searchByCategory(categoryCode: "PM9", near: _center);
+                  },
+                ),
+                _CategoryChip(
+                  label: "수유실",
+                  isSelected: _selectedCategory == "수유실",
+                  onTap: () {
+                    setState(() => _selectedCategory = "수유실");
+                    _searchByKeyword("수유실", near: _center);
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          if (_showResults && _places.isNotEmpty)
+            Positioned(
+              top: 76 + pad.top, // 카테고리 바랑 같은 위치
+              left: 16,
+              right: 16,
+              child: _ResultList(
+                places: _places,
+                onTap: (p) async {
+                  _showResults = false;
+                  setState(() => _selected = p);
+                  await _moveCamera(LatLng(p.latitude, p.longitude), 15);
+                },
+              ),
+            ),
+
           // 내 위치 버튼
           Positioned(
             right: 16,
@@ -289,12 +455,6 @@ class _MapScreenState extends State<MapScreen> {
                         );
                         _center = LatLng(pos.latitude, pos.longitude);
                         await _moveCamera(_center, 15);
-                        await _searchByKeyword(
-                          _searchCtl.text.isNotEmpty
-                              ? _searchCtl.text
-                              : '소아청소년과',
-                          near: _center,
-                        );
                       } finally {
                         if (mounted) setState(() => _loading = false);
                       }
@@ -433,26 +593,84 @@ class _PlaceCard extends StatelessWidget {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 6),
-            Text(
-              place.roadAddressName ?? '주소 정보 없음',
-              style: const TextStyle(color: Colors.grey),
+            InkWell(
+              onTap: () async {
+                if (place.roadAddressName != null) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('주소가 복사되었습니다.')));
+                  await Clipboard.setData(
+                    ClipboardData(text: place.roadAddressName!),
+                  );
+                }
+              },
+              child: Row(
+                children: [
+                  Text(
+                    place.roadAddressName ?? '주소 정보 없음',
+                    style: const TextStyle(color: Colors.grey),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(width: 20),
+                  const Icon(Icons.copy, size: 15, color: Colors.grey),
+                ],
+              ),
             ),
             if ((place.phone ?? '').isNotEmpty) ...[
               const SizedBox(height: 8),
               InkWell(
                 onTap: () => onCall(place.phone!),
                 child: Row(
-                  mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(Icons.phone, color: Colors.grey),
                     const SizedBox(width: 8),
-                    Text(place.phone!, style: const TextStyle(fontSize: 16)),
+                    Text(place.phone!),
                   ],
                 ),
               ),
             ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _CategoryChip extends StatelessWidget {
+  const _CategoryChip({
+    required this.label,
+    required this.onTap,
+    required this.isSelected,
+  });
+
+  final String label;
+  final VoidCallback onTap;
+  final bool isSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: ActionChip(
+        label: Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: isSelected ? Colors.white : Colors.black87,
+          ),
+        ),
+        onPressed: onTap,
+        backgroundColor: isSelected
+            ? MAIN_COLOR
+            : const Color.fromARGB(255, 244, 255, 254),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+            color: isSelected ? MAIN_COLOR : MAIN_COLOR.withValues(alpha: 0.2),
+          ),
+        ),
+        elevation: isSelected ? 4 : 0,
       ),
     );
   }
