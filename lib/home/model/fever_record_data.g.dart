@@ -11,10 +11,17 @@ FeverRecord _$FeverRecordFromJson(Map<String, dynamic> json) => FeverRecord(
   createdAt: json['createdAt'] == null
       ? null
       : DateTime.parse(json['createdAt'] as String),
+  state: $enumDecode(_$IsHumanEnumMap, json['state']),
 );
 
 Map<String, dynamic> _$FeverRecordToJson(FeverRecord instance) =>
     <String, dynamic>{
       'fever': instance.fever,
       'createdAt': instance.createdAt?.toIso8601String(),
+      'state': _$IsHumanEnumMap[instance.state]!,
     };
+
+const _$IsHumanEnumMap = {
+  IsHuman.human: 'HUMAN',
+  IsHuman.notHuman: 'NOT_HUMAN',
+};
