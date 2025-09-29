@@ -37,18 +37,54 @@ class _HomeHeaderState extends State<HomeHeader> {
     final selected = await showMenu<Baby>(
       context: context,
       position: RelativeRect.fromLTRB(
-        offset.dx - 80,
-        offset.dy + size.height + 10,
+        offset.dx - 140,
+        offset.dy + size.height + 20,
         offset.dx + size.width,
         offset.dy,
       ),
-      items:
-          widget.babies
-              .map(
-                (baby) =>
-                    PopupMenuItem<Baby>(value: baby, child: Text(baby.name)),
-              )
-              .toList(),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18), // 둥근 모서리
+      ),
+      color: Colors.white,
+      items: widget.babies.map((baby) {
+        return PopupMenuItem<Baby>(
+          value: baby,
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 16,
+                backgroundImage: baby.profileImage != null
+                    ? NetworkImage(baby.profileImage!)
+                    : null,
+                child: baby.profileImage == null
+                    // 아이콘
+                    ? const Icon(
+                        Icons.account_circle,
+                        color: Colors.grey,
+                        size: 40,
+                      )
+                    : null,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  baby.name,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (baby.childId == widget.selectedBaby.childId) ...[
+                const SizedBox(width: 8),
+                const Icon(Icons.check, color: Colors.teal, size: 18),
+              ],
+            ],
+          ),
+        );
+      }).toList(),
     );
 
     if (selected != null) {
@@ -69,14 +105,14 @@ class _HomeHeaderState extends State<HomeHeader> {
           children: [
             _currentBaby.profileImage != null
                 ? CircleAvatar(
-                  radius: 27.5,
-                  backgroundImage: NetworkImage(_currentBaby.profileImage!),
-                )
+                    radius: 27.5,
+                    backgroundImage: NetworkImage(_currentBaby.profileImage!),
+                  )
                 : const Icon(
-                  Icons.account_circle,
-                  color: Colors.grey,
-                  size: 45,
-                ),
+                    Icons.account_circle,
+                    color: Colors.grey,
+                    size: 45,
+                  ),
 
             const SizedBox(width: 10),
             Text(
