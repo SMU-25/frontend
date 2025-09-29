@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/const/colors.dart';
 import 'package:team_project_front/common/model/baby.dart';
+import 'package:team_project_front/home/model/fever_record_data.dart';
 
 class MainInfoCard extends StatelessWidget {
   const MainInfoCard({
@@ -13,6 +14,7 @@ class MainInfoCard extends StatelessWidget {
     required this.getStatusColor,
     required this.isFever,
     required this.isUncomfortableHumidity,
+    required this.isHuman,
   });
 
   final Baby? baby;
@@ -23,6 +25,7 @@ class MainInfoCard extends StatelessWidget {
   final Color Function(bool) getStatusColor;
   final bool isFever;
   final bool isUncomfortableHumidity;
+  final IsHuman isHuman;
 
   (int value, bool isMonth) _calculateAge(DateTime birthDate) {
     final now = DateTime.now();
@@ -56,7 +59,6 @@ class MainInfoCard extends StatelessWidget {
       );
     }
     final (age, isMonth) = _calculateAge(baby!.birthDate!);
-
     return Container(
       width: double.infinity,
       height: 100,
@@ -85,12 +87,13 @@ class MainInfoCard extends StatelessWidget {
                             '${baby!.name} / 생후 $age${isMonth ? "개월" : "일"} / ',
                       ),
                       TextSpan(
-                        text:
-                            bodyTemperature == null
-                                ? '데이터 없음'
-                                : isFever
-                                ? '오늘은 아파요 😢'
-                                : '오늘은 건강해요! 😀',
+                        text: bodyTemperature == null
+                            ? '데이터 없음'
+                            : isHuman == IsHuman.notHuman
+                            ? '체온 데이터가 아니에요!'
+                            : isFever
+                            ? '오늘은 아파요 😢'
+                            : '오늘은 건강해요! 😀',
                         style: TextStyle(color: getStatusColor(isFever)),
                       ),
                     ],
@@ -110,14 +113,12 @@ class MainInfoCard extends StatelessWidget {
                   children: [
                     const TextSpan(text: '체온 : '),
                     TextSpan(
-                      text:
-                          bodyTemperature != null
-                              ? '$bodyTemperature℃'
-                              : '데이터 없음',
-                      style:
-                          bodyTemperature != null
-                              ? TextStyle(color: getStatusColor(isFever))
-                              : TextStyle(color: Colors.grey),
+                      text: bodyTemperature != null
+                          ? '$bodyTemperature℃'
+                          : '데이터 없음',
+                      style: bodyTemperature != null
+                          ? TextStyle(color: getStatusColor(isFever))
+                          : TextStyle(color: Colors.grey),
                     ),
                   ],
                 ),
@@ -129,14 +130,12 @@ class MainInfoCard extends StatelessWidget {
                   children: [
                     const TextSpan(text: '기온 : '),
                     TextSpan(
-                      text:
-                          airTemperature != null
-                              ? '$airTemperature℃'
-                              : '데이터 없음',
-                      style:
-                          airTemperature != null
-                              ? TextStyle(color: getStatusColor(isFever))
-                              : TextStyle(color: Colors.grey),
+                      text: airTemperature != null
+                          ? '$airTemperature℃'
+                          : '데이터 없음',
+                      style: airTemperature != null
+                          ? TextStyle(color: getStatusColor(isFever))
+                          : TextStyle(color: Colors.grey),
                     ),
                   ],
                 ),
@@ -150,14 +149,13 @@ class MainInfoCard extends StatelessWidget {
 
                     TextSpan(
                       text: humidity != null ? '$humidity%' : '데이터 없음',
-                      style:
-                          humidity != null
-                              ? TextStyle(
-                                color: getStatusColor(
-                                  isFever || isUncomfortableHumidity,
-                                ),
-                              )
-                              : TextStyle(color: Colors.grey),
+                      style: humidity != null
+                          ? TextStyle(
+                              color: getStatusColor(
+                                isFever || isUncomfortableHumidity,
+                              ),
+                            )
+                          : TextStyle(color: Colors.grey),
                     ),
                   ],
                 ),
