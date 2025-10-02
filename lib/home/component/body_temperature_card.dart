@@ -79,7 +79,7 @@ class BodyTemperatureCard extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () {
               Navigator.push(
                 context,
@@ -89,18 +89,19 @@ class BodyTemperatureCard extends StatelessWidget {
               );
             },
             style: ElevatedButton.styleFrom(
-              minimumSize: Size(double.infinity, 26),
+              minimumSize: Size(double.infinity, 40),
               backgroundColor: getStatusColor(
                 bodyTemperature != null && bodyTemperature! >= feverThreshold,
               ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              elevation: 5,
+              foregroundColor: Colors.white,
             ),
             child: Text(
               '체온 그래프',
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
         ],
