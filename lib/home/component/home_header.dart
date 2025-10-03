@@ -53,15 +53,15 @@ class _HomeHeaderState extends State<HomeHeader> {
             children: [
               CircleAvatar(
                 radius: 16,
-                backgroundImage: baby.profileImage != null
+                backgroundImage:
+                    (baby.profileImage != null && baby.profileImage!.isNotEmpty)
                     ? NetworkImage(baby.profileImage!)
                     : null,
-                child: baby.profileImage == null
-                    // 아이콘
+                child: (baby.profileImage == null || baby.profileImage!.isEmpty)
                     ? const Icon(
                         Icons.account_circle,
                         color: Colors.grey,
-                        size: 40,
+                        size: 32,
                       )
                     : null,
               ),
