@@ -14,6 +14,7 @@ import 'package:team_project_front/home/model/fever_record_data.dart';
 import 'package:team_project_front/home/model/room_condition.dart';
 import 'package:team_project_front/util/date_convert.dart';
 import 'package:team_project_front/home/provider/selected_baby_provider.dart';
+import 'dart:io' show Platform;
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -22,7 +23,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  final double feverThreshold = 37.5;
+  final double feverThreshold = 38;
 
   Color getStatusColor(bool condition) =>
       condition ? HIGH_FEVER_COLOR : MAIN_COLOR;
@@ -41,6 +42,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _requestNotificationPermission() async {
+    final deviceType = Platform.isIOS ? "IOS" : "ANDROID";
     // 포그라운드 표시 옵션(iOS)
     await FirebaseMessaging.instance
         .setForegroundNotificationPresentationOptions(
@@ -49,9 +51,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           sound: true,
         );
 
-    // 토큰 확인(테스트용)
-    final token = await FirebaseMessaging.instance.getToken();
-    print('FCM token: $token');
+    try {
+      // FCM 토큰 가져오기
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token != null) {
+        // 서버에 전송
+        final dio = buildAuthedDio();
+        await dio.post(
+          '/fcm-token',
+          data: {"token": token, "deviceType": deviceType},
+        );
+        print('✅ FCM 토큰 서버 등록 완료');
+      }
+    } catch (e) {
+      print('❌ FCM 토큰 전송 실패: $e');
+    }
 
     FirebaseMessaging.onMessage.listen((message) {
       print('onMessage: ${message.notification?.title}');
@@ -181,6 +195,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isHuman = feverRecordData?.state ?? IsHuman.human;
     if (isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -205,6 +220,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         : '없음';
 
     final isFever = (slicedFever != null && slicedFever >= feverThreshold);
+
     final isUncomfortableHumidity =
         (slicedHumidity != null) &&
         (slicedHumidity < 40 || slicedHumidity > 60);
@@ -266,6 +282,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       getStatusColor: getStatusColor,
                       isFever: isFever,
                       isUncomfortableHumidity: isUncomfortableHumidity,
+                      isHuman: isHuman,
                     ),
                     const SizedBox(height: 16),
                     Row(
@@ -280,6 +297,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 getStatusColor: getStatusColor,
                                 isFever: isFever,
                                 feverRecordAgoText: feverRecordAgoText,
+                                isHuman: isHuman,
                               ),
                               const SizedBox(height: 16),
                               FeverReportCard(

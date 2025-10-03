@@ -49,7 +49,7 @@ class EnvironmentCard extends StatelessWidget {
         (bodyTemperature != null) && (bodyTemperature! >= feverThreshold);
 
     return Container(
-      height: 290,
+      height: 300,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         border: Border.all(color: INPUT_BORDER_COLOR),
@@ -102,38 +102,39 @@ class EnvironmentCard extends StatelessWidget {
           Text(
             comfortStatus,
             style: TextStyle(
-              color:
-                  (isAbnormalHumidity || isFeverNow)
-                      ? HIGH_FEVER_COLOR
-                      : MAIN_COLOR,
+              color: (isAbnormalHumidity || isFeverNow)
+                  ? HIGH_FEVER_COLOR
+                  : MAIN_COLOR,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
           ),
-          TextButton(
+
+          ElevatedButton(
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder:
-                      (context) => const RoomTemperatureHumidityGraphScreen(),
+                  builder: (context) =>
+                      const RoomTemperatureHumidityGraphScreen(),
                 ),
               );
             },
-            style: TextButton.styleFrom(
-              minimumSize: const Size(double.infinity, 26),
-              backgroundColor:
-                  (isAbnormalHumidity || isFeverNow)
-                      ? HIGH_FEVER_COLOR
-                      : MAIN_COLOR,
+
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 40),
+              backgroundColor: (isAbnormalHumidity || isFeverNow)
+                  ? HIGH_FEVER_COLOR
+                  : MAIN_COLOR,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              elevation: 5,
+              foregroundColor: Colors.white,
             ),
             child: const Text(
               '온습도 그래프',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
             ),
           ),
         ],

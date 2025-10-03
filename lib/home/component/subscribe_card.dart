@@ -17,23 +17,25 @@ class SubscribeCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TextButton(
+          ElevatedButton(
             onPressed: () {
-              Navigator.of(context).push(
+              Navigator.push(
+                context,
                 MaterialPageRoute(builder: (context) => SubscribeScreen()),
               );
             },
             style: ElevatedButton.styleFrom(
-              minimumSize: Size(double.infinity, 20),
+              minimumSize: Size(double.infinity, 40),
               backgroundColor: Color(0xFFFBBC05),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              elevation: 5,
+              foregroundColor: Colors.white,
             ),
             child: Text(
               '프리미엄 구독',
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
 

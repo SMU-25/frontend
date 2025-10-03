@@ -15,7 +15,7 @@ class FeverReportCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 229,
+      height: 240,
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         border: Border.all(color: INPUT_BORDER_COLOR),
@@ -32,21 +32,23 @@ class FeverReportCard extends StatelessWidget {
           SizedBox(height: 8),
           Text('복잡한 발열 기록?\n걱정 마세요!\n\n리포트 한 장이면 병원에서도 OK!'),
           SizedBox(height: 12),
-          TextButton(
+
+          ElevatedButton(
             onPressed: () {
               Navigator.of(context).pushNamed('/report');
             },
             style: ElevatedButton.styleFrom(
+              minimumSize: Size(double.infinity, 40),
               backgroundColor: MAIN_COLOR,
-              minimumSize: Size(double.infinity, 36),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              elevation: 5,
+              foregroundColor: Colors.white,
             ),
             child: Text(
               '리포트 생성',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 17,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
         ],

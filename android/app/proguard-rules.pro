@@ -26,6 +26,9 @@ public *;
 -keep class com.example.**.model.** { *; }
 -keep class your.package.name.** { *; }
 
+# Kakao Map SDK 내부 클래스 보존
+-keep class com.kakao.** { *; }
+-dontwarn com.kakao.**
 
 # DateTime 직렬화 관련
 -keep class java.time.** { *; }
