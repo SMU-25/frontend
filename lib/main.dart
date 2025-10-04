@@ -3,7 +3,6 @@ import 'package:kakao_flutter_sdk/kakao_flutter_sdk_template.dart';
 import 'package:team_project_front/common/view/root_tab.dart';
 import 'package:team_project_front/init/view/init.dart';
 import 'package:team_project_front/login/view/login.dart';
-import 'package:team_project_front/report/view/report.dart';
 import 'package:team_project_front/signup/view/signup_agreement.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -73,7 +72,6 @@ class _App extends StatelessWidget {
         '/home': (context) => RootTab(),
         '/login': (context) => LoginScreen(),
         '/signup': (context) => SignupAgreementScreen(),
-        '/report': (context) => Report(),
       },
     );
   }

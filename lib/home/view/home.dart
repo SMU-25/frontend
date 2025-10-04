@@ -107,7 +107,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final res = await dio.get('/children');
     if (res.statusCode == 200) {
       final list = res.data['result'] as List<dynamic>;
-      return list.map((m) => Baby.fromJson(m as Map<String, dynamic>)).toList();
+      return list.map((m) {
+        final map = m as Map<String, dynamic>;
+        return Baby.forList(
+          childId: map['childId'] as int,
+          name: map['name'] as String,
+          profileImage: map['profileImage'] as String? ?? '',
+        );
+      }).toList();
     }
     return [];
   }
@@ -119,7 +126,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       if (res.statusCode == 200) {
         final m = res.data['result'] as Map<String, dynamic>?;
         if (m == null) return null;
-        return Baby.fromJson(m);
+        return Baby.fromJson(m).copyWith(childId: childId);
       }
       return null;
     } catch (_) {
@@ -127,18 +134,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
+  // _bootstrap() 함수 수정
+
   Future<void> _bootstrap() async {
     setState(() => isLoading = true);
 
     final loadedBabies = await fetchBabiesData();
+
     if (!mounted) return;
 
     if (loadedBabies.isEmpty) {
       setState(() {
         babies = [];
         selectedBaby = null;
-        roomConditionData = null;
-        feverRecordData = null;
         isLoading = false;
       });
       return;
@@ -157,16 +165,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final room = await fetchRoomConditionData(initial.childId!);
     if (!mounted) return;
 
+    final finalBaby = babyDetail ?? initial;
+    ref.read(selectedBabyIdProvider.notifier).set(finalBaby.childId);
+
     setState(() {
       babies = loadedBabies;
-      selectedBaby = babyDetail ?? initial;
+      selectedBaby = finalBaby;
       feverRecordData = fever;
       roomConditionData = room;
       isLoading = false;
     });
-
-    // 최초 진입 시 전역 상태 세팅
-    ref.read(selectedBabyIdProvider.notifier).set(selectedBaby!.childId);
   }
 
   Future<void> _onBabySelected(Baby baby) async {
@@ -177,7 +185,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     });
 
     // 전역 상태 업데이트 (세션 유지)
-    ref.read(selectedBabyIdProvider.notifier).set(baby.childId);
 
     final id = baby.childId!;
     final babyDetail = await fetchBabyData(id);
@@ -191,6 +198,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       roomConditionData = room;
       isLoading = false;
     });
+    ref.read(selectedBabyIdProvider.notifier).set(baby.childId);
   }
 
   @override
@@ -241,7 +249,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ? '춥고 건조해요'
               : '건조해요')
         : (slicedAirTemperature <= 22 ? '추워요' : '쾌적해요 ☺️');
-
+    final currentChildId = ref.watch(selectedBabyIdProvider);
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 0,
@@ -303,6 +311,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               FeverReportCard(
                                 getStatusColor: getStatusColor,
                                 isFever: isFever,
+                                childId: currentChildId!,
                               ),
                             ],
                           ),

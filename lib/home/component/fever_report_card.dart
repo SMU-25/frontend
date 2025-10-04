@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:team_project_front/common/const/colors.dart';
+import 'package:team_project_front/report/view/report.dart';
 
 class FeverReportCard extends StatelessWidget {
   const FeverReportCard({
     super.key,
     required this.getStatusColor,
     required this.isFever,
+    required this.childId,
   });
 
   final bool isFever;
-
+  final int childId;
   final Color Function(bool) getStatusColor;
 
   @override
@@ -35,7 +37,10 @@ class FeverReportCard extends StatelessWidget {
 
           ElevatedButton(
             onPressed: () {
-              Navigator.of(context).pushNamed('/report');
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => Report(childId: childId)),
+              );
             },
             style: ElevatedButton.styleFrom(
               minimumSize: Size(double.infinity, 40),
