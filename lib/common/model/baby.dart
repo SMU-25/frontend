@@ -49,6 +49,13 @@ class Baby {
 
   factory Baby.fromJson(Map<String, dynamic> json) => _$BabyFromJson(json);
   Map<String, dynamic> toJson() => _$BabyToJson(this);
+
+  @override
+  String toString() {
+    return 'Baby(childId: $childId, name: $name, birthDate: $birthDate, '
+        'height: $height, weight: $weight, gender: $gender, seizure: $seizure, '
+        'profileImage: $profileImage, illnessTypes: $illnessTypes)';
+  }
 }
 
 DateTime? _fromJsonBirthDate(String? date) {
@@ -62,3 +69,29 @@ DateTime? _fromJsonBirthDate(String? date) {
 
 String? _toJsonBirthDate(DateTime? date) =>
     date?.toIso8601String().split('T').first;
+
+extension BabyCopyWith on Baby {
+  Baby copyWith({
+    int? childId,
+    String? name,
+    DateTime? birthDate,
+    double? height,
+    double? weight,
+    BabyGender? gender,
+    String? seizure,
+    String? profileImage,
+    List<String>? illnessTypes,
+  }) {
+    return Baby(
+      childId: childId ?? this.childId,
+      name: name ?? this.name,
+      birthDate: birthDate ?? this.birthDate,
+      height: height ?? this.height,
+      weight: weight ?? this.weight,
+      gender: gender ?? this.gender,
+      seizure: seizure ?? this.seizure,
+      profileImage: profileImage ?? this.profileImage,
+      illnessTypes: illnessTypes ?? this.illnessTypes,
+    );
+  }
+}
