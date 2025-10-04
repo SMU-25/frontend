@@ -15,7 +15,7 @@ class ResultReport extends StatefulWidget {
   final ReportInfo report;
   final List<String> allSymptoms;
   final bool showBackButton;
-  
+
   const ResultReport({
     required this.reportId,
     required this.report,
@@ -61,19 +61,15 @@ class _ResultReportState extends State<ResultReport> {
     try {
       final response = await Dio().get(
         '$base_URL/reports/${widget.reportId}',
-        options: Options(
-          headers: {
-            'Authorization': accessToken,
-          },
-        ),
+        options: Options(headers: {'Authorization': accessToken}),
       );
 
-      if(response.statusCode == 200 && response.data['isSuccess']) {
+      if (response.statusCode == 200 && response.data['isSuccess']) {
         return ReportInfo.fromJson(response.data['result']);
       } else {
         throw Exception('리포트 불러오기 실패');
       }
-    } catch(e) {
+    } catch (e) {
       print('예외 발생!');
       print('$e');
       rethrow;
@@ -83,9 +79,7 @@ class _ResultReportState extends State<ResultReport> {
   @override
   Widget build(BuildContext context) {
     if (accessToken == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
@@ -99,11 +93,11 @@ class _ResultReportState extends State<ResultReport> {
       body: FutureBuilder<ReportInfo>(
         future: reportFuture,
         builder: (context, snapshot) {
-          if(snapshot.connectionState == ConnectionState.waiting) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
-          } else if(snapshot.hasError) {
+          } else if (snapshot.hasError) {
             return Center(child: Text('에러: ${snapshot.error}'));
-          } else if(!snapshot.hasData) {
+          } else if (!snapshot.hasData) {
             return Center(child: Text('리포트를 불러올 수 없습니다.'));
           }
 
@@ -121,7 +115,9 @@ class _ResultReportState extends State<ResultReport> {
                 ),
                 const SizedBox(height: 15),
                 _ChildSymptomsWidget(
-                  selectedSymptoms: selectedSymptoms.map((symptom) => symptom.replaceAll('_', ' ')).toSet(),
+                  selectedSymptoms: selectedSymptoms
+                      .map((symptom) => symptom.replaceAll('_', ' '))
+                      .toSet(),
                   allSymptoms: widget.allSymptoms,
                 ),
                 const SizedBox(height: 20),
@@ -165,19 +161,21 @@ class _ResultReportState extends State<ResultReport> {
               ],
             ),
           );
-        }
+        },
       ),
       bottomNavigationBar: Padding(
         padding: EdgeInsets.fromLTRB(16, 0, 16, 24),
         child: NavigationButton(
           text: '완료',
           onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => Report()),
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (_) => Report(childId: widget.report.childId),
+              ),
             );
           },
         ),
-      )
+      ),
     );
   }
 }
@@ -198,10 +196,7 @@ class _ChildSymptomsWidget extends StatelessWidget {
       children: [
         Text(
           '아이의 증상',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w900,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
         ),
         SizedBox(height: 10),
         Wrap(
@@ -211,13 +206,12 @@ class _ChildSymptomsWidget extends StatelessWidget {
             return Chip(
               avatar: Image.asset(
                 'asset/img/symptoms/${allSymptoms.indexOf(symptom)}.png',
-                width: 24, height: 24,
+                width: 24,
+                height: 24,
               ),
               label: Text(symptom),
               backgroundColor: MAIN_COLOR.withValues(alpha: 0.18),
-              shape: StadiumBorder(
-                side: BorderSide(color: MAIN_COLOR),
-              ),
+              shape: StadiumBorder(side: BorderSide(color: MAIN_COLOR)),
             );
           }).toList(),
         ),
@@ -229,9 +223,7 @@ class _ChildSymptomsWidget extends StatelessWidget {
 class _EtcSymptomsWidget extends StatelessWidget {
   final String etcSymptom;
 
-  const _EtcSymptomsWidget({
-    required this.etcSymptom,
-  });
+  const _EtcSymptomsWidget({required this.etcSymptom});
 
   @override
   Widget build(BuildContext context) {
@@ -266,9 +258,7 @@ class _EtcSymptomsWidget extends StatelessWidget {
 class _DiagnosisWidget extends StatelessWidget {
   final List<String> illnesses;
 
-  const _DiagnosisWidget({
-    required this.illnesses,
-  });
+  const _DiagnosisWidget({required this.illnesses});
 
   @override
   Widget build(BuildContext context) {
@@ -287,9 +277,7 @@ class _DiagnosisWidget extends StatelessWidget {
               label: Text(illness),
               labelStyle: TextStyle(fontWeight: FontWeight.w900),
               backgroundColor: MAIN_COLOR.withValues(alpha: 0.18),
-              shape: StadiumBorder(
-                side: BorderSide(color: MAIN_COLOR),
-              ),
+              shape: StadiumBorder(side: BorderSide(color: MAIN_COLOR)),
             );
           }).toList(),
         ),
@@ -301,9 +289,7 @@ class _DiagnosisWidget extends StatelessWidget {
 class _SupplementaryExplanationWidget extends StatelessWidget {
   final String special;
 
-  const _SupplementaryExplanationWidget({
-    required this.special,
-  });
+  const _SupplementaryExplanationWidget({required this.special});
 
   @override
   Widget build(BuildContext context) {
@@ -317,11 +303,8 @@ class _SupplementaryExplanationWidget extends StatelessWidget {
             children: [
               TextSpan(
                 text: '(AI가 설명한 내용입니다.)',
-                style: TextStyle(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 13,
-                ),
-              )
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
+              ),
             ],
           ),
         ),
@@ -330,13 +313,14 @@ class _SupplementaryExplanationWidget extends StatelessWidget {
           width: double.infinity,
           padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
-            border: Border.all(color: MAIN_COLOR.withValues(alpha: 0.5), width: 4),
+            border: Border.all(
+              color: MAIN_COLOR.withValues(alpha: 0.5),
+              width: 4,
+            ),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Text(
-            special.trim().isNotEmpty
-                ? special.trim()
-                : '보충 설명이 없습니다.',
+            special.trim().isNotEmpty ? special.trim() : '보충 설명이 없습니다.',
             style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
           ),
         ),

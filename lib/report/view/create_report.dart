@@ -6,7 +6,8 @@ import 'package:team_project_front/report/view/symptom_summary_dialog.dart';
 import 'package:team_project_front/settings/component/custom_appbar.dart';
 
 class CreateReport extends StatefulWidget {
-  const CreateReport({super.key});
+  final int childId;
+  const CreateReport({super.key, required this.childId});
 
   @override
   State<CreateReport> createState() => _CreateReportState();
@@ -19,31 +20,48 @@ class _CreateReportState extends State<CreateReport> {
   final TextEditingController outingController = TextEditingController();
 
   final List<String> allSymptoms = [
-    '발열', '구토', '경련', '코피', '설사',
-    '피부 발진', '실신', '호흡 곤란', '기침', '콧물', '황달'
+    '발열',
+    '구토',
+    '경련',
+    '코피',
+    '설사',
+    '피부 발진',
+    '실신',
+    '호흡 곤란',
+    '기침',
+    '콧물',
+    '황달',
   ];
 
   final List<String> frequentSymptoms = [
-    '발열', '구토', '경련', '코피', '설사',
-    '피부 발진', '호흡 곤란', '기침', '콧물'
+    '발열',
+    '구토',
+    '경련',
+    '코피',
+    '설사',
+    '피부 발진',
+    '호흡 곤란',
+    '기침',
+    '콧물',
   ];
 
   final Set<String> selectedSymptoms = {};
 
   bool get isFormValid {
     return selectedSymptoms.isNotEmpty ||
-      etcController.text.trim().isNotEmpty ||
-      outingController.text.trim().isNotEmpty;
+        etcController.text.trim().isNotEmpty ||
+        outingController.text.trim().isNotEmpty;
   }
 
   void onNextPressed() {
     showDialog(
       context: context,
       builder: (context) => SymptomSummaryDialog(
+        childId: widget.childId,
         selectedSymptoms: selectedSymptoms,
         etcSymptom: etcController.text,
         outingRecord: outingController.text,
-        allSymptoms: allSymptoms
+        allSymptoms: allSymptoms,
       ),
     );
   }
@@ -53,9 +71,7 @@ class _CreateReportState extends State<CreateReport> {
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(90),
-        child: CustomAppbar(
-          title: '리포트 생성',
-        ),
+        child: CustomAppbar(title: '리포트 생성'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
@@ -67,7 +83,8 @@ class _CreateReportState extends State<CreateReport> {
             children: [
               Text(
                 '아이의 현재 증상을 선택해주세요',
-                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+              ),
               SizedBox(height: 20),
               FrequentSymptomsWidget(
                 symptoms: frequentSymptoms,
@@ -99,7 +116,7 @@ class _CreateReportState extends State<CreateReport> {
               SizedBox(height: 20),
               Text(
                 '기타 증상',
-                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
               ),
               SizedBox(height: 15),
               CustomTextFormField(
@@ -111,17 +128,21 @@ class _CreateReportState extends State<CreateReport> {
                 children: [
                   Text(
                     '외출 기록',
-                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
                   ),
                   SizedBox(width: 5),
                   Text(
                     '최근 발열',
-                    style: TextStyle(color: HIGH_FEVER_COLOR, fontWeight: FontWeight.w700, fontSize: 12),
+                    style: TextStyle(
+                      color: HIGH_FEVER_COLOR,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                    ),
                   ),
                   Text(
                     '(2025/04/09 14:22)',
                     style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
-                  )
+                  ),
                 ],
               ),
               SizedBox(height: 15),
@@ -132,7 +153,7 @@ class _CreateReportState extends State<CreateReport> {
               SizedBox(height: 10),
               Text(
                 'ex) 2025년 4월 9일 오후 1시~3시 잠실 호수 공원',
-                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
               ),
               SizedBox(height: 20),
             ],

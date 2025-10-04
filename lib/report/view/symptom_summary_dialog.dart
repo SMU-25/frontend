@@ -11,6 +11,7 @@ class SymptomSummaryDialog extends StatelessWidget {
   final String etcSymptom;
   final String outingRecord;
   final List<String> allSymptoms;
+  final int childId;
 
   const SymptomSummaryDialog({
     super.key,
@@ -18,14 +19,13 @@ class SymptomSummaryDialog extends StatelessWidget {
     required this.etcSymptom,
     required this.outingRecord,
     required this.allSymptoms,
+    required this.childId,
   });
 
   void _navigateToResultReport(BuildContext context) async {
     try {
       final report = await createReport(
-        // 홈화면에서 아이 선택 후 리포트 생성할 것이므로
-        // childId는 현재 임의로 설정
-        childId: 15,
+        childId: childId,
         symptoms: selectedSymptoms.toList(),
         etcSymptom: etcSymptom,
         outingRecord: outingRecord,
@@ -33,7 +33,7 @@ class SymptomSummaryDialog extends StatelessWidget {
 
       if (report == null) return;
 
-      Navigator.of(context).push(
+      Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (_) => ResultReport(
             reportId: report.reportId,
@@ -148,7 +148,7 @@ Future<ReportInfo?> createReport({
   }
 
   final result = response.data['result'];
-  // day1 등이 외부라이브러리라 serializable 적용에 어려움이 있음 추후에 수정할 것
+
   return ReportInfo(
     reportId: result['reportId'],
     childId: childId,

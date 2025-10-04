@@ -12,12 +12,9 @@ import 'package:team_project_front/report/view/result_report.dart';
 import 'package:team_project_front/settings/component/custom_appbar.dart';
 
 class Report extends StatefulWidget {
-  // final int childId;
+  final int childId;
 
-  const Report({
-    // required this.childId,
-    super.key,
-  });
+  const Report({required this.childId, super.key});
 
   @override
   State<Report> createState() => _ReportState();
@@ -48,16 +45,10 @@ class _ReportState extends State<Report> {
 
   String? accessToken;
 
-  // 홈화면에서 아이 선택 후 리포트 생성할 것이므로
-  // childId는 현재 임의로 설정
-  late final int childId = 15;
-
   @override
   void initState() {
     super.initState();
     initialize();
-
-    // childId = widget.childId; => 홈화면과 연결 시 주석 없앨 예정
 
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
@@ -89,7 +80,7 @@ class _ReportState extends State<Report> {
     setState(() => isLoading = true);
 
     final response = await fetchReportList(
-      childId: childId,
+      childId: widget.childId,
       cursor: cursor,
       size: pageSize,
       accessToken: accessToken!,
@@ -146,9 +137,11 @@ class _ReportState extends State<Report> {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (_) => CreateReport()));
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => CreateReport(childId: widget.childId),
+            ),
+          );
         },
         elevation: 0,
         backgroundColor: Colors.white,
@@ -287,7 +280,18 @@ Future<PaginatedReportResponse> fetchReportList({
     final List reportList = result['feverReports'];
 
     final reports = reportList.map((e) {
-      return ReportInfo.fromJson(e);
+      return ReportInfo(
+        reportId: e['reportId'],
+        childId: childId,
+        createdAt: DateTime.parse(e['createdAt']),
+        symptoms: List<String>.from(
+          (e['symptoms'] as List).map((s) => s.replaceAll('_', ' ')),
+        ),
+        etcSymptom: e['etc_symptom'] ?? '',
+        outingRecord: e['outing'] ?? '',
+        illnesses: List<String>.from(e['illnesses'] ?? []),
+        special: e['special'] ?? '',
+      );
     }).toList();
 
     return PaginatedReportResponse(
