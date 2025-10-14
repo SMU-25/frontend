@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:team_project_front/core/const/colors.dart';
 import 'package:team_project_front/core/model/baby.dart';
-import 'package:team_project_front/features/home/model/fever_record_data.dart';
+import 'package:team_project_front/features/home/data/models/fever_record_data.dart';
 
 class MainInfoCard extends StatelessWidget {
   const MainInfoCard({

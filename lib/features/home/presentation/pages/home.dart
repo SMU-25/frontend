@@ -3,17 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:team_project_front/core/const/colors.dart';
 import 'package:team_project_front/core/network/dio_client.dart';
-import 'package:team_project_front/features/home/component/body_temperature_card.dart';
-import 'package:team_project_front/features/home/component/environment_card.dart';
-import 'package:team_project_front/features/home/component/fever_report_card.dart';
-import 'package:team_project_front/features/home/component/home_header.dart';
-import 'package:team_project_front/features/home/component/main_info_card.dart';
-import 'package:team_project_front/features/home/component/subscribe_card.dart';
+import 'package:team_project_front/features/home/presentation/widgets/body_temperature_card.dart';
+import 'package:team_project_front/features/home/presentation/widgets/environment_card.dart';
+import 'package:team_project_front/features/home/presentation/widgets/fever_report_card.dart';
+import 'package:team_project_front/features/home/presentation/widgets/home_header.dart';
+import 'package:team_project_front/features/home/presentation/widgets/main_info_card.dart';
+import 'package:team_project_front/features/home/presentation/widgets/subscribe_card.dart';
 import 'package:team_project_front/core/model/baby.dart';
-import 'package:team_project_front/features/home/model/fever_record_data.dart';
-import 'package:team_project_front/features/home/model/room_condition.dart';
+import 'package:team_project_front/features/home/data/models/fever_record_data.dart';
+import 'package:team_project_front/features/home/data/models/room_condition.dart';
 import 'package:team_project_front/util/date_convert.dart';
-import 'package:team_project_front/features/home/provider/selected_baby_provider.dart';
+import 'package:team_project_front/features/home/presentation/providers/selected_baby_provider.dart';
 import 'dart:io' show Platform;
 
 class HomeScreen extends ConsumerStatefulWidget {

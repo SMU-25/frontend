@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:team_project_front/core/const/colors.dart';
-import 'package:team_project_front/features/home/model/fever_record_data.dart';
-import 'package:team_project_front/features/home/view/body_temperature_graph.dart';
+import 'package:team_project_front/features/home/data/models/fever_record_data.dart';
+import 'package:team_project_front/features/home/presentation/pages/body_temperature_graph.dart';
 
 class BodyTemperatureCard extends StatelessWidget {
   // 최근 시간

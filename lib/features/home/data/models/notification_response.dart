@@ -1,4 +1,4 @@
-import 'package:team_project_front/features/home/model/notification.dart';
+import 'package:team_project_front/features/home/data/models/notification.dart';
 
 import 'package:json_annotation/json_annotation.dart';
 

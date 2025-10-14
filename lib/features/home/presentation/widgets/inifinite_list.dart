@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:team_project_front/features/home/model/page_result.dart';
+import 'package:team_project_front/features/home/data/models/page_result.dart';
 
 class InfiniteList<T, K> extends StatefulWidget {
   const InfiniteList({

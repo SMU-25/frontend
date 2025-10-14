@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:team_project_front/features/calendar/view/calendar_screen.dart';
 import 'package:team_project_front/core/component/custom_appbar_root_tab.dart';
 import 'package:team_project_front/core/component/custom_navigation_bar.dart';
-import 'package:team_project_front/features/home/view/home.dart';
+import 'package:team_project_front/features/home/presentation/pages/home.dart';
 import 'package:team_project_front/features/homecam/view/home_cam_list.dart';
 import 'package:team_project_front/features/map/view/map_screen.dart';
 import 'package:team_project_front/features/mypage/view/my_screen.dart';

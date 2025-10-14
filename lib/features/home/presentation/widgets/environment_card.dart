@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:team_project_front/core/const/colors.dart';
-import 'package:team_project_front/features/home/view/room_teperature_humidity_graph.dart';
+import 'package:team_project_front/features/home/presentation/pages/room_teperature_humidity_graph.dart';
 
 class EnvironmentCard extends StatelessWidget {
   const EnvironmentCard({

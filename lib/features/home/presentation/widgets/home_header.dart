@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:team_project_front/core/model/baby.dart';
-import 'package:team_project_front/features/home/view/alert.dart';
+import 'package:team_project_front/features/home/presentation/pages/alert.dart';
 
 class HomeHeader extends StatefulWidget {
   const HomeHeader({

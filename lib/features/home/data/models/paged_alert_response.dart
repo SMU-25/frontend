@@ -1,4 +1,4 @@
-import 'package:team_project_front/features/home/model/alert.dart';
+import 'package:team_project_front/features/home/data/models/alert.dart';
 
 class PagedAlertResponse {
   final int totalElements;
