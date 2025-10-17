@@ -1,19 +1,16 @@
 // alert.dart
 import 'package:json_annotation/json_annotation.dart';
+import 'package:team_project_front/features/home/domain/entities/alert_entity.dart';
 
 part 'alert.g.dart';
-
-enum AlertType { notice, event }
 
 @JsonSerializable()
 class Alert {
   final int id;
-
   // 서버는 대문자 NOTICE/EVENT → Dart enum으로 파싱
   // Dart → 서버 전송 시에도 대문자로 직렬화
   @JsonKey(fromJson: _alertTypeFromJson, toJson: _alertTypeToJson)
   final AlertType type;
-
   final String title;
   final String content;
   final bool pinned;
@@ -37,6 +34,17 @@ class Alert {
 
   /// Alert → JSON
   Map<String, dynamic> toJson() => _$AlertToJson(this);
+
+  AlertEntity toEntity() => AlertEntity(
+    id: id,
+    type: type,
+    title: title,
+    content: content,
+    pinned: pinned,
+    createdBy: createdBy,
+    createdAt: createdAt,
+    updatedAt: updatedAt,
+  );
 }
 
 /// 대문자 문자열 → enum
