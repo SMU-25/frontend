@@ -1,14 +1,32 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:team_project_front/features/home/data/datasources/alert_data_source.dart';
-import 'package:team_project_front/features/home/data/models/notification.dart';
+import 'package:team_project_front/features/home/data/repositories/alert_repository_impl.dart';
+import 'package:team_project_front/features/home/domain/entities/notification_entiry.dart';
+import 'package:team_project_front/features/home/domain/repositories/alert_repository.dart';
+import 'package:team_project_front/features/home/domain/usecase/alert_usecase.dart';
+
+// 의존성 주입
+final alertDataSourceProvider = Provider<AlertDataSource>((ref) {
+  return AlertDataSource();
+});
+
+final alertRepositoryProvider = Provider<AlertRepository>((ref) {
+  final dataSource = ref.watch(alertDataSourceProvider);
+  return AlertRepositoryImpl(dataSource);
+});
+
+final alertUsecaseProvider = Provider<AlertUsecase>((ref) {
+  final repo = ref.watch(alertRepositoryProvider);
+  return AlertUsecase(repo);
+});
 
 final alertNotifierProvider =
-    AsyncNotifierProvider<AlertNotifier, List<NotificationItem>>(
+    AsyncNotifierProvider<AlertNotifier, List<NotificationItemEntity>>(
       AlertNotifier.new,
     );
 
-class AlertNotifier extends AsyncNotifier<List<NotificationItem>> {
-  late final AlertDataSource _dataSource;
+class AlertNotifier extends AsyncNotifier<List<NotificationItemEntity>> {
+  late final AlertUsecase _usecase;
 
   // 페이지네이션 상태 저장용
   int? _nextCursor;
@@ -16,16 +34,17 @@ class AlertNotifier extends AsyncNotifier<List<NotificationItem>> {
   bool _isLoadingMore = false;
 
   @override
-  Future<List<NotificationItem>> build() async {
-    _dataSource = AlertDataSource();
+  Future<List<NotificationItemEntity>> build() async {
+    _usecase = ref.read(alertUsecaseProvider);
     return _fetchInitial();
   }
 
   // 첫 페이지 불러오기
-  Future<List<NotificationItem>> _fetchInitial() async {
+  /// - build()에서 return하면 자동으로 AsyncData(...)로 감싸서 state에 반영된다.
+  Future<List<NotificationItemEntity>> _fetchInitial() async {
     state = const AsyncLoading();
     try {
-      final res = await _dataSource.fetchNotifications(null);
+      final res = await _usecase.getNotifications(cursor: null);
       _nextCursor = res.nextKey;
       _hasNext = res.hasNext;
       return res.items;
@@ -38,7 +57,7 @@ class AlertNotifier extends AsyncNotifier<List<NotificationItem>> {
   // 새로고침 (1페이지부터 다시)
   Future<void> refresh() async {
     state = const AsyncLoading();
-    final res = await _dataSource.fetchNotifications(null);
+    final res = await _usecase.getNotifications(cursor: null);
     _nextCursor = res.nextKey;
     _hasNext = res.hasNext;
     state = AsyncData(res.items);
@@ -55,7 +74,7 @@ class AlertNotifier extends AsyncNotifier<List<NotificationItem>> {
     final previous = state.value ?? [];
 
     try {
-      final res = await _dataSource.fetchNotifications(_nextCursor);
+      final res = await _usecase.getNotifications(cursor: _nextCursor);
       _nextCursor = res.nextKey;
       _hasNext = res.hasNext;
 
