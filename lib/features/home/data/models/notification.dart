@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:team_project_front/features/home/domain/entities/notification_entiry.dart';
 
 part 'notification.g.dart';
 
@@ -30,4 +31,16 @@ class NotificationItem {
       _$NotificationItemFromJson(json);
 
   Map<String, dynamic> toJson() => _$NotificationItemToJson(this);
+
+  NotificationItemEntity toEntity() => NotificationItemEntity(
+    id: notificationId,
+    type: type,
+    message: message,
+    fever: fever,
+    temperature: temperature,
+    humidity: humidity,
+    createdAt: createdAt,
+    childName: childName,
+    read: read,
+  );
 }
