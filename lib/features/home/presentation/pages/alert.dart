@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:team_project_front/core/const/colors.dart';
 import 'package:team_project_front/features/home/presentation/providers/alert_provider.dart';
+import 'package:team_project_front/features/home/presentation/providers/announcement_provider.dart';
 import 'package:team_project_front/features/home/presentation/widgets/alert/notification_tile.dart';
+import 'package:team_project_front/features/home/presentation/widgets/alert/announcement_tile.dart';
 
 class AlertScreen extends ConsumerWidget {
   const AlertScreen({super.key});
@@ -11,6 +13,10 @@ class AlertScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final alertsState = ref.watch(alertNotifierProvider);
     final notifier = ref.read(alertNotifierProvider.notifier);
+    final announcementState = ref.watch(announcementNotifierProvider);
+    final announcementNotifier = ref.read(
+      announcementNotifierProvider.notifier,
+    );
 
     return DefaultTabController(
       length: 2,
@@ -70,9 +76,63 @@ class AlertScreen extends ConsumerWidget {
                     ),
                     loading: () =>
                         const Center(child: CircularProgressIndicator()),
-                    error: (e, _) => Center(child: Text('에러: $e')),
+                    error: (e, st) {
+                      debugPrint('에러: $e\n$st');
+                      return const Center(child: Text('에러가 발생했어요 🥲'));
+                    },
                   ),
-                  const Center(child: Text('공지 / 이벤트 탭')),
+                  announcementState.when(
+                    data: (items) => RefreshIndicator(
+                      onRefresh: () => announcementNotifier.refresh(),
+                      child: ListView.builder(
+                        itemCount: items.length,
+                        itemBuilder: (_, i) {
+                          final alert = items[i];
+                          return Dismissible(
+                            key: ValueKey('alert_${alert.id}'),
+                            direction: DismissDirection.endToStart,
+                            background: Container(
+                              color: Colors.redAccent.withValues(alpha: 0.15),
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
+                              child: const Icon(
+                                Icons.delete,
+                                color: Colors.redAccent,
+                              ),
+                            ),
+                            confirmDismiss: (_) async {
+                              final ok = await announcementNotifier
+                                  .removeAnnouncementById(alert.id);
+                              if (!ok) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('삭제 실패')),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('삭제 성공!')),
+                                );
+                              }
+                              return ok;
+                            },
+                            onDismissed: (_) async {
+                              await announcementNotifier.removeAnnouncementById(
+                                alert.id,
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('삭제 완료!')),
+                              );
+                            },
+                            child: AnnouncementTile(alert: alert),
+                          );
+                        },
+                      ),
+                    ),
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (e, st) => Center(child: Text('공지 불러오기 실패: $e')),
+                  ),
                 ],
               ),
             ),
