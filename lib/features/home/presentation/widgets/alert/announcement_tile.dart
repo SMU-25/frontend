@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:team_project_front/core/const/colors.dart';
-import 'package:team_project_front/features/home/data/models/alert.dart';
+import 'package:team_project_front/features/home/domain/entities/alert_entity.dart';
 import 'package:team_project_front/features/homecam/util/format_relative_time.dart';
 
 class AnnouncementTile extends StatelessWidget {
   const AnnouncementTile({super.key, required this.alert});
-  final Alert alert;
+  final AlertEntity alert;
 
   @override
   Widget build(BuildContext context) {

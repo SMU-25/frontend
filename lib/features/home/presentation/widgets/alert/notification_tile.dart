@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:team_project_front/core/const/colors.dart';
-import 'package:team_project_front/features/home/data/models/notification.dart';
+import 'package:team_project_front/features/home/domain/entities/notification_entiry.dart';
 import 'package:team_project_front/features/home/presentation/widgets/alert/notification_chip.dart';
 import 'package:team_project_front/features/homecam/util/format_relative_time.dart';
 
 class NotificationTile extends StatelessWidget {
   const NotificationTile({super.key, required this.item});
-  final NotificationItem item;
+  final NotificationItemEntity item;
 
   @override
   Widget build(BuildContext context) {
