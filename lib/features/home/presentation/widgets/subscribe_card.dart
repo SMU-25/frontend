@@ -8,7 +8,7 @@ class SubscribeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 155,
+      height: 156,
       padding: const EdgeInsets.all(9),
       decoration: BoxDecoration(
         border: Border.all(color: INPUT_BORDER_COLOR),
